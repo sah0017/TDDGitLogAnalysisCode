@@ -8,6 +8,7 @@ import subprocess
 import Transformations
 import codecs
 import Commit
+import File
 
 myTrans = Transformations.Trans() 
 
@@ -22,6 +23,7 @@ class GitFile(object):
         '''
         self.myCommits = []
         self.myTransformations = []
+        self.myFiles = []
 
 
     def readGitFile(self, fileName):
@@ -37,8 +39,19 @@ class GitFile(object):
                 self.myTransformations.append(myTrans.NEWFILE)
                 self.newCommit = Commit.Commit()
                 self.myCommits.append(self.newCommit)
+            if (line.find("green")) > -1:
+                self.newCommit = Commit.Commit()
+                self.myCommits.append(self.newCommit)
             if line.find("pass") > -1:
                 self.myTransformations.append(myTrans.NULL)
+            if line.find('--- /dev/null') > -1:
+                line = gitFile.readline()
+                strLine = line.rstrip()
+                if strLine.endswith(".py"):
+                    splLine = strLine.split("/")
+                    self.newFile = File.File(splLine[len(splLine)-1])
+                    self.myFiles.append(self.newFile)
+                
         gitFile.close()
 
     
@@ -47,4 +60,7 @@ class GitFile(object):
     
     def getTransformations(self):
         return self.myTransformations
+    
+    def getFiles(self):
+        return self.myFiles
     
