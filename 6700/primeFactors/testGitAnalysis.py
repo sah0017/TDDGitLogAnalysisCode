@@ -6,22 +6,21 @@ Created on Jul 10, 2014
 import unittest
 import GitFile
 import Transformations
+import Commit
 
 class Test(unittest.TestCase):
 
     def setUp(self):
         self.myTrans = Transformations.Trans()
-    '''        
-    def testGitFileInitial(self):
-        self.assertEqual(GitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\testFile1.txt"),[self.myTrans.NEWFILE])
+        self.myGitFile = GitFile.GitFile()
 
-    def testGitFileInitialAndPass(self):
-        self.assertEqual(GitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\testFile2.txt"),[self.myTrans.NEWFILE, self.myTrans.NULL])
-    '''
     def testLargeGitFile(self):
-        self.assertEqual(GitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short"),['New line', 'line removed', self.myTrans.NULL,'New line'])
+        self.assertEqual(self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short"),['New line', 'line removed', self.myTrans.NULL,'New line'])
 
-
+    def testGitFileCommits(self):
+        myCommits = []
+        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.assertEqual(len(self.myGitFile.getCommits()), 0)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testGitFile1']
