@@ -12,32 +12,36 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         self.myTrans = Transformations.Trans()
-        self.myGitFile = GitFile.GitFile()
 
     def testLargeGitFile(self):
         myTransformations = []
-        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
-        self.assertEqual(self.myGitFile.getTransformations(),['New line', 'line removed', self.myTrans.NULL,'New line'])
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
+        self.myGitFile.readGitFile()
+        self.assertEqual(self.myGitFile.getTransformations(),[self.myTrans.NULL])
         
     def testGitFileCommits(self):
         myCommits = []
-        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile.readGitFile()
         self.assertEqual(len(self.myGitFile.getCommits()), 7)
-    ''' 
+     
     def testGitFileCommitsLOC(self):
         myCommits = []
-        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile.readGitFile()
         myCommits = self.myGitFile.getCommits()
-        self.assertEqual((myCommits[1]), 7)
-    '''         
+        self.assertEqual((myCommits[1].getAddedLinesInCommit()), 7)
+             
     def testGitFiles(self):
         myFiles = []
-        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile.readGitFile()
         self.assertEqual(len(self.myGitFile.getFiles()),4)
 
     def testGitFileNames(self):
         myFiles = []
-        self.myGitFile.readGitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile.readGitFile()
         myFiles = self.myGitFile.getFiles()
         self.assertEqual(myFiles[0].getFileName(),'testPrimeFactor.py')
 
