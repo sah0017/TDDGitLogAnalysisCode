@@ -53,33 +53,44 @@ class GitFile(object):
         self.gitFile.close()
 
     def analyzeCommit(self):
-        addedLines = 0
-        deletedLines = 0
+        commitAddedLines = 0
+        commitDeletedLines = 0
         while self.sameCommit() == True:
             
                 
-            addedLines, deletedLines = self.analyzeFile(addedLines, deletedLines)
+            addedLines, deletedLines = self.analyzeFile()
     
-
-        self.newCommit = Commit.Commit(self.commits, addedLines,deletedLines)
+            commitAddedLines = commitAddedLines + addedLines
+            commitDeletedLines = commitDeletedLines + deletedLines
+        self.newCommit = Commit.Commit(self.commits, commitAddedLines,commitDeletedLines)
         self.myCommits.append(self.newCommit)    
 
 
 
-    def analyzeFile(self, addedLines, deletedLines):
+    def analyzeFile(self):
+        fileAddedLines = 0
+        fileDeletedLines = 0
         strLine = self.line.rstrip() ## should be on diff line now
         splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
+        fileName = splLine[len(splLine) - 1]
         self.line = self.gitFile.readline() ## either new file mode or index
         if self.line.startswith('new'):
-            self.newFile = File.File(splLine[len(splLine) - 1],self.commits)
+            
+            self.newFile = File.File(fileName,self.commits)
             self.myFiles.append(self.newFile)
             self.myTransformations.append(myTrans.NEWFILE)
             self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
+            fileIndex = len(self.myFiles) - 1
+        else:
+            for x in self.myFiles:
+                if x.getFileName() == fileName: 
+                    fileIndex = self.myFiles.index(x) 
         for x in range(0, 3): ## skips --- line, +++ line, and @@ line
             self.line = self.gitFile.readline()
         
-        addedLines, deletedLines = self.evaluateTransformations(addedLines, deletedLines)
-        return addedLines, deletedLines
+        fileAddedLines, fileDeletedLines = self.evaluateTransformations()
+        self.myFiles[fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines)
+        return fileAddedLines, fileDeletedLines
 
 
         
@@ -92,7 +103,9 @@ class GitFile(object):
         else:
             return False
            
-    def evaluateTransformations(self, addedLines, deletedLines):
+    def evaluateTransformations(self):
+        addedLines = 0
+        deletedLines = 0
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
             if self.line[0] == '+':
                 addedLines = addedLines + 1
