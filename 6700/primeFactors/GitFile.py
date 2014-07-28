@@ -26,6 +26,7 @@ class GitFile(object):
         self.myTransformations = []
         self.myFiles = []
         self.gitFile = ''
+        self.commits = 0
 
 
     def readGitFile(self):
@@ -43,9 +44,10 @@ class GitFile(object):
         if (splLine[len(splLine)-1] == '__init__.py'):  ## if they didn't delete the __init__.py file, we don't need that either
             for x in range(0,3):                        ## this for loop skips over __init__ file stuff
                 self.line = self.gitFile.readline()
+        self.commits = self.commits + 1
         self.analyzeCommit()                    ## we should now be at python files that we want to analyze for the initial commit
         for self.line in self.gitFile:
-
+            self.commits = self.commits + 1
             self.analyzeCommit()
                 
         self.gitFile.close()
@@ -59,7 +61,7 @@ class GitFile(object):
             addedLines, deletedLines = self.analyzeFile(addedLines, deletedLines)
     
 
-        self.newCommit = Commit.Commit(addedLines,deletedLines)
+        self.newCommit = Commit.Commit(self.commits, addedLines,deletedLines)
         self.myCommits.append(self.newCommit)    
 
 
@@ -69,7 +71,7 @@ class GitFile(object):
         splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
         self.line = self.gitFile.readline() ## either new file mode or index
         if self.line.startswith('new'):
-            self.newFile = File.File(splLine[len(splLine) - 1])
+            self.newFile = File.File(splLine[len(splLine) - 1],self.commits)
             self.myFiles.append(self.newFile)
             self.myTransformations.append(myTrans.NEWFILE)
             self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
