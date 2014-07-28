@@ -58,6 +58,17 @@ class Test(unittest.TestCase):
         myTestCommits = myFile.getCommitDetails()
         self.assertEqual(myTestCommits[0].getCommitDetails(), [1,16,0])
 
+    def testCommitDetails(self):
+        myFiles = []
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+        self.myGitFile.readGitFile()
+        myFiles = self.myGitFile.getFiles()
+        myCommitDetails = myFiles[0].getCommitDetails()
+        self.assertEqual(myCommitDetails[0].getCommitDetails(),[1,18,0])
+        self.assertEqual(myCommitDetails[1].getCommitDetails(), [2,2,1])
+        
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testGitFile1']
     unittest.main()
