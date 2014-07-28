@@ -66,8 +66,19 @@ class Test(unittest.TestCase):
         myCommitDetails = myFiles[0].getCommitDetails()
         self.assertEqual(myCommitDetails[0].getCommitDetails(),[1,18,0])
         self.assertEqual(myCommitDetails[1].getCommitDetails(), [2,2,1])
+        self.assertEqual(myCommitDetails[2].getCommitDetails(), [3,2,0])
         
+    def testCommitTransformations(self):
+        myCommit = Commit.Commit(1,14,4)
+        myCommit.addTransformation(1)
+        self.assertEqual(myCommit.getTransformations(), [1])
 
+    def testCommitTransformationsInGitFile(self):
+
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
+        self.myGitFile.readGitFile()
+        myCommits = self.myGitFile.getCommits()
+        self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testGitFile1']
