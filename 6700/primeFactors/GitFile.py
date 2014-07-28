@@ -63,6 +63,8 @@ class GitFile(object):
             commitAddedLines = commitAddedLines + addedLines
             commitDeletedLines = commitDeletedLines + deletedLines
         self.newCommit = Commit.Commit(self.commits, commitAddedLines,commitDeletedLines)
+        for trans in self.myTransformations:
+            self.newCommit.addTransformation(trans)
         self.myCommits.append(self.newCommit)    
 
 
