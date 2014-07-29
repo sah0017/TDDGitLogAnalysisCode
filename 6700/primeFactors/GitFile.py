@@ -72,28 +72,20 @@ class GitFile(object):
         self.myCommits.append(self.newCommit)    
    
 
+
+
+
     def analyzeFile(self):
         fileAddedLines = 0
         fileDeletedLines = 0
-        strLine = self.line.rstrip() ## should be on diff line now
-        splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
-        fileName = splLine[len(splLine) - 1]
-        if fileName.startswith('test'):
-            testFile = True
-        else:
-            testFile = False
+        fileName = self.extractFileName()
+        testFile = self.isTestFile(fileName)
         self.line = self.gitFile.readline() ## either new file mode or index
         matchObj = re.match('new file mode',self.line)
         if matchObj:
-            self.newFile = File.File(fileName,testFile,self.commits)
-            self.myFiles.append(self.newFile)
-            self.myTransformations.append(myTrans.NEWFILE)
-            self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
-            fileIndex = len(self.myFiles) - 1
+            fileIndex = self.addNewFile(fileName, testFile)
         else:
-            for x in self.myFiles:
-                if x.getFileName() == fileName: 
-                    fileIndex = self.myFiles.index(x) 
+            fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         for x in range(0, 3): ## skips --- line, +++ line, and @@ line
             self.line = self.gitFile.readline()
         
@@ -101,43 +93,39 @@ class GitFile(object):
         self.myFiles[fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines)
         return fileAddedLines, fileDeletedLines, testFile
     
-    def returnWithNull(self):
-        rtnMatchObj = re.search("return", self.line)
-        rtnBoolean = False
-        rtnValue = ''
-        if rtnMatchObj:
-            strLine = self.line.rstrip()
-            splLine = strLine.split(" ")
-            if len(splLine) > 1:
-                rtnValue = splLine[len(splLine) - 1]
-            if (len(splLine) == 1) or (rtnValue == 'None'): ## return with no value is basically Null
-                rtnBoolean = True
-            else:
-                rtnBoolean = False
-        return rtnBoolean, rtnValue
+
 
     def evaluateTransformations(self):
         addedLines = 0
         deletedLines = 0
         deletedNullValue = False
+        deletedLiteral = False
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
             if self.line[0] == '-':
                 deletedLines = deletedLines + 1
-                if self.line.find("pass") > -1:
-                    deletedNullValue = False
+                deletedNullValue = self.checkForDeletedNullValue()
+                rtnMatchObj = re.search("return", self.line)
+                if rtnMatchObj:
+                    deletedLiteral = self.checkForConstantOnReturn(self.line)
             if self.line[0] == '+':
                 addedLines = addedLines + 1
                 if self.line.find("pass") > -1:
                     self.myTransformations.append(myTrans.NULL)
-                rtnBoolean, rtnValue = self.returnWithNull()
-                if rtnBoolean == True:
-                    self.myTransformations.append(myTrans.NULL)
-                else:
-                    if rtnValue.isalnum() or rtnValue == '[]':
-                        if deletedNullValue == True:
-                            self.myTransformations.append(myTrans.N2C)
-                        else:
-                            self.myTransformations.append(myTrans.ConstOnly)
+                rtnMatchObj = re.search("return", self.line)
+                if rtnMatchObj:
+                    rtnBoolean, rtnValue = self.returnWithNull()
+                    if rtnBoolean == True:
+                        self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
+                    else:
+                        myObj = self.checkForConstantOnReturn(rtnValue)       ## this looks for constants after 'return'
+                        if myObj:                                     ## if there are constants and
+                            if deletedNullValue == True:                ## if there was a Null expression before, they probably did Null to Constant
+                                self.myTransformations.append(myTrans.N2C)
+                            else:                                       ## if constants but no previous Null, they probably just went straight to constant
+                                self.myTransformations.append(myTrans.ConstOnly)
+                        else:                                         ## if it wasn't constants on the return
+                            if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
+                                self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
             self.line = self.gitFile.readline()
         
         return addedLines, deletedLines
@@ -160,6 +148,61 @@ class GitFile(object):
         else:
             return True
     
+    def checkForDeletedNullValue(self):
+        deletedNullValue = False
+        if self.line.find("pass") > -1:
+            deletedNullValue = True
+        rtnMatchObj = re.search("return", self.line)
+        if rtnMatchObj:
+            deletedNullValue, rtnValue = self.returnWithNull()
+        return deletedNullValue
+
+    def checkForConstantOnReturn(self,line):
+        return re.search(r'[0-9]+|[[]]|["]|[\\\']',line)   ## if return is followed by a number or [] or " or ', it is probably a constant
+        
+    def returnWithNull(self):
+        rtnBoolean = False
+        rtnValue = ''
+        strLine = self.line.rstrip()
+        splLine = strLine.split(" ")
+        if len(splLine) > 1:
+            rtnValue = splLine[len(splLine) - 1]
+        if (len(splLine) == 1) or (rtnValue == 'None'): ## return with no value is basically Null
+            rtnBoolean = True
+        else:
+            rtnBoolean = False
+        return rtnBoolean, rtnValue
+
+    def isTestFile(self, fileName):
+        if fileName.startswith('test'):
+            testFile = True
+        else:
+            testFile = False
+        return testFile
+
+    def extractFileName(self):
+        strLine = self.line.rstrip() ## should be on diff line now
+        splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
+        fileName = splLine[len(splLine) - 1]
+        return fileName
+
+    def addNewFile(self, fileName, testFile):
+        self.newFile = File.File(fileName, testFile, self.commits)
+        self.myFiles.append(self.newFile)
+        self.myTransformations.append(myTrans.NEWFILE)
+        self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
+        fileIndex = len(self.myFiles) - 1
+        return fileIndex
+
+
+    def findExistingFileToAddCommitDetails(self, fileName):
+        for x in self.myFiles:
+            if x.extractFileName() == fileName:
+                fileIndex = self.myFiles.index(x)
+        
+        return fileIndex
+
+
     def getCommits(self):
         return self.myCommits
     
