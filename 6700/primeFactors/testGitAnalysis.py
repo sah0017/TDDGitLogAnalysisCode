@@ -73,12 +73,21 @@ class Test(unittest.TestCase):
         myCommit.addTransformation(1)
         self.assertEqual(myCommit.getTransformations(), [1])
 
-    def testCommitTransformationsInGitFile(self):
+    def testCommitTransformationsInShortGitFile(self):
 
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
         self.myGitFile.readGitFile()
         myCommits = self.myGitFile.getCommits()
         self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
+
+    def testCommitTransformationsInLongGitFile(self):
+
+        self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile")
+        self.myGitFile.readGitFile()
+        myCommits = self.myGitFile.getCommits()
+        self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
+        self.assertEqual(myCommits[1].getTransformations(), [self.myTrans.NEWFILE,self.myTrans.NULL, self.myTrans.N2C])
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testGitFile1']
