@@ -27,5 +27,5 @@ class File(object):
     def getCommitDetails(self):
         return self.commitDetails
         
-    def getFileName(self):
+    def extractFileName(self):
         return self.fileName

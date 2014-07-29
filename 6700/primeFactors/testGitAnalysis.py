@@ -45,15 +45,15 @@ class Test(unittest.TestCase):
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
         self.myGitFile.readGitFile()
         myFiles = self.myGitFile.getFiles()
-        self.assertEqual(myFiles[0].getFileName(),'testPrimeFactor.py')
+        self.assertEqual(myFiles[0].extractFileName(),'testPrimeFactor.py')
 
     def testFileObject(self):
-        myFile = File.File("testname.py",1)
+        myFile = File.File("testname.py",True,1)
         self.assertEqual(myFile.fileName, "testname.py")
         
     def testFileObjectLinesPerCommit(self):
         myCommitList = []
-        myFile = File.File("testname2.py",2)
+        myFile = File.File("testname2.py",True,2)
         myFile.setCommitDetails(1,16,0)
         myTestCommits = myFile.getCommitDetails()
         self.assertEqual(myTestCommits[0].getCommitDetails(), [1,16,0])
@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
         self.assertEqual(myCommitDetails[2].getCommitDetails(), [3,2,0])
         
     def testCommitTransformations(self):
-        myCommit = Commit.Commit(1,14,4)
+        myCommit = Commit.Commit(1,14,4,1,1)
         myCommit.addTransformation(1)
         self.assertEqual(myCommit.getTransformations(), [1])
 
@@ -86,7 +86,8 @@ class Test(unittest.TestCase):
         self.myGitFile.readGitFile()
         myCommits = self.myGitFile.getCommits()
         self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
-        self.assertEqual(myCommits[1].getTransformations(), [self.myTrans.NEWFILE,self.myTrans.NULL, self.myTrans.N2C])
+        self.assertEqual(myCommits[1].getTransformations(), [self.myTrans.NEWFILE,self.myTrans.ConstOnly])
+        self.assertEqual(myCommits[2].getTransformations(), [self.myTrans.C2V])
 
 
 if __name__ == "__main__":
