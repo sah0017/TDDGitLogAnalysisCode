@@ -103,27 +103,29 @@ class GitFile(object):
         ifContents = []
         whileContents = []
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
-            if self.line[0] == '-':
+            comment = self.line.split("##")
+            lineWithNoComments = comment[0]
+            if lineWithNoComments[0] == '-':
                 deletedLines = deletedLines + 1
                 deletedNullValue = self.checkForDeletedNullValue()
-                if re.search("return", self.line):
-                    deletedLiteral = self.checkForConstantOnReturn(self.line)
-                if re.search(r"\bif .", self.line):
+                if re.search("return", lineWithNoComments):
+                    deletedLiteral = self.checkForConstantOnReturn(lineWithNoComments)
+                if re.search(r"\bif .", lineWithNoComments):
                     deletedIf = True
-                    ifConditionalParts = self.line.split("if")
+                    ifConditionalParts = lineWithNoComments.split("if")
                     ifConditional = ifConditionalParts[1].strip()
                     ifContents.append(ifConditional)
-                if re.search(r"\bwhile .", self.line):
+                if re.search(r"\bwhile .", lineWithNoComments):
                     deletedWhile = True
-                    whileConditionalParts = self.line.split("while")
+                    whileConditionalParts = lineWithNoComments.split("while")
                     whileConditional = whileConditionalParts[1].strip()
                     whileContents.append(whileConditional)
                 
-            if self.line[0] == '+':
+            if lineWithNoComments[0] == '+':
                 addedLines = addedLines + 1
-                if self.line.find("pass") > -1:
+                if lineWithNoComments.find("pass") > -1:
                     self.myTransformations.append(myTrans.NULL)
-                if re.search("return", self.line):
+                if re.search("return", lineWithNoComments):
                     rtnBoolean, rtnValue = self.returnWithNull()
                     if rtnBoolean == True:
                         self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
@@ -137,16 +139,19 @@ class GitFile(object):
                         else:                                         ## if it wasn't constants on the return
                             if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
                                 self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
-                noLeadingPlus = self.line[1:]
+                noLeadingPlus = lineWithNoComments[1:]
                 if (re.search(r"\bif .(?!_name__ == \"__main)",self.line)):
                     self.myTransformations.append(myTrans.SF)
                 elif (re.search(r"\bwhile\b",self.line)):
                     whileTrans = self.checkWhileForMatchingIfOrWhile(deletedIf, ifContents, deletedWhile, whileContents)
                     self.myTransformations.append(whileTrans)              
                 elif (re.search(r"[+/*%\-]|/bmath.",noLeadingPlus)):
-                    self.myTransformations.append(myTrans.AComp)
+                    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
+                        self.myTransformations.append(myTrans.AComp)
                 elif (re.search(r"\bfor\b",noLeadingPlus)):
                     self.myTransformations.append(myTrans.IT)
+                elif (re.search(r"\belif\b",noLeadingPlus)):
+                    self.myTransformations.append(myTrans.ACase)
             self.line = self.gitFile.readline()
         
         return addedLines, deletedLines
