@@ -12,7 +12,7 @@ if __name__ == '__main__':
     myFiles = []
     myCommits = []
     myTransNames = Transformations.Trans()
-    myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
+    myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\TwentyCommits")
     myGitFile.readGitFile()
     myFiles = myGitFile.getFiles()
     myCommits = myGitFile.getCommits()

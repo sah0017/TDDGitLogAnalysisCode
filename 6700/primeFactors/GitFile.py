@@ -145,6 +145,8 @@ class GitFile(object):
                     self.myTransformations.append(whileTrans)              
                 elif (re.search(r"[+/*%\-]|/bmath.",noLeadingPlus)):
                     self.myTransformations.append(myTrans.AComp)
+                elif (re.search(r"\bfor\b",noLeadingPlus)):
+                    self.myTransformations.append(myTrans.IT)
             self.line = self.gitFile.readline()
         
         return addedLines, deletedLines
