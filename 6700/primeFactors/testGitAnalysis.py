@@ -87,7 +87,8 @@ class Test(unittest.TestCase):
         myCommits = self.myGitFile.getCommits()
         self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
         self.assertEqual(myCommits[1].getTransformations(), [self.myTrans.NEWFILE,self.myTrans.ConstOnly])
-        self.assertEqual(myCommits[2].getTransformations(), [self.myTrans.C2V])
+        self.assertEqual(myCommits[2].getTransformations(), [self.myTrans.SF,self.myTrans.C2V])
+        self.assertEqual(myCommits[3].getTransformations(), [self.myTrans.SF,self.myTrans.SF])
 
 
 if __name__ == "__main__":

@@ -72,9 +72,6 @@ class GitFile(object):
         self.myCommits.append(self.newCommit)    
    
 
-
-
-
     def analyzeFile(self):
         fileAddedLines = 0
         fileDeletedLines = 0
@@ -95,30 +92,44 @@ class GitFile(object):
     
 
 
+
     def evaluateTransformations(self):
         addedLines = 0
         deletedLines = 0
         deletedNullValue = False
         deletedLiteral = False
+        deletedIf = False
+        deletedWhile = False
+        ifContents = []
+        whileContents = []
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
             if self.line[0] == '-':
                 deletedLines = deletedLines + 1
                 deletedNullValue = self.checkForDeletedNullValue()
-                rtnMatchObj = re.search("return", self.line)
-                if rtnMatchObj:
+                if re.search("return", self.line):
                     deletedLiteral = self.checkForConstantOnReturn(self.line)
+                if re.search(r"\bif .", self.line):
+                    deletedIf = True
+                    ifConditionalParts = self.line.split("if")
+                    ifConditional = ifConditionalParts[1].strip()
+                    ifContents.append(ifConditional)
+                if re.search(r"\bwhile .", self.line):
+                    deletedWhile = True
+                    whileConditionalParts = self.line.split("while")
+                    whileConditional = whileConditionalParts[1].strip()
+                    whileContents.append(whileConditional)
+                
             if self.line[0] == '+':
                 addedLines = addedLines + 1
                 if self.line.find("pass") > -1:
                     self.myTransformations.append(myTrans.NULL)
-                rtnMatchObj = re.search("return", self.line)
-                if rtnMatchObj:
+                if re.search("return", self.line):
                     rtnBoolean, rtnValue = self.returnWithNull()
                     if rtnBoolean == True:
                         self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
                     else:
-                        myObj = self.checkForConstantOnReturn(rtnValue)       ## this looks for constants after 'return'
-                        if myObj:                                     ## if there are constants and
+                        ## this looks for constants after 'return'
+                        if self.checkForConstantOnReturn(rtnValue):                                     ## if there are constants and
                             if deletedNullValue == True:                ## if there was a Null expression before, they probably did Null to Constant
                                 self.myTransformations.append(myTrans.N2C)
                             else:                                       ## if constants but no previous Null, they probably just went straight to constant
@@ -126,10 +137,58 @@ class GitFile(object):
                         else:                                         ## if it wasn't constants on the return
                             if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
                                 self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
+                noLeadingPlus = self.line[1:]
+                if (re.search(r"\bif .(?!_name__ == \"__main)",self.line)):
+                    self.myTransformations.append(myTrans.SF)
+                elif (re.search(r"\bwhile\b",self.line)):
+                    whileTrans = self.checkWhileForMatchingIfOrWhile(deletedIf, ifContents, deletedWhile, whileContents)
+                    self.myTransformations.append(whileTrans)              
+                elif (re.search(r"[+/*%\-]|/bmath.",noLeadingPlus)):
+                    self.myTransformations.append(myTrans.AComp)
             self.line = self.gitFile.readline()
         
         return addedLines, deletedLines
 
+    def checkWhileForMatchingIfOrWhile(self, deletedIf, ifContents, deletedWhile, delWhileContents):
+        whileConditionalParts = self.line.split("while")
+        whileCondition = whileConditionalParts[1].strip()
+        if deletedIf:
+            for cond in ifContents:
+                if whileCondition == cond:
+                    return myTrans.I2W
+                else:
+                    whileTrans = myTrans.WhileNoIf
+        if deletedWhile:
+            for cond in delWhileContents:
+                whileTrans = self.checkForConstantToVariableInCondition(cond,whileCondition)
+        return whileTrans
+
+
+
+    def splitAndCleanCondition(self, cond):
+        mySplit = cond.split(" ")
+        myfirstcond = mySplit[0]
+        mycond = mySplit[1]
+        mysecondcond = mySplit[2]
+        if myfirstcond.startswith("("):
+            myfirstcond = myfirstcond[1:]
+        removeTrailingChars = re.search(r"[a-zA-Z0-9_^):]",mysecondcond)
+        if removeTrailingChars:
+            mysecondcond = removeTrailingChars.group(0)
+        return myfirstcond, mycond, mysecondcond
+
+    def checkForConstantToVariableInCondition(self, firstCond, secondCond):
+        myfirstIfCond, myIfCond, mysecondIfCond = self.splitAndCleanCondition(firstCond)
+        myfirstWhileCond, myWhileCond, mysecondWhileCond = self.splitAndCleanCondition(secondCond)
+        if ((myfirstIfCond == myfirstWhileCond)  and
+            (myIfCond == myWhileCond) and
+            (mysecondIfCond.isnumeric()) and
+            (mysecondWhileCond.isalpha())):
+            self.myTransformations.append(myTrans.C2V)
+            return myTrans.I2W
+        else:
+            return myTrans.WhileNoIf
+            
     def pythonFileFound(self):
         evalLine = self.line.rstrip()
         if ((evalLine.startswith("diff")) and (evalLine.endswith(".py"))):
