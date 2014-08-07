@@ -25,4 +25,8 @@ if __name__ == '__main__':
             print "Transformations:  ", myTransNames.myName(myTran)
     print "\r\nFiles in logfile:  ", len(myFiles), "\r\n"
     for myFile in myFiles:
-        print myFile.fileName, "added in commit:", myFile.commitAdded, ".  Is a test file:",myFile.testFile
+        print "\r\n", myFile.fileName, "added in commit:", myFile.commitAdded, ".  Is a test file:",myFile.testFile
+        for myCommitDetails in myFile.commitDetails:
+            print "\r\nCommit ", myCommitDetails.commitNbr, "Added lines:", myCommitDetails.addedLines, "Deleted lines:", myCommitDetails.deletedLines
+            for myMethodName in myCommitDetails.methodNames:
+                print "Methods added/modified:", myMethodName

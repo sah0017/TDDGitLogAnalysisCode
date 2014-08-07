@@ -10,6 +10,7 @@ import codecs
 import Commit
 import File
 import re
+import Method
 
 myTrans = Transformations.Trans() 
 
@@ -75,19 +76,20 @@ class GitFile(object):
     def analyzeFile(self):
         fileAddedLines = 0
         fileDeletedLines = 0
+        methodNames = []
         fileName = self.extractFileName()
         testFile = self.isTestFile(fileName)
         self.line = self.gitFile.readline() ## either new file mode or index
         matchObj = re.match('new file mode',self.line)
         if matchObj:
-            fileIndex = self.addNewFile(fileName, testFile)
+            self.fileIndex = self.addNewFile(fileName, testFile)
         else:
-            fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
+            self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         for x in range(0, 3): ## skips --- line, +++ line, and @@ line
             self.line = self.gitFile.readline()
         
-        fileAddedLines, fileDeletedLines = self.evaluateTransformations()
-        self.myFiles[fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines)
+        fileAddedLines, fileDeletedLines, methodNames = self.evaluateTransformations()
+        self.myFiles[self.fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines, methodNames)
         return fileAddedLines, fileDeletedLines, testFile
     
 
@@ -102,9 +104,10 @@ class GitFile(object):
         deletedWhile = False
         ifContents = []
         whileContents = []
+        methodNames = []
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
-            comment = self.line.split("##")
-            lineWithNoComments = comment[0]
+            commentSplit = self.line.split("##")
+            lineWithNoComments = commentSplit[0]
             if lineWithNoComments[0] == '-':
                 deletedLines = deletedLines + 1
                 deletedNullValue = self.checkForDeletedNullValue()
@@ -123,9 +126,17 @@ class GitFile(object):
                 
             if lineWithNoComments[0] == '+':
                 addedLines = addedLines + 1
-                if lineWithNoComments.find("pass") > -1:
+                noLeadingPlus = lineWithNoComments[1:]
+                if re.search(r"\bdef\b", lineWithNoComments):
+                    noLeadingSpaces = noLeadingPlus.strip()
+                    methodName = noLeadingSpaces.split(" ")
+                    methodName = methodName[1].split("(")
+                    methodNames.append(methodName[0])
+                    ##self.myFiles[self.fileIndex].setMethodName(methodName[0])
+                    ##print methodName[0]
+                if re.search(r"\bpass\b",lineWithNoComments):
                     self.myTransformations.append(myTrans.NULL)
-                if re.search("return", lineWithNoComments):
+                if re.search(r"\breturn\b", lineWithNoComments):
                     rtnBoolean, rtnValue = self.returnWithNull()
                     if rtnBoolean == True:
                         self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
@@ -139,7 +150,6 @@ class GitFile(object):
                         else:                                         ## if it wasn't constants on the return
                             if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
                                 self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
-                noLeadingPlus = lineWithNoComments[1:]
                 if (re.search(r"\bif .(?!_name__ == \"__main)",self.line)):
                     self.myTransformations.append(myTrans.SF)
                 elif (re.search(r"\bwhile\b",self.line)):
@@ -154,7 +164,7 @@ class GitFile(object):
                     self.myTransformations.append(myTrans.ACase)
             self.line = self.gitFile.readline()
         
-        return addedLines, deletedLines
+        return addedLines, deletedLines, methodNames
 
     def checkWhileForMatchingIfOrWhile(self, deletedIf, ifContents, deletedWhile, delWhileContents):
         whileConditionalParts = self.line.split("while")
