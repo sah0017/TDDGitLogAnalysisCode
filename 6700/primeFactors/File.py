@@ -4,6 +4,7 @@ Created on Jul 24, 2014
 @author: susanha
 '''
 import CommitDetails
+import Method
 
 class File(object):
     '''
@@ -18,12 +19,18 @@ class File(object):
         self.fileName = fileName
         self.commitAdded = commitNbr
         self.commitDetails = []
+        self.methodNames = []
         self.testFile = testFile
         
-    def setCommitDetails(self, commitNbr, addedLines, deletedLines):
-        myCommitDetails = CommitDetails.CommitDetails(commitNbr, addedLines, deletedLines)
+    def setCommitDetails(self, commitNbr, addedLines, deletedLines, methodNames):
+        myCommitDetails = CommitDetails.CommitDetails(commitNbr, addedLines, deletedLines, methodNames)
         self.commitDetails.append(myCommitDetails)
 
+    def setMethodName(self, methodName):
+        myMethod = Method.Method(methodName)
+        self.methodNames.append(myMethod)
+        
+        
     def getCommitDetails(self):
         return self.commitDetails
         
