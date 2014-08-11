@@ -104,13 +104,17 @@ class GitFile(object):
         deletedWhile = False
         ifContents = []
         whileContents = []
+        methodName = ""
         methodNames = []
         params = []
+        lineWithNoComments = ""
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
-            commentSplit = self.line.split("##")
+            prevLine = lineWithNoComments
+            commentSplit = self.line.split("#")
             lineWithNoComments = commentSplit[0]
             noLeadingPlus = lineWithNoComments[1:]
             if re.search(r"\bdef\b", lineWithNoComments):
+                methodLine = True
                 noLeadingSpaces = noLeadingPlus.strip()
                 methodName = noLeadingSpaces.split(" ")
                 methodName = methodName[1].split("(")
@@ -124,9 +128,11 @@ class GitFile(object):
                     lastParam = params[len(params)-1]
                     lastParam = lastParam[0:len(lastParam)-2]     ## removes ): from last parameter
                     params[len(params)-1] = lastParam
-                print params
+                #print params
                 ##self.myFiles[self.fileIndex].setMethodName(methodName[0])
                 ##print methodName[0]
+            else:
+                methodLine = False
             if lineWithNoComments[0] == '-':
                 deletedLines = deletedLines + 1
                 deletedNullValue = self.checkForDeletedNullValue()
@@ -147,6 +153,11 @@ class GitFile(object):
                 addedLines = addedLines + 1
                 if re.search(r"\bpass\b",lineWithNoComments):
                     self.myTransformations.append(myTrans.NULL)
+                if methodName != "" and not methodLine:
+                    myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)".format(methodName[0])
+                    if re.search(myRecurseSearchString, lineWithNoComments):
+                        if not (re.search("if __name__ == '__main__':",prevLine)):
+                            self.myTransformations.append(myTrans.REC)
                 if re.search(r"\breturn\b", lineWithNoComments):
                     rtnBoolean, rtnValue = self.returnWithNull()
                     if rtnBoolean == True:
