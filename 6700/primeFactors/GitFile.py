@@ -105,9 +105,28 @@ class GitFile(object):
         ifContents = []
         whileContents = []
         methodNames = []
+        params = []
         while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
             commentSplit = self.line.split("##")
             lineWithNoComments = commentSplit[0]
+            noLeadingPlus = lineWithNoComments[1:]
+            if re.search(r"\bdef\b", lineWithNoComments):
+                noLeadingSpaces = noLeadingPlus.strip()
+                methodName = noLeadingSpaces.split(" ")
+                methodName = methodName[1].split("(")
+                methodNames.append(methodName[0])
+                methodName[len(methodName)-1] = methodName[len(methodName)-1]
+                params = methodName[1].split(",")
+                for x in params:
+                    if re.search("self",x):
+                        params.remove(x)
+                if len(params) > 0:
+                    lastParam = params[len(params)-1]
+                    lastParam = lastParam[0:len(lastParam)-2]     ## removes ): from last parameter
+                    params[len(params)-1] = lastParam
+                print params
+                ##self.myFiles[self.fileIndex].setMethodName(methodName[0])
+                ##print methodName[0]
             if lineWithNoComments[0] == '-':
                 deletedLines = deletedLines + 1
                 deletedNullValue = self.checkForDeletedNullValue()
@@ -126,14 +145,6 @@ class GitFile(object):
                 
             if lineWithNoComments[0] == '+':
                 addedLines = addedLines + 1
-                noLeadingPlus = lineWithNoComments[1:]
-                if re.search(r"\bdef\b", lineWithNoComments):
-                    noLeadingSpaces = noLeadingPlus.strip()
-                    methodName = noLeadingSpaces.split(" ")
-                    methodName = methodName[1].split("(")
-                    methodNames.append(methodName[0])
-                    ##self.myFiles[self.fileIndex].setMethodName(methodName[0])
-                    ##print methodName[0]
                 if re.search(r"\bpass\b",lineWithNoComments):
                     self.myTransformations.append(myTrans.NULL)
                 if re.search(r"\breturn\b", lineWithNoComments):
@@ -155,9 +166,15 @@ class GitFile(object):
                 elif (re.search(r"\bwhile\b",self.line)):
                     whileTrans = self.checkWhileForMatchingIfOrWhile(deletedIf, ifContents, deletedWhile, whileContents)
                     self.myTransformations.append(whileTrans)              
-                elif (re.search(r"[+/*%\-]|/bmath.",noLeadingPlus)):
+                elif (re.search(r"=",noLeadingPlus)):
                     if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
-                        self.myTransformations.append(myTrans.AComp)
+                        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
+                            self.myTransformations.append(myTrans.AComp)
+                            assignmentVars = noLeadingPlus.split("=")
+                            assignmentVar = assignmentVars[0].strip()
+                            for x in params:
+                                if x == assignmentVar:
+                                    self.myTransformations.append(myTrans.AS)
                 elif (re.search(r"\bfor\b",noLeadingPlus)):
                     self.myTransformations.append(myTrans.IT)
                 elif (re.search(r"\belif\b",noLeadingPlus)):
