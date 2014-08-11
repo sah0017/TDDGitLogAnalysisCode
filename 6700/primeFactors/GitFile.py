@@ -180,7 +180,8 @@ class GitFile(object):
                 elif (re.search(r"=",noLeadingPlus)):
                     if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
                         if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
-                            self.myTransformations.append(myTrans.AComp)
+                            if re.search(r"[+/*%\-]|/bmath.",noLeadingPlus):
+                                self.myTransformations.append(myTrans.AComp)
                             assignmentVars = noLeadingPlus.split("=")
                             assignmentVar = assignmentVars[0].strip()
                             for x in params:
