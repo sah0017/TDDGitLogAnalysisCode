@@ -22,6 +22,7 @@ class Trans(object):
     AS = 11
     ACase = 12
     ConstOnly = -2
+    VarOnly = -3
     WhileNoIf = -8
     transList = dict(NEWFILE=0, NULL=1, N2C=2, C2V=3, AComp=4,SF=5,VA=6,AC=7,I2W=8,REC=9,IT=10,AS=11,ACase=12)
 
@@ -58,6 +59,8 @@ class Trans(object):
             return "Add Case"
         elif transNbr == -2:
             return "Straight to Constant"
+        elif transNbr == -3:
+            return "Straight to Variable"
         elif transNbr == -8:
             return "While with no If"
         
