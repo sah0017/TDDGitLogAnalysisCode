@@ -6,27 +6,36 @@ Created on Jul 25, 2014
 import GitFile
 import Transformations
 import Commit
+import codecs
 
-
-if __name__ == '__main__':
-    myFiles = []
-    myCommits = []
-    myTransNames = Transformations.Trans()
-    myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\fibLog")
-    myGitFile.readGitFile()
-    myFiles = myGitFile.getFiles()
-    myCommits = myGitFile.getCommits()
-    print "Commits in log file:  ", len(myCommits)
-    for myCommit in myCommits:
-        print "\r\nCommit Number:", myCommit.commitNbr, "Added lines:", myCommit.addedLinesInCommit, \
-            ".  Deleted lines:", myCommit.deletedLinesInCommit, ".  Test files:", myCommit.testFiles, ".  Production files:", myCommit.prodFiles
-        myTrans = myCommit.getTransformations()
-        for myTran in myTrans:
-            print "Transformations:  ", myTransNames.myName(myTran)
-    print "\r\nFiles in logfile:  ", len(myFiles), "\r\n"
-    for myFile in myFiles:
-        print "\r\n", myFile.fileName, "added in commit:", myFile.commitAdded, ".  Is a test file:",myFile.testFile
-        for myCommitDetails in myFile.commitDetails:
-            print "\r\nCommit ", myCommitDetails.commitNbr, "Added lines:", myCommitDetails.addedLines, "Deleted lines:", myCommitDetails.deletedLines
-            for myMethodName in myCommitDetails.methodNames:
-                print "Methods added/modified:", myMethodName
+class Results:
+    
+    def __init__(self):
+        pass
+    
+    def printResults(self, fileName):
+        myTransNames = Transformations.Trans()
+        myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\"+fileName)
+        myGitFile.readGitFile()
+        myFiles = myGitFile.getFiles()
+        myCommits = myGitFile.getCommits()
+        outFile = open("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\"+fileName+".gitout", "w")
+        outFile.write( "Commits in log file:  " + str(len(myCommits)))
+        for myCommit in myCommits:
+            outFile.write("\r\nCommit Number:"+ str(myCommit.commitNbr) + "  Added lines:" + str(myCommit.addedLinesInCommit) +
+                ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".  Test files:" + str(myCommit.testFiles) + ".  Production files:" + str(myCommit.prodFiles) + ".\n\r")
+            myTrans = myCommit.getTransformations()
+            outFile.write("Transformations:")
+            for myTran in myTrans:
+                outFile.write("\r" + myTransNames.myName(myTran))
+        outFile.write("\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
+        for myFile in myFiles:
+            outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.commitAdded) + ".  Is a test file:" + str(myFile.testFile))
+            for myCommitDetails in myFile.commitDetails:
+                outFile.write("\r\nCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
+                outFile.write("Methods added/modified:" )
+                for myMethodName in myCommitDetails.methodNames:
+                    outFile.write("\r" + myMethodName)
+        outFile.close()
+        
+    
