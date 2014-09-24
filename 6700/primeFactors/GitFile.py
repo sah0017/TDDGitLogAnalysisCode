@@ -74,8 +74,8 @@ class GitFile(object):
         fileAddedLines = 0
         fileDeletedLines = 0
         methodNames = []
-        fileName = self.extractFileName()
-        testFile = self.isTestFile(fileName)
+        path, fileName = self.extractFileName()
+        testFile = self.isTestFile(path)
         self.line = self.gitFile.readline() ## either new file mode or index
         matchObj = re.match('new file mode',self.line)
         if matchObj:
@@ -301,7 +301,10 @@ class GitFile(object):
             else:
             '''
             #print evalLine
-            return True
+            if re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine):
+                return True
+            else:
+                return False
         elif self.sameCommit() == False:
             return True
         else:
@@ -354,8 +357,9 @@ class GitFile(object):
     def extractFileName(self):
         strLine = self.line.rstrip() ## should be on diff line now
         splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
+        path = splLine[len(splLine) - 2]
         fileName = splLine[len(splLine) - 1]
-        return fileName
+        return path, fileName
 
     def addNewFile(self, fileName, testFile):
         self.newFile = File.File(fileName, testFile, self.commits)

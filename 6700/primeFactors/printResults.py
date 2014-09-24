@@ -51,11 +51,11 @@ class Results:
         for myFile in myFiles:
             outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.commitAdded) + ".  Is a test file:" + str(myFile.testFile))
             for myCommitDetails in myFile.commitDetails:
-                outFile.write("\r\nCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
-                outFile.write("\r\nMethods added/modified:" )
+                outFile.write("\r\n\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
+                outFile.write("\r\n\t\tMethods added/modified:" )
                 for myMethodName in myCommitDetails.methodNames:
-                    outFile.write("\r" + myMethodName)
+                    outFile.write("\r\t\t" + myMethodName)
                 
         outFile.close()
-        return addedLines/nbrOfCommits, nbrTransformations/nbrOfCommits
+        return nbrOfCommits, addedLines/nbrOfCommits, nbrTransformations/nbrOfCommits
     
