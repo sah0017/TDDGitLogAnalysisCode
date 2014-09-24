@@ -11,13 +11,14 @@ class Commit(object):
     '''
 
 
-    def __init__(self,commitNbr, addedLines,deletedLines, testFiles,prodFiles):
+    def __init__(self,commitNbr, addedLines,deletedLines, testFiles,prodFiles, nbrOfTrans):
         '''
         Constructor
         '''
         self.commitNbr = commitNbr
         self.addedLinesInCommit = addedLines
         self.deletedLinesInCommit = deletedLines
+        self.numberOfTransformations = nbrOfTrans
         self.testFiles = testFiles
         self.prodFiles = prodFiles
         self.transformations = []
@@ -30,3 +31,6 @@ class Commit(object):
         
     def getTransformations(self):
         return self.transformations
+    
+    def getNbrOfTransformations(self):
+        return self.numberOfTransformations

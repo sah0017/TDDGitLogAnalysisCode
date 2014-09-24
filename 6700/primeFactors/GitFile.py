@@ -31,7 +31,7 @@ class GitFile(object):
     def readGitFile(self):
         ## subprocess.call("git log -p -m > logfile")
         
-        self.gitFile = codecs.open(self.fileName, encoding='utf-16')
+        self.gitFile = codecs.open(self.fileName, encoding='utf-8')
 
         ## for the first commit, there are some files python creates that we don't need
         ## this while loop is designed to skip over that stuff.
@@ -42,8 +42,10 @@ class GitFile(object):
         self.commits = self.commits + 1
         self.analyzeCommit()                    ## we should now be at python files that we want to analyze for the initial commit
         for self.line in self.gitFile:
-            self.commits = self.commits + 1
-            self.analyzeCommit()
+            if self.pythonFileFound():
+                self.commits = self.commits + 1
+                self.analyzeCommit()
+                            
                 
         self.gitFile.close()
 
@@ -52,6 +54,7 @@ class GitFile(object):
         commitDeletedLines = 0
         testFiles = 0
         prodFiles = 0
+        nbrTrans = 0
         self.myTransformations = []
         while self.sameCommit() == True:
             addedLines, deletedLines, testFile = self.analyzeFile()
@@ -61,7 +64,8 @@ class GitFile(object):
                 testFiles = testFiles + 1
             else:
                 prodFiles = prodFiles + 1
-        self.newCommit = Commit.Commit(self.commits, commitAddedLines,commitDeletedLines, testFiles, prodFiles)
+        nbrTrans = len(self.myTransformations)
+        self.newCommit = Commit.Commit(self.commits, commitAddedLines,commitDeletedLines, testFiles, prodFiles, nbrTrans)
         for trans in self.myTransformations:
             self.newCommit.addTransformation(trans)
         self.myCommits.append(self.newCommit)    
@@ -79,6 +83,8 @@ class GitFile(object):
         else:
             self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         for x in range(0, 3): ## skips --- line, +++ line, and @@ line
+            if self.pythonFileFound():
+                break
             self.line = self.gitFile.readline()
         
         fileAddedLines, fileDeletedLines, methodNames = self.evaluateTransformations()
@@ -148,23 +154,24 @@ class GitFile(object):
                     methodLine = True
                     noLeadingSpaces = noLeadingPlus.strip()
                     methodData = noLeadingSpaces.split(" ")
-                    methodName = methodData[1].split("(")
-                    methodNames.append(methodName[0])
-                    params = methodData[2:]
-                    if len(params) > 0:
-                        x = 0
-                        for parm in params:
-                            noDefaultVal = parm.split("=")
-                            if len(noDefaultVal) > 1:
-                                params[x] = noDefaultVal[0]
-                                defaultVal = True
-                            x=x+1
-                        if not defaultVal:
-                            lastParam = params[len(params)-1]
-                            lastParam = lastParam[0:len(lastParam)-2]     ## removes ): from last parameter
-                            params[len(params)-1] = lastParam
-                        defaultVal = False
-                        #print params
+                    if len(methodData) > 1:
+                        methodName = methodData[1].split("(")
+                        methodNames.append(methodName[0])
+                        params = methodData[2:]
+                        if len(params) > 0:
+                            x = 0
+                            for parm in params:
+                                noDefaultVal = parm.split("=")
+                                if len(noDefaultVal) > 1:
+                                    params[x] = noDefaultVal[0]
+                                    defaultVal = True
+                                x=x+1
+                            if not defaultVal:
+                                lastParam = params[len(params)-1]
+                                lastParam = lastParam[0:len(lastParam)-2]     ## removes ): from last parameter
+                                params[len(params)-1] = lastParam
+                            defaultVal = False
+                            #print params
                 else:
                     methodLine = False
                 if lineWithNoComments[0] == '-':
@@ -239,6 +246,7 @@ class GitFile(object):
     def checkWhileForMatchingIfOrWhile(self, deletedIf, ifContents, deletedWhile, delWhileContents):
         whileConditionalParts = self.line.split("while")
         whileCondition = whileConditionalParts[1].strip()
+        whileTrans = myTrans.WhileNoIf
         if deletedIf:
             for cond in ifContents:
                 if whileCondition == cond:
@@ -276,7 +284,8 @@ class GitFile(object):
             
     def pythonFileFound(self):
         evalLine = self.line.rstrip()
-        if ((evalLine.startswith("diff")) and (evalLine.endswith(".py"))):
+        if ((evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine))):
+            '''
             strLine = self.line.rstrip() ## should be on diff line now
             splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
             if (splLine[len(splLine)-1] == '__init__.py'):  ## if they didn't delete the __init__.py file, we don't need that either
@@ -284,12 +293,23 @@ class GitFile(object):
                     self.line = self.gitFile.readline()
                 return False
             else:
-                return True
+            
+            if (re.search(r"\b\pyc\b",evalLine)):     ## binary file
+                for x in range(0,3):                        ## this for loop skips over .pyc file stuff
+                    self.line = self.gitFile.readline()
+                return False
+            else:
+            '''
+            #print evalLine
+            return True
         elif self.sameCommit() == False:
             return True
         else:
             return False
         
+    def binaryFile(self,evalLine):
+        return (re.search(r"\b\pyc\b",evalLine))     ## binary file
+
     def sameCommit(self):
         if self.line.find('Signed-off-by') > -1:   ## using this key word in the commit comment line to find the next commit 
             return False
