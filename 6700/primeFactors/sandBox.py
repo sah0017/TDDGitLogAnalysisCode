@@ -21,7 +21,8 @@ class sandbox(object):
         i think so '''
      
     def myMethod(self):
-        myString = "myValue=myValue + 1"
+        myString = "diff --git a/rtb0006/CA01/prod/__init__.py b/rtb0006/CA01/prod/__init__.py"
+        '''
         mySplit=myString.split(" ")
         myfirstcond = mySplit[0]
         mycond = mySplit[1]
@@ -39,12 +40,10 @@ class sandbox(object):
         
             
         print mySplit
-        myObj = re.search(r'=',myString.strip())  ## looking for a number or [] or " or '
+        '''
+        myObj = re.search(r'\bsandbox\b',myString.strip())  ## looking for a number or [] or " or '
         if myObj:
-            if (re.search(r'==',myString)):
-                print 'evaluation'
-            else:
-                print 'assignment'
+            print 'found'
 
         else:
             print 'not found'
