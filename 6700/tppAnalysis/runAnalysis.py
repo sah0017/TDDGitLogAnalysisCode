@@ -9,7 +9,7 @@ import subprocess
 
 if __name__ == '__main__':
 
-    for root, dir, files in os.walk("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\submissions"):
+    for root, dir, files in os.walk("c:\\Users\\susanha\\git\\6700Fall14\\Assignment2\\submissions"):
         nameSplit = root.split("\\")
         for currentDir in dir:
             if currentDir.endswith(".git"):
@@ -17,7 +17,7 @@ if __name__ == '__main__':
                 #print nameSplit[7], "Git directory", os.path.join(root,currentDir)
                 os.chdir(os.path.join(root,currentDir))
                 p=subprocess.Popen(["git","log","-p","-m","--reverse","--pretty=format:\"%s\""],stdout=subprocess.PIPE)
-                outFile = open("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\"+nameSplit[7]+"Log", "w")
+                outFile = open("c:\\Users\\susanha\\git\\6700Fall14\\Assignment2\\"+nameSplit[7]+"Log", "w")
                 for line in p.stdout.readlines():
                     outFile.write(line)
                 outFile.close()
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         #else:
         #    print "No git folder in " + root
         #print files
-    root = "c:\\Users\\susanha\\git\\6700Fall14\\Assignment1"
+    root = "c:\\Users\\susanha\\git\\6700Fall14\\Assignment2"
     dir = os.listdir(root)
     myResults = printResults.Results()
     for item in dir:
@@ -34,8 +34,8 @@ if __name__ == '__main__':
             fileName, ext = os.path.splitext(item)
             #print fileName
             if ext == "":
-                avgLinesPerCommit, avgTransPerCommit = myResults.printResults(fileName)
-                print fileName, ext, avgLinesPerCommit, avgTransPerCommit
+                nbrCommits, avgLinesPerCommit, avgTransPerCommit = myResults.printResults(root,fileName)
+                print fileName, ext, nbrCommits, avgLinesPerCommit, avgTransPerCommit
     print "Final report"
     print "Total submissions analyzed:  ",myResults.totalSubmissions
     print "Total number of commits:  ",myResults.totalCommits

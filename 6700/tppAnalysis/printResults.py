@@ -17,9 +17,9 @@ class Results:
         self.totalLinesOfCode = 0
         self.totalSubmissions = 0
     
-    def printResults(self, fileName):
+    def printResults(self, path, fileName):
         myTransNames = Transformations.Trans()
-        myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\"+fileName)
+        myGitFile = GitFile.GitFile(path+"\\"+fileName)
         self.totalSubmissions = self.totalSubmissions + 1
         myGitFile.readGitFile()
         myFiles = myGitFile.getFiles()
@@ -27,7 +27,7 @@ class Results:
         addedLines = 0
         nbrTransformations = 0
         nbrAntiTransformations = 0
-        outFile = open("c:\\Users\\susanha\\git\\6700Fall14\\Assignment1\\"+fileName+".gitout", "w")
+        outFile = open(path+"\\"+fileName+".gitout", "w")
         outFile.write( "Commits in log file:  " + str(len(myCommits)))
         nbrOfCommits = len(myCommits)
         self.totalCommits = self.totalCommits + nbrOfCommits
