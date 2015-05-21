@@ -15,83 +15,245 @@ import Method
 myTrans = Transformations.Trans() 
 
 class GitFile(object):
+    " Analyzes a single git log file"
  
     line = ''
     
-    def __init__(self, fileName):
+    def __init__(self, fileName, assignment):
         '''
         Constructor
         '''
         self.fileName = fileName
+        self.assignment = assignment
         self.myCommits = []
         self.myFiles = []
         self.gitFile = ''
         self.commits = 0
 
     def readGitFile(self):
-        ## subprocess.call("git log -p -m > logfile")
+        "Controls the looping through the git file"
         
         self.gitFile = codecs.open(self.fileName, encoding='utf-8')
+        print self.fileName
+        
+        for x in range(0, 39):                      ##  we don't need the first 40 lines of file
+            self.line = self.gitFile.readline() 
 
-        ## for the first commit, there are some files python creates that we don't need
-        ## this while loop is designed to skip over that stuff.
-        for x in range(0,2):
-            self.line = self.gitFile.readline()       ## this should be the first commit comment, skip it and first diff      
-        while not self.pythonFileFound(): 
-            self.line = self.gitFile.readline()   ## skips over unneccesary lines
-        self.commits = self.commits + 1
-        self.analyzeCommit()                    ## we should now be at python files that we want to analyze for the initial commit
         for self.line in self.gitFile:
-            if self.pythonFileFound():
-                self.commits = self.commits + 1
+            # print self.line
+            if self.pythonFileFound(self.assignment):
                 self.analyzeCommit()
-                            
-                
+ 
         self.gitFile.close()
 
+
+    def currentAssignment(self):
+        searchResult = re.search(self.assignment, self.line)
+        if (searchResult==None):
+            return False
+        else:
+            if (self.line.startswith("diff")):
+                return True
+
     def analyzeCommit(self):
-        commitAddedLines = 0
-        commitDeletedLines = 0
+        "Analyzes all the lines in an individual commit"
+        commitProdAddedLines = 0
+        commitProdDeletedLines = 0
+        commitTestAddedLines = 0
+        commitTestDeletedLines = 0
+        
         testFiles = 0
         prodFiles = 0
         nbrTrans = 0
         self.myTransformations = []
-        while self.sameCommit() == True:
-            addedLines, deletedLines, testFile = self.analyzeFile()
-            commitAddedLines = commitAddedLines + addedLines
-            commitDeletedLines = commitDeletedLines + deletedLines
-            if testFile:
-                testFiles = testFiles + 1
-            else:
-                prodFiles = prodFiles + 1
-        nbrTrans = len(self.myTransformations)
-        self.newCommit = Commit.Commit(self.commits, commitAddedLines,commitDeletedLines, testFiles, prodFiles, nbrTrans)
-        for trans in self.myTransformations:
-            self.newCommit.addTransformation(trans)
-        self.myCommits.append(self.newCommit)    
+        while (self.currentAssignment() == False):
+            self.line = self.gitFile.readline()
+            if self.foundNewCommit():   ## This is the correct assignment
+                return
+        if (self.currentAssignment() == True):
+            self.commits = self.commits + 1
+            while self.foundNewCommit() == False:
+                path, fileName = self.extractFileName()
+                if self.pythonFileFound(self.assignment):
+                    addedLines, deletedLines, prodFile, notSBFile = self.analyzeFile(path,fileName)
+                    if notSBFile:
+                        
+                        if prodFile:
+                            prodFiles = prodFiles + 1
+                            commitProdAddedLines = commitProdAddedLines + addedLines
+                            commitProdDeletedLines = commitProdDeletedLines + deletedLines
+                        else:
+                            testFiles = testFiles + 1
+                            commitTestAddedLines = commitTestAddedLines + addedLines
+                            commitTestDeletedLines = commitTestDeletedLines + deletedLines
+                        
+                else:
+                    self.line = self.gitFile.readline()
+            nbrTrans = len(self.myTransformations)
+            self.newCommit = Commit.Commit(self.commits, commitProdAddedLines,commitProdDeletedLines, commitTestAddedLines,
+                                           commitTestDeletedLines, testFiles, prodFiles, nbrTrans)
+            for trans in self.myTransformations:
+                self.newCommit.addTransformation(trans)
+            self.myCommits.append(self.newCommit)
    
-    def analyzeFile(self):
+    def analyzeFile(self, path, fileName):
+        "Analyzes the information of an individual file in a commit"
         fileAddedLines = 0
         fileDeletedLines = 0
         methodNames = []
-        path, fileName = self.extractFileName()
-        testFile = self.isTestFile(path)
+        prodFile = False
+        #notSBFile = self.isNotSandBoxOrBinaryFile(path, fileName)
+        #if notSBFile:
+        prodFile = self.isProdFile(path)
         self.line = self.gitFile.readline() ## either new file mode or index
-        matchObj = re.match('new file mode',self.line)
-        if matchObj:
-            self.fileIndex = self.addNewFile(fileName, testFile)
-        else:
-            self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
-        for x in range(0, 3): ## skips --- line, +++ line, and @@ line
-            if self.pythonFileFound():
+        self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
+        if (self.fileIndex == -1):
+            self.fileIndex = self.addNewFile(fileName, prodFile)
+        '''        
+        for x in range(0, 2): ## skips --- line, +++ line
+            if self.pythonFileFound(self.assignment):
                 break
             self.line = self.gitFile.readline()
-        
-        fileAddedLines, fileDeletedLines, methodNames = self.evaluateTransformations()
+        '''
+        #if notSBFile:        
+        fileAddedLines, fileDeletedLines, methodNames = self.evaluateTransformations(prodFile)
         self.myFiles[self.fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines, methodNames)
-        return fileAddedLines, fileDeletedLines, testFile
+        return fileAddedLines, fileDeletedLines, prodFile, True
     
 
+
+
+
+    def getMethodNameAndParameters(self, methodName, methodNames, defaultVal, params, noLeadingSpaces):
+        methodData = noLeadingSpaces.split(" ")
+        if len(methodData) > 1:
+            methodName = methodData[1].split("(")
+            methodNames.append(methodName[0])
+            params = methodData[2:]
+            if len(params) > 0:
+                x = 0
+                for parm in params:
+                    noDefaultVal = parm.split("=")
+                    if len(noDefaultVal) > 1:
+                        params[x] = noDefaultVal[0]
+                        defaultVal = True
+                    x = x + 1
+                
+                if not defaultVal:
+                    lastParam = params[len(params) - 1]
+                    lastParam = lastParam[0:len(lastParam) - 2] ## removes ): from last parameter
+                    params[len(params) - 1] = lastParam
+                defaultVal = False
+                #print params
+        return methodName, params
+
+    def evaluateTransformations(self, prodFile):
+        "Checks the line to see if it is a part of a transformation"
+        addedLines = 0
+        deletedLines = 0
+        deletedNullValue = False
+        deletedLiteral = False
+        deletedIf = False
+        deletedWhile = False
+        ifContents = []
+        whileContents = []
+        methodName = ""
+        methodNames = []
+        methodIndent = 0
+        lineWithNoComments = ""
+        defaultVal = False
+        params = []
+        while self.samePythonFile():             ## have we found a new python file within the same commit?
+            prevLine = lineWithNoComments
+            lineWithNoComments = self.removeComments()
+            noLeadingPlus = lineWithNoComments[1:]
+            noLeadingSpaces = noLeadingPlus.strip()
+            currentIndent = len(noLeadingPlus) - len(noLeadingSpaces)
+            if currentIndent <= methodIndent:
+                methodName=""
+            if noLeadingPlus != "\r\n":                         ## no need to go through all of this for a blank line
+                if noLeadingSpaces.startswith("def"):   ## Looking for parameters in method call for assignment
+                    methodLine = True
+                    methodIndent = len(noLeadingPlus) - len(noLeadingSpaces)
+                    methodName, params = self.getMethodNameAndParameters(methodName, methodNames, defaultVal, params, noLeadingSpaces)
+                else:
+                    methodLine = False
+                if lineWithNoComments[0] == '-' and lineWithNoComments[1] != '-':
+                    deletedLines = deletedLines + 1
+                    if prodFile:
+                        deletedNullValue = self.checkForDeletedNullValue()
+                        if re.search("return", lineWithNoComments):
+                            deletedLiteral = self.checkForConstantOnReturn(lineWithNoComments)
+                        if re.search(r"\bif .", lineWithNoComments):
+                            deletedIf = True
+                            ifConditionalParts = lineWithNoComments.split("if")
+                            ifConditional = ifConditionalParts[1].strip()
+                            ifContents.append(ifConditional)
+                        if re.search(r"\bwhile .", lineWithNoComments):
+                            deletedWhile = True
+                            whileConditionalParts = lineWithNoComments.split("while")
+                            whileConditional = whileConditionalParts[1].strip()
+                            whileContents.append(whileConditional)
+                    
+                if lineWithNoComments[0] == '+' and lineWithNoComments[1] != '+':
+                    addedLines = addedLines + 1
+                    if prodFile:
+                        if re.search(r"\bpass\b",lineWithNoComments):
+                            self.myTransformations.append(myTrans.NULL)
+                        if methodName != "" and not methodLine:
+                            myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(methodName[0])
+                            #try:
+                            if re.search(myRecurseSearchString, lineWithNoComments):
+                                if not (re.search("if __name__ == '__main__':",prevLine)):
+                                    methodLineNoLeadingSpaces = noLeadingPlus.strip()
+                                    methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
+                                    if methodLineIndent > methodIndent:
+                                        self.myTransformations.append(myTrans.REC)
+                            #except Exception as inst:
+                            #    print self.fileName, type(inst)
+                        if re.search(r"\breturn\b", lineWithNoComments):
+                            rtnBoolean, rtnValue = self.returnWithNull()
+                            if rtnBoolean == True:
+                                self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
+                            else:
+                                ## this looks for constants after 'return'
+                                if self.checkForConstantOnReturn(rtnValue):                                     ## if there are constants and
+                                    if deletedNullValue == True:                ## if there was a Null expression before, they probably did Null to Constant
+                                        self.myTransformations.append(myTrans.N2C)
+                                    else:                                       ## if constants but no previous Null, they probably just went straight to constant
+                                        self.myTransformations.append(myTrans.ConstOnly)
+                                else:                                         ## if it wasn't constants on the return
+                                    if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
+                                        self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
+                                    else:
+                                        if re.search(r"[+/*%\-]|\bmath.\b",noLeadingPlus):
+                                            self.myTransformations.append(myTrans.AComp)
+                                        for parm in params:
+                                            if rtnValue == parm:                ## if the return value is a parameter, then it is an assign.
+                                                self.myTransformations.append(myTrans.AS)
+                                        self.myTransformations.append(myTrans.VarOnly)  ##  if we got to this point, they went straight to a variable.
+                        elif (re.search(r"\bif.(?!_name__ == \"__main)",lineWithNoComments)):
+                            self.myTransformations.append(myTrans.SF)
+                        elif (re.search(r"\bwhile\b",lineWithNoComments)):
+                            whileTrans = self.checkWhileForMatchingIfOrWhile(deletedIf, ifContents, deletedWhile, whileContents)
+                            self.myTransformations.append(whileTrans)              
+                        elif (re.search(r"\bfor\b",noLeadingPlus)):
+                            self.myTransformations.append(myTrans.IT)
+                        elif (re.search(r"\belif\b|\belse\b",noLeadingPlus)):
+                            self.myTransformations.append(myTrans.ACase)
+                       # elif (re.search(r"=",noLeadingPlus)):
+                       #     if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
+                       #         if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
+                        elif re.search(r"[+/*%\-]|\bmath.\b",noLeadingPlus):
+                            self.myTransformations.append(myTrans.AComp)
+                        assignmentVars = noLeadingPlus.split("=")
+                        assignmentVar = assignmentVars[0].strip()
+                        for x in params:
+                            if x == assignmentVar:
+                                self.myTransformations.append(myTrans.AS)
+            self.line = self.gitFile.readline()
+        
+        return addedLines, deletedLines, methodNames
 
     def stripGitActionAndSpaces(self):
         noPlus = self.line[1:]
@@ -112,7 +274,7 @@ class GitFile(object):
                 while not endCommentFound:
                     self.line = self.gitFile.readline()
                     noPlus = self.stripGitActionAndSpaces()
-                    if (self.line[0] == action):
+                    if (self.line[0] == action) and (self.line[0] != " "):
                         if noPlus.startswith("'''") or noPlus.startswith("\"\"\"") or noPlus.endswith("'''") or noPlus.endswith("\"\"\""):
                             self.line = self.gitFile.readline()
                             endCommentFound = True
@@ -131,118 +293,6 @@ class GitFile(object):
             lineWithNoComments = self.line
         return lineWithNoComments
 
-    def evaluateTransformations(self):
-        addedLines = 0
-        deletedLines = 0
-        deletedNullValue = False
-        deletedLiteral = False
-        deletedIf = False
-        deletedWhile = False
-        ifContents = []
-        whileContents = []
-        methodName = ""
-        methodNames = []
-        lineWithNoComments = ""
-        defaultVal = False
-        params = []
-        while not self.pythonFileFound():   ## this would indicate a new python file within the same commit
-            prevLine = lineWithNoComments
-            lineWithNoComments = self.removeComments()
-            noLeadingPlus = lineWithNoComments[1:]
-            if noLeadingPlus != "\r\n":              ## no need to go through all of this for a blank line
-                if re.search(r"\bdef\b", lineWithNoComments):   ## Looking for parameters in method call for assignment
-                    methodLine = True
-                    noLeadingSpaces = noLeadingPlus.strip()
-                    methodData = noLeadingSpaces.split(" ")
-                    if len(methodData) > 1:
-                        methodName = methodData[1].split("(")
-                        methodNames.append(methodName[0])
-                        params = methodData[2:]
-                        if len(params) > 0:
-                            x = 0
-                            for parm in params:
-                                noDefaultVal = parm.split("=")
-                                if len(noDefaultVal) > 1:
-                                    params[x] = noDefaultVal[0]
-                                    defaultVal = True
-                                x=x+1
-                            if not defaultVal:
-                                lastParam = params[len(params)-1]
-                                lastParam = lastParam[0:len(lastParam)-2]     ## removes ): from last parameter
-                                params[len(params)-1] = lastParam
-                            defaultVal = False
-                            #print params
-                else:
-                    methodLine = False
-                if lineWithNoComments[0] == '-':
-                    deletedLines = deletedLines + 1
-                    deletedNullValue = self.checkForDeletedNullValue()
-                    if re.search("return", lineWithNoComments):
-                        deletedLiteral = self.checkForConstantOnReturn(lineWithNoComments)
-                    if re.search(r"\bif .", lineWithNoComments):
-                        deletedIf = True
-                        ifConditionalParts = lineWithNoComments.split("if")
-                        ifConditional = ifConditionalParts[1].strip()
-                        ifContents.append(ifConditional)
-                    if re.search(r"\bwhile .", lineWithNoComments):
-                        deletedWhile = True
-                        whileConditionalParts = lineWithNoComments.split("while")
-                        whileConditional = whileConditionalParts[1].strip()
-                        whileContents.append(whileConditional)
-                    
-                if lineWithNoComments[0] == '+':
-                    addedLines = addedLines + 1
-                    if re.search(r"\bpass\b",lineWithNoComments):
-                        self.myTransformations.append(myTrans.NULL)
-                    if methodName != "" and not methodLine:
-                        myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(methodName[0])
-                        if re.search(myRecurseSearchString, lineWithNoComments):
-                            if not (re.search("if __name__ == '__main__':",prevLine)):
-                                self.myTransformations.append(myTrans.REC)
-                    if re.search(r"\breturn\b", lineWithNoComments):
-                        rtnBoolean, rtnValue = self.returnWithNull()
-                        if rtnBoolean == True:
-                            self.myTransformations.append(myTrans.NULL)   ## this is either a 'return' or a 'return None'
-                        else:
-                            ## this looks for constants after 'return'
-                            if self.checkForConstantOnReturn(rtnValue):                                     ## if there are constants and
-                                if deletedNullValue == True:                ## if there was a Null expression before, they probably did Null to Constant
-                                    self.myTransformations.append(myTrans.N2C)
-                                else:                                       ## if constants but no previous Null, they probably just went straight to constant
-                                    self.myTransformations.append(myTrans.ConstOnly)
-                            else:                                         ## if it wasn't constants on the return
-                                if deletedLiteral:                        ## and the delete section removed a 'return' with a constant
-                                    self.myTransformations.append(myTrans.C2V)    ## then it is probably a constant to variable
-                                else:
-                                    if re.search(r"[+/*%\-]|\bmath.\b",noLeadingPlus):
-                                        self.myTransformations.append(myTrans.AComp)
-                                    for parm in params:
-                                        if rtnValue == parm:                ## if the return value is a parameter, then it is an assign.
-                                            self.myTransformations.append(myTrans.AS)
-                                    self.myTransformations.append(myTrans.VarOnly)  ##  if we got to this point, they went straight to a variable.
-                    elif (re.search(r"\bif.(?!_name__ == \"__main)",lineWithNoComments)):
-                        self.myTransformations.append(myTrans.SF)
-                    elif (re.search(r"\bwhile\b",lineWithNoComments)):
-                        whileTrans = self.checkWhileForMatchingIfOrWhile(deletedIf, ifContents, deletedWhile, whileContents)
-                        self.myTransformations.append(whileTrans)              
-                    elif (re.search(r"\bfor\b",noLeadingPlus)):
-                        self.myTransformations.append(myTrans.IT)
-                    elif (re.search(r"\belif\b|\belse\b",noLeadingPlus)):
-                        self.myTransformations.append(myTrans.ACase)
-                   # elif (re.search(r"=",noLeadingPlus)):
-                   #     if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
-                   #         if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
-                    elif re.search(r"[+/*%\-]|\bmath.\b",noLeadingPlus):
-                        self.myTransformations.append(myTrans.AComp)
-                    assignmentVars = noLeadingPlus.split("=")
-                    assignmentVar = assignmentVars[0].strip()
-                    for x in params:
-                        if x == assignmentVar:
-                            self.myTransformations.append(myTrans.AS)
-            self.line = self.gitFile.readline()
-        
-        return addedLines, deletedLines, methodNames
-
     def checkWhileForMatchingIfOrWhile(self, deletedIf, ifContents, deletedWhile, delWhileContents):
         whileConditionalParts = self.line.split("while")
         whileCondition = whileConditionalParts[1].strip()
@@ -260,66 +310,59 @@ class GitFile(object):
 
     def splitAndCleanCondition(self, cond):
         mySplit = cond.split(" ")
-        myfirstcond = mySplit[0]
-        mycond = mySplit[1]
-        mysecondcond = mySplit[2]
-        if myfirstcond.startswith("("):
-            myfirstcond = myfirstcond[1:]
-        removeTrailingChars = re.search(r"[a-zA-Z0-9_^):]",mysecondcond)
-        if removeTrailingChars:
-            mysecondcond = removeTrailingChars.group(0)
-        return myfirstcond, mycond, mysecondcond
+        if len(mySplit) == 3:
+            myfirstcond = mySplit[0]
+            mycond = mySplit[1]
+            mysecondcond = mySplit[2]
+            if myfirstcond.startswith("("):
+                myfirstcond = myfirstcond[1:]
+            removeTrailingChars = re.search(r"[a-zA-Z0-9_^):]",mysecondcond)
+            if removeTrailingChars:
+                mysecondcond = removeTrailingChars.group(0)
+            return myfirstcond, mycond, mysecondcond
+        else:
+            return None, None, None
 
     def checkForConstantToVariableInCondition(self, firstCond, secondCond):
         myfirstIfCond, myIfCond, mysecondIfCond = self.splitAndCleanCondition(firstCond)
         myfirstWhileCond, myWhileCond, mysecondWhileCond = self.splitAndCleanCondition(secondCond)
-        if ((myfirstIfCond == myfirstWhileCond)  and
-            (myIfCond == myWhileCond) and
-            (mysecondIfCond.isnumeric()) and
-            (mysecondWhileCond.isalpha())):
-            self.myTransformations.append(myTrans.C2V)
-            return myTrans.I2W
-        else:
-            return myTrans.WhileNoIf
+        if myfirstIfCond != None:
+            if ((myfirstIfCond == myfirstWhileCond)  and
+                (myIfCond == myWhileCond) and
+                (mysecondIfCond.isnumeric()) and
+                (mysecondWhileCond.isalpha())):
+                self.myTransformations.append(myTrans.C2V)
+                return myTrans.I2W
+        return myTrans.WhileNoIf
             
-    def pythonFileFound(self):
+    def pythonFileFound(self, assignment):
         evalLine = self.line.rstrip()
         if ((evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine))):
-            '''
-            strLine = self.line.rstrip() ## should be on diff line now
-            splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
-            if (splLine[len(splLine)-1] == '__init__.py'):  ## if they didn't delete the __init__.py file, we don't need that either
-                for x in range(0,3):                        ## this for loop skips over __init__ file stuff
-                    self.line = self.gitFile.readline()
-                return False
-            else:
-            
-            if (re.search(r"\b\pyc\b",evalLine)):     ## binary file
-                for x in range(0,3):                        ## this for loop skips over .pyc file stuff
-                    self.line = self.gitFile.readline()
-                return False
-            else:
-            '''
+            if (re.search(assignment,evalLine)):
+                
             #print evalLine
-            if re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine):
-                return True
-            else:
-                return False
-        elif self.sameCommit() == False:
+                if re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine):
+                    if not (re.search(r"\b\__init__\b",evalLine)):
+                        return True
+        elif self.foundNewCommit() == True:
             return True
-        else:
-            return False
+        return False
         
-    def binaryFile(self,evalLine):
-        return (re.search(r"\b\pyc\b",evalLine))     ## binary file
+    def samePythonFile(self):
+        evalLine = self.line.rstrip()
+        if (evalLine.startswith("diff")):
+            return False
+        elif self.foundNewCommit() == True:
+            return False
+        return True
 
-    def sameCommit(self):
+    def foundNewCommit(self):
         if self.line.find('Signed-off-by') > -1:   ## using this key word in the commit comment line to find the next commit 
-            return False
-        elif self.line == '':   ## looking for end of file
-            return False
-        else:
             return True
+        elif self.line == '':   ## looking for end of file
+            return True
+        else:
+            return False
     
     def checkForDeletedNullValue(self):
         deletedNullValue = False
@@ -346,13 +389,27 @@ class GitFile(object):
             rtnBoolean = False
         return rtnBoolean, rtnValue
 
-    def isTestFile(self, fileName):
+    def isProdFile(self, fileName):
         fileNameLower = fileName.lower();
-        if fileNameLower.startswith('test'):
-            testFile = True
+        if fileNameLower.startswith('prod'):
+            prodFile = True
         else:
-            testFile = False
-        return testFile
+            prodFile = False
+        return prodFile
+
+    def isNotSandBoxOrBinaryFile(self, path, fileName):
+        pathLower = path.lower();
+        if pathLower.startswith('sandbox'):
+            notSBFile = False
+        else:
+            if (re.search(r"\b\pyc\b",fileName)):
+                notSBFile = False
+            elif (re.search(r"\b\__init__\b",fileName)):
+                self.line = self.gitFile.readline()
+                notSBFile = False
+            else:
+                notSBFile = True
+        return notSBFile
 
     def extractFileName(self):
         strLine = self.line.rstrip() ## should be on diff line now
@@ -361,8 +418,8 @@ class GitFile(object):
         fileName = splLine[len(splLine) - 1]
         return path, fileName
 
-    def addNewFile(self, fileName, testFile):
-        self.newFile = File.File(fileName, testFile, self.commits)
+    def addNewFile(self, fileName, prodFile):
+        self.newFile = File.File(fileName, prodFile, self.commits)
         self.myFiles.append(self.newFile)
         self.myTransformations.append(myTrans.NEWFILE)
         self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
@@ -371,6 +428,7 @@ class GitFile(object):
 
 
     def findExistingFileToAddCommitDetails(self, fileName):
+        fileIndex = -1
         for x in self.myFiles:
             if x.extractFileName() == fileName:
                 fileIndex = self.myFiles.index(x)

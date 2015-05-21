@@ -24,12 +24,13 @@ class Trans(object):
     ConstOnly = -2
     VarOnly = -3
     WhileNoIf = -8
-    transList = dict(NEWFILE=0, NULL=1, N2C=2, C2V=3, AComp=4,SF=5,VA=6,AC=7,I2W=8,REC=9,IT=10,AS=11,ACase=12)
+    transList = {"NEWFILE":0, "NULL":0, "N2C":0, "C2V":0, "AComp":0,"SF":0,"VA":0,"AC":0,"I2W":0,"REC":0,"IT":0,"AS":0,"ACase":0}
 
     def __init__(self):
         '''
         Constructor
         '''
+        
     def myName(self, transNbr):
         if transNbr == 0:
             return "New file"
@@ -63,6 +64,8 @@ class Trans(object):
             return "Straight to Variable"
         elif transNbr == -8:
             return "While with no If"
+        else:
+            return  ""
         
 
 
