@@ -6,6 +6,7 @@ Created on Jul 28, 2014
 
 import re
 import math
+import codecs
 
 class sandbox(object):
     '''
@@ -21,7 +22,7 @@ class sandbox(object):
         i think so '''
      
     def myMethod(self):
-        myString = "diff --git a/rtb0006/CA01/prod/__init__.py b/rtb0006/CA01/prod/__init__.py"
+        myString = "diff --git a/rtb0006/CA01/prod/__init__.pyc b/rtb0006/CA01/prod/__init__.pyc"
         '''
         mySplit=myString.split(" ")
         myfirstcond = mySplit[0]
@@ -41,7 +42,7 @@ class sandbox(object):
             
         print mySplit
         '''
-        myObj = re.search(r'\bsandbox\b',myString.strip())  ## looking for a number or [] or " or '
+        myObj = re.search(r'\py.\b',myString.strip())  ## looking for a number or [] or " or '
         if myObj:
             print 'found'
 
@@ -49,7 +50,22 @@ class sandbox(object):
             print 'not found'
             
     def newMethod(self):
-        math.ceil(2.55)
+        self.line = "afjlak;ad CA02  afasfkjhla"
+        self.assignment = "CA02"
+        print  re.search(self.assignment, self.line)
+        
+    def testfileMethod(self):
+        fileName = "c:\\Users\\susanha\\git\\6700Fall14\\testfile.txt"
+        testFile = codecs.open(fileName, encoding='utf-8')
+        
+        for line in testFile:
+            print line
+            if (line.strip() == "Line 3"):
+                length = len(line)
+                print length, line
+                testFile.seek(-(length+1),1)
+        testFile.close()
+
         
         
 
