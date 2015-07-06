@@ -18,7 +18,7 @@ class AnalyzedFiles():
  
         
 class AnalyzeFiles(object):
-    
+       
     
     def complexityAssessment(self):
         visitedFiles = []
