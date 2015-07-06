@@ -12,22 +12,22 @@ class File(object):
     '''
 
 
-    def __init__(self, fileName, testFile, commitNbr):
+    def __init__(self, fileName, prodFile, commitNbr):
         '''
         Constructor
         '''
         self.fileName = fileName
         self.commitAdded = commitNbr
         self.commitDetails = []
-        self.methodNames = []
-        self.testFile = testFile
+        self.methods = []
+        self.prodFile = prodFile
         
     def setCommitDetails(self, commitNbr, addedLines, deletedLines, methodNames):
         myCommitDetails = CommitDetails.CommitDetails(commitNbr, addedLines, deletedLines, methodNames)
         self.commitDetails.append(myCommitDetails)
 
     def setMethodName(self, methodName):
-        myMethod = Method.Method(methodName)
+        myMethod = Method.Method(methodName,[])
         self.methodNames.append(myMethod)
         
         

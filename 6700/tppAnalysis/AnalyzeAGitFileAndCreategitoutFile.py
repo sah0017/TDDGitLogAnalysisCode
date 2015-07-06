@@ -72,13 +72,14 @@ class Results:
         self.totalLinesOfCode = self.totalLinesOfCode + addedLines
         outFile.write("\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
         for myFile in myFiles:
-            outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.commitAdded) + ".  Is a test file:" + str(myFile.testFile))
+            outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.commitAdded) + ".  Is a prod file:" + str(myFile.prodFile))
             for myCommitDetails in myFile.commitDetails:
                 outFile.write("\r\n\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + 
                               ".  Deleted lines:" + str(myCommitDetails.deletedLines))
                 outFile.write("\r\n\t\tMethods added/modified:" )
-                for myMethodName in myCommitDetails.methodNames:
-                    outFile.write("\r\t\t" + myMethodName)
+                for myMethod in myCommitDetails.methodNames:
+                    # for myMethodName in myMethod.methodName:
+                    outFile.write("\r\t\t" + myMethod.methodName)
                 
         outFile.close()
         overallDeletedLines = deletedLines + deletedTestLines
