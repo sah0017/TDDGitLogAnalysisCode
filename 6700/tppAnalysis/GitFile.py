@@ -37,11 +37,11 @@ class GitFile(object):
     def readGitFile(self):
         "Controls the looping through the git file"
         
-        self.gitFile = codecs.open(self.fileName, encoding='utf-8')
+        self.gitFile = codecs.open(self.fileName)
         print self.fileName
         
         for x in range(0, 39):                      ##  we don't need the first 40 lines of file
-            self.line = self.gitFile.readline() 
+            self.line = self.gitFile.next() 
 
         for self.line in self.gitFile:
             # print self.line
@@ -72,7 +72,9 @@ class GitFile(object):
         nbrTrans = 0
         self.myTransformations = []
         while (self.currentAssignment() == False):
-            self.line = self.gitFile.readline()
+            self.line = self.readNextLine()
+            if self.line == False:
+                return
             if self.foundNewCommit():   ## This is the correct assignment
                 return
         if (self.currentAssignment() == True):
@@ -93,7 +95,9 @@ class GitFile(object):
                             commitTestDeletedLines = commitTestDeletedLines + deletedLines
                         
                 else:
-                    self.line = self.gitFile.readline()
+                    self.line = self.readNextLine()
+                    if self.line == False:
+                        self.line = ''
             nbrTrans = len(self.myTransformations)
             self.newCommit = Commit.Commit(self.commits, commitProdAddedLines,commitProdDeletedLines, commitTestAddedLines,
                                            commitTestDeletedLines, testFiles, prodFiles, nbrTrans)
@@ -110,7 +114,7 @@ class GitFile(object):
         #notSBFile = self.isNotSandBoxOrBinaryFile(path, fileName)
         #if notSBFile:
         prodFile = self.isProdFile(path)
-        self.line = self.gitFile.readline() ## either new file mode or index
+        self.line = self.gitFile.next() ## either new file mode or index
         self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         if (self.fileIndex == -1):
             self.fileIndex = self.addNewFile(fileName, prodFile)
@@ -118,7 +122,7 @@ class GitFile(object):
         for x in range(0, 2): ## skips --- line, +++ line
             if self.pythonFileFound(self.assignment):
                 break
-            self.line = self.gitFile.readline()
+            self.line = self.gitFile.next()
         '''
         #if notSBFile:        
         fileAddedLines, fileDeletedLines, methods = self.evaluateTransformationsInAFile(prodFile)
@@ -148,7 +152,7 @@ class GitFile(object):
                 currentMethod = Method.Method("Unknown",[])
                 methodArray.append(currentMethod)
             if noLeadingPlus != "\r\n":                         ## no need to go through all of this for a blank line
-                if noLeadingSpaces.startswith("def"):   ## Looking for parameters in method call for assignment
+                if noLeadingSpaces.startswith("def "):   ## Looking for parameters in method call for assignment
                     methodLine = True
                     methodIndent = len(noLeadingPlus) - len(noLeadingSpaces)
                     currentMethod = self.getMethodNameAndParameters(noLeadingSpaces)
@@ -166,14 +170,19 @@ class GitFile(object):
                     addedLines = addedLines + 1
                     currentMethod.addedLines = currentMethod.addedLines + 1
                     self.processAddedLine(currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine)
-            self.line = self.gitFile.readline()
+            
         for method in methodArray:
             if method.addedLines == 0:
                 if len(method.deletedLines) == 0:
                     methodArray.remove(method)      # empty method
         return addedLines, deletedLines, methodArray
 
-
+    def readNextLine(self):
+        try:
+            self.line = self.gitFile.next()
+            return self.line
+        except StopIteration as e:
+            return False
 
 
     def getMethodNameAndParameters(self, lineWithNoLeadingSpaces):
@@ -304,14 +313,17 @@ class GitFile(object):
             if noPlus.startswith("'''") or noPlus.startswith("\"\"\""):
                 foundQuotedComment = True
                 if len(noPlus) > 3 and noPlus.endswith("'''") or noPlus.endswith("\"\"\""):   #one-line comment
-                    self.line = self.gitFile.readline()
+                    self.line = self.gitFile.next()
                     endCommentFound = True
                 while not endCommentFound:
-                    self.line = self.gitFile.readline()
+                    self.line = self.readNextLine()
+                    if self.line == False:
+                        self.line = ' '
+                        break
                     noPlus = self.stripGitActionAndSpaces()
                     if (self.line[0] == action) and (self.line[0] != " "):
                         if noPlus.startswith("'''") or noPlus.startswith("\"\"\"") or noPlus.endswith("'''") or noPlus.endswith("\"\"\""):
-                            self.line = self.gitFile.readline()
+                            self.line = self.gitFile.next()
                             endCommentFound = True
                     else:
                         endCommentFound = True
@@ -334,7 +346,7 @@ class GitFile(object):
         whileTrans = myTrans.WhileNoIf
         for dLine in currentMethod.deletedLines:
             if dLine.deletedIf:
-                if whileCondition == dLine.delIfContents:
+                if whileCondition == dLine.deletedIfContents:
                     return myTrans.I2W
                 else:
                     whileTrans = myTrans.WhileNoIf
@@ -363,7 +375,7 @@ class GitFile(object):
         if myfirstIfCond != None:
             if ((myfirstIfCond == myfirstWhileCond)  and
                 (myIfCond == myWhileCond) and
-                (mysecondIfCond.isnumeric()) and
+                (mysecondIfCond.isdigit()) and
                 (mysecondWhileCond.isalpha())):
                 self.myTransformations.append(myTrans.C2V)
                 return myTrans.I2W
@@ -384,6 +396,10 @@ class GitFile(object):
         
     def samePythonFile(self):
         " Are we still in the same python file changes or is this a new python file? "
+        self.line = self.readNextLine()
+        if self.line == False:              ## EOF
+            self.line = ''
+            return False
         evalLine = self.line.rstrip()
         if (evalLine.startswith("diff")):
             return False
@@ -443,7 +459,7 @@ class GitFile(object):
             if (re.search(r"\b\pyc\b",fileName)):
                 notSBFile = False
             elif (re.search(r"\b\__init__\b",fileName)):
-                self.line = self.gitFile.readline()
+                self.line = self.gitFile.next()
                 notSBFile = False
             else:
                 notSBFile = True
@@ -461,7 +477,7 @@ class GitFile(object):
         self.newFile = File.File(fileName, prodFile, self.commits)
         self.myFiles.append(self.newFile)
         self.myTransformations.append(myTrans.NEWFILE)
-        self.line = self.gitFile.readline() ## if this was a new file, then advance file pointer to index line
+        self.line = self.gitFile.next() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return fileIndex
 
