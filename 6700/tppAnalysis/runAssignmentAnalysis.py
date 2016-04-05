@@ -13,18 +13,19 @@ if __name__ == '__main__':
     
     myDrive = "g:\\"
     printToFile = raw_input("Print output to file?  ")
-    myDirectory = "Assignment4"
-    myAssignment = "CA04"
-    '''
-    for root, myDir, files in os.walk("c:\\Users\\susanha\\git\\6700Fall14\\"+myDirectory+"\\submissions"):
+    mySemester = "6700Spring16"
+    myDirectory = "CA02"
+    myAssignment = "CA02"
+    
+    for root, myDir, files in os.walk(myDrive+"git\\"+mySemester+"\\"+myDirectory+"\\submissions"):
         nameSplit = root.split("\\")
         for currentDir in myDir:
             if currentDir.endswith(".git"):
                 #os.chdir(myDir)
-                #print nameSplit[7], "Git directory", os.path.join(root,currentDir)
+                print nameSplit[4], "Git directory", os.path.join(root,currentDir)
                 os.chdir(os.path.join(root,currentDir))
-                p=subprocess.Popen(["git","log","-p","-m","--reverse","--pretty=format:\"%s\""],stdout=subprocess.PIPE)
-                outFile = open("c:\\Users\\susanha\\git\\6700Fall14\\"+myDirectory+"\\"+nameSplit[7]+"Log", "w")
+                p=subprocess.Popen(["git","whatchanged","-p","-m","--reverse","--pretty=format:\"commit %h%n%ad%n%s\""],stdout=subprocess.PIPE)
+                outFile = open(myDrive+"git\\"+mySemester+"\\"+myDirectory+"\\"+nameSplit[5]+"Log", "w")
                 for line in p.stdout.readlines():
                     outFile.write(line)
                 outFile.close()
@@ -32,11 +33,11 @@ if __name__ == '__main__':
         #else:
         #    print "No git folder in " + root
         #print files
-    '''
-    root = myDrive+"git\\6700Fall14\\"+myDirectory
+    
+    root = myDrive+"git\\"+mySemester+"\\"+myDirectory
     myDir = os.listdir(root)
     myResults = AnalyzeAGitFileAndCreategitoutFile.Results(myAssignment)
-    outFile = open(myDrive+"git\\6700Fall14\\Report"+myDirectory,"w")
+    outFile = open(myDrive+"git\\"+mySemester+"\\Report"+myDirectory,"w")
     outFile.write( "Submission name\tNumber of Commits\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tOverall Deleted Lines \r")
     myTransNames = Transformations.Trans()
     for item in myDir:
@@ -65,8 +66,9 @@ if __name__ == '__main__':
                 outFile.write( "Number of anti-transformation type "+ myTransNames.myName(-i) + " is \t" + str(myResults.antitransTotals[i]) +"\r")
         
         outFile.write( "Total lines of code:  \t" + str( myResults.totalLinesOfCode)+" \n\r")
-        outFile.write( "Average Transformations per commit: \t "+ str(myResults.totalTransformations/myResults.totalCommits)+" \r")
-        outFile.write( "Average lines of code per commit:  \t"+ str(myResults.totalLinesOfCode/myResults.totalCommits)+" \n\r")
+        if myResults.totalCommits > 0:
+            outFile.write( "Average Transformations per commit: \t "+ str(myResults.totalTransformations/myResults.totalCommits)+" \r")
+            outFile.write( "Average lines of code per commit:  \t"+ str(myResults.totalLinesOfCode/myResults.totalCommits)+" \n\r")
     else:
         print "Final report"
         print "Total submissions analyzed:  ",myResults.totalSubmissions

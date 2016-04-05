@@ -9,11 +9,11 @@ import subprocess
 
 
 if __name__ == '__main__':
-    myDirectory = "Assignment4"
-    myAssignment = "CA04"
-    os.chdir("F:\\git\\6700Fall14\\Assignment4\\submissions\\xu--yangfan-late_3132310_47261211_yzx0018\\softwareProcess\\.git")
+    myDirectory = "CA03"
+    myAssignment = "CA03"
+    os.chdir("G:\\git\\6700Fall15\\CA03\\submissions\\ahlawat--kushagar\\softwareProcess\\.git")
     p=subprocess.Popen(["git","log","-p","-m","--reverse","--pretty=format:\"%s\""],stdout=subprocess.PIPE)
-    outFile = open("f:\\git\\6700Fall14\\"+myDirectory+"\\xu--yangfan-late_3132310_47261211_yzx0018Log", "w")
+    outFile = open("g:\\git\\6700Fall15\\"+myDirectory+"\\kza0026Log", "w")
     for line in p.stdout.readlines():
         outFile.write(line)
     outFile.close()
