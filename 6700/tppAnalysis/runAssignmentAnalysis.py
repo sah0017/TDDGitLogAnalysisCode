@@ -7,6 +7,7 @@ import os
 import AnalyzeAGitFileAndCreategitoutFile
 import subprocess
 import Transformations
+import Assignment
 
 
 if __name__ == '__main__':
@@ -15,9 +16,9 @@ if __name__ == '__main__':
     printToFile = raw_input("Print output to file?  ")
     mySemester = "6700Spring16"
     myDirectory = "CA02"
-    myAssignment = "CA02"
-    
-    for root, myDir, files in os.walk(myDrive+"git\\"+mySemester+"\\"+myDirectory+"\\submissions"):
+
+        
+    for root, myDir, files in os.walk(myDrive+"git\\"+mySemester+"\\"+myDirectory+"\\submissionsLate"):
         nameSplit = root.split("\\")
         for currentDir in myDir:
             if currentDir.endswith(".git"):
@@ -33,10 +34,10 @@ if __name__ == '__main__':
         #else:
         #    print "No git folder in " + root
         #print files
-    
+        
     root = myDrive+"git\\"+mySemester+"\\"+myDirectory
     myDir = os.listdir(root)
-    myResults = AnalyzeAGitFileAndCreategitoutFile.Results(myAssignment)
+    myResults = AnalyzeAGitFileAndCreategitoutFile.Results()
     outFile = open(myDrive+"git\\"+mySemester+"\\Report"+myDirectory,"w")
     outFile.write( "Submission name\tNumber of Commits\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tOverall Deleted Lines \r")
     myTransNames = Transformations.Trans()
