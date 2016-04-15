@@ -31,7 +31,7 @@ class Trans(object):
         Constructor
         '''
         
-    def myName(self, transNbr):
+    def getTransformationName(self, transNbr):
         if transNbr == 0:
             return "New file"
         elif transNbr == 1:
@@ -70,6 +70,6 @@ class Trans(object):
 
 
 class NewFile(Trans):
-    def myName(self):
+    def getTransformationName(self):
         return "New File"
         

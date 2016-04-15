@@ -5,7 +5,8 @@ Created on Sep 17, 2014
 '''
 import os
 import subprocess
-import AnalyzeAGitFileAndCreategitoutFile
+import AssignmentCommitTotals
+import AnalyzeAGitLogFileAndCreateGitoutFile
 
 if __name__ == '__main__':
     #  antley--matthew_1247150_45465189_mra0016Log
@@ -21,6 +22,6 @@ if __name__ == '__main__':
         outFile.write(line)
     outFile.close()
 
-    myResults = AnalyzeAGitFileAndCreategitoutFile.Results()
-    nbrCommits, avgLinesPerCommit, avgTransPerCommit, ratio, allDeletedLines = myResults.printResults(path + "\\", fileName)
-    print fileName, nbrCommits, avgLinesPerCommit, avgTransPerCommit, ratio, allDeletedLines
+    myResults = AnalyzeAGitLogFileAndCreateGitoutFile.Results()
+    myCommitStats = myResults.analyzeGitLog(path + "\\", fileName)
+    print fileName, myCommitStats.nbrCommits, myCommitStats.RLCommit, myCommitStats.GLCommit, myCommitStats.refCommit, myCommitStats.otherCommit, myCommitStats.avgLinesPerCommit, myCommitStats.avgTransPerCommit, myCommitStats.ratioTestToProd, myCommitStats.totalDelLines

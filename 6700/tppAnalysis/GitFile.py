@@ -12,9 +12,11 @@ import File
 import Assignment
 import re
 import Method
+import jsonpickle
 from DeletedLine import DeletedLine
 from datetime import date
 from time import strptime
+import sys
 
 myTrans = Transformations.Trans() 
 
@@ -28,11 +30,11 @@ class GitFile(object):
     line = ''
     
     
-    def __init__(self, fileName):
+    def __init__(self):
         '''
         Constructor
         '''
-        self.fileName = fileName
+        self.fileName = ''
         self.currAssignment = 1
         self.myAssignmentsList = []
         self.myCommits = []
@@ -47,18 +49,19 @@ class GitFile(object):
         self.readNextLine()             # advance to next line to get the first file name in the commit
         return commitType
 
-    def readGitFile(self):
+    def readGitLogFile(self, fileName):
         "Controls the looping through the git file"
         
+        self.fileName = fileName
         self.gitFile = codecs.open(self.fileName)
         print self.fileName
        
         myAssignmentDict = self.myAssignment.getAssignmentDict()             # this dictionary tells us the dates for the asssignments
-        self.currAssignmentDate = myAssignmentDict[self.currAssignment] # last date for the first assignment
-        self.readNextLine()                                             # first line says commit
+        self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
+        self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
-            if self.currentAssignment():                                # advances to next line to check the commit date
-                self.commitType = self.getCommitType()                  # advances to next line to get commit type
+            if self.currentAssignment():                                    # advances to next line to check the commit date
+                self.commitType = self.getCommitType()                      # advances to next line to get commit type
                 self.myAssignment.addCommitToAssignment(self.analyzeCommit(self.commitType))
 
 
@@ -71,6 +74,7 @@ class GitFile(object):
         self.currAssignment = self.currAssignment + 1
         self.myAssignment = Assignment.Assignment(self.currAssignment)
         self.gitFile.close()
+        self.storeGitoutFileObject()
 
 
     def currentAssignment(self):
@@ -515,10 +519,27 @@ class GitFile(object):
     def getCommits(self):
         return self.myCommits
     
-    def getTransformations(self):
+    def get_transformations(self):
         return self.myTransformations
     
     def getFiles(self):
         return self.myFiles
-
     
+    def storeGitoutFileObject(self):
+        out_s = open(self.fileName+'.json', 'w')
+
+        # Write to the stream
+        myJsonString = jsonpickle.encode(self)
+        out_s.write(myJsonString)
+        out_s.close()
+            
+    def retrieveGitoutFileObject(self,filename):
+        
+        in_s = open(filename+'.json', 'r')
+
+        # Read from the stream
+        myJsonString = in_s.read()
+        gitfileObject = jsonpickle.decode(myJsonString)
+        in_s.close()
+        
+        return gitfileObject
