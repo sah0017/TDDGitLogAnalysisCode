@@ -4,10 +4,12 @@ Created on Sep 12, 2014
 @author: susanha
 '''
 import os
-import AnalyzeAGitFileAndCreategitoutFile
+import AnalyzeAGitLogFileAndCreateGitoutFile
 import subprocess
 import Transformations
 import Assignment
+import AssignmentCommitTotals
+
 
 
 if __name__ == '__main__':
@@ -17,7 +19,7 @@ if __name__ == '__main__':
     mySemester = "6700Spring16"
     myDirectory = "CA02"
 
-        
+            
     for root, myDir, files in os.walk(myDrive+"git\\"+mySemester+"\\"+myDirectory+"\\submissionsLate"):
         nameSplit = root.split("\\")
         for currentDir in myDir:
@@ -34,12 +36,12 @@ if __name__ == '__main__':
         #else:
         #    print "No git folder in " + root
         #print files
-        
+         
     root = myDrive+"git\\"+mySemester+"\\"+myDirectory
     myDir = os.listdir(root)
-    myResults = AnalyzeAGitFileAndCreategitoutFile.Results()
+    myResults = AnalyzeAGitLogFileAndCreateGitoutFile.Results()
     outFile = open(myDrive+"git\\"+mySemester+"\\Report"+myDirectory,"w")
-    outFile.write( "Submission name\tNumber of Commits\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tOverall Deleted Lines \r")
+    outFile.write( "Submission name\tNumber of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tOverall Deleted Lines \r")
     myTransNames = Transformations.Trans()
     for item in myDir:
         #print item
@@ -47,40 +49,49 @@ if __name__ == '__main__':
             fileName, ext = os.path.splitext(item)
             #print fileName
             if ext == "":
-                nbrCommits, avgLinesPerCommit, avgTransPerCommit, ratio, allDeletedLines = myResults.printResults(root,fileName)
+                myCommitStats = myResults.analyzeGitLog(root,fileName)
                 if printToFile:
-                    outFile.write( fileName + ext + "\t" + str(nbrCommits) + "\t" + format(avgLinesPerCommit,'.2f') + "\t" + 
-                               format(avgTransPerCommit,'.2f')+" \t" + format(ratio,'.2f') +"\t" + str(allDeletedLines) +"\r")
+                    outFile.write( fileName + ext + "\t" + str(myCommitStats.get_nbr_commits()) + "\t" 
+                                   + str(myCommitStats.get_rlcommit()) + "\t" + str(myCommitStats.get_glcommit()) + "\t"+ str(myCommitStats.get_ref_commit()) + "\t"
+                                   + str(myCommitStats.get_other_commit()) + "\t" + format(myCommitStats.get_avg_trans_per_commit(),'.2f') + "\t" + 
+                               format(myCommitStats.get_avg_trans_per_commit(),'.2f')+" \t" + format(myCommitStats.get_ratio_test_to_prod(),'.2f') +"\t" + str(myCommitStats.get_avg_lines_per_commit()) +"\r")
                 else:
-                    print fileName, ext, nbrCommits, avgLinesPerCommit, avgTransPerCommit
-
+                    print fileName, ext, myCommitStats.get_nbr_commits(), myCommitStats.get_avg_lines_per_commit(), myCommitStats.get_avg_trans_per_commit()
+    
+    ttlSub = myResults.get_total_submissions()
+    ttlComm = myResults.get_total_commits()
+    ttlTrans = myResults.get_total_transformations()
+    transTtlsList = myResults.get_trans_totals()
+    ttlAntiTrans = myResults.get_total_anti_transformations()
+    antiTransTtlsList = myResults.get_antitrans_totals()
+    ttlLOC = myResults.get_total_lines_of_code()
     if printToFile:
         outFile.write( "\n\r\n\rFinal report"+" \n\r")
-        outFile.write( "Total submissions analyzed:  \t" + str(myResults.totalSubmissions)+" \n\r")
-        outFile.write( "Total number of commits:  \t" + str(myResults.totalCommits)+" \r")
-        outFile.write( "Total number of transformations:  \t" + str(myResults.totalTransformations)+" \r")
+        outFile.write( "Total submissions analyzed:  \t" + str(ttlSub)+" \n\r")
+        outFile.write( "Total number of commits:  \t" + str(ttlComm)+" \r")
+        outFile.write( "Total number of transformations:  \t" + str(ttlTrans)+" \r")
         for i in range(0,13):
-            outFile.write("Number of transformation type " + myTransNames.myName(i) + " is \t" + str(myResults.transTotals[i]) +"\r")
-        outFile.write( "Total number of anti-transformations:  \t" + str(myResults.totalAntiTransformations)+" \r")
+            outFile.write("Number of transformation type " + myTransNames.getTransformationName(i) + " is \t" + str(transTtlsList[i]) +"\r")
+        outFile.write( "Total number of anti-transformations:  \t" + str(ttlAntiTrans)+" \r")
         for i in range(0,9):
-            if myTransNames.myName != "":
-                outFile.write( "Number of anti-transformation type "+ myTransNames.myName(-i) + " is \t" + str(myResults.antitransTotals[i]) +"\r")
+            if myTransNames.getTransformationName != "":
+                outFile.write( "Number of anti-transformation type "+ myTransNames.getTransformationName(-i) + " is \t" + str(antiTransTtlsList[i]) +"\r")
         
-        outFile.write( "Total lines of code:  \t" + str( myResults.totalLinesOfCode)+" \n\r")
+        outFile.write( "Total lines of code:  \t" + str(ttlLOC)+" \n\r")
         if myResults.totalCommits > 0:
-            outFile.write( "Average Transformations per commit: \t "+ str(myResults.totalTransformations/myResults.totalCommits)+" \r")
-            outFile.write( "Average lines of code per commit:  \t"+ str(myResults.totalLinesOfCode/myResults.totalCommits)+" \n\r")
+            outFile.write( "Average Transformations per commit: \t "+ str(ttlTrans/ttlComm)+" \r")
+            outFile.write( "Average lines of code per commit:  \t"+ str(ttlLOC/ttlComm)+" \n\r")
     else:
         print "Final report"
-        print "Total submissions analyzed:  ",myResults.totalSubmissions
-        print "Total number of commits:  ",myResults.totalCommits
-        print "Total number of transformations:  ", myResults.totalTransformations
+        print "Total submissions analyzed:  ",ttlSub
+        print "Total number of commits:  ",ttlComm
+        print "Total number of transformations:  ", ttlTrans
         for i in range(0,13):
-            print "Number of transformation type",i,myResults.transTotals[i]
-        print "Total number of anti-transformations:  ", myResults.totalAntiTransformations
+            print "Number of transformation type",i,transTtlsList[i]
+        print "Total number of anti-transformations:  ", ttlAntiTrans
         for i in range(0,9):
-            print "Number of anti-transformation type",i,myResults.antitransTotals[i]
+            print "Number of anti-transformation type",i,antiTransTtlsList[i]
         
-        print "Total lines of code:  ", myResults.totalLinesOfCode
-        print "Average Transformations per commit:  ", myResults.totalTransformations/myResults.totalCommits
-        print "Average lines of code per commit:  ",myResults.totalLinesOfCode/myResults.totalCommits
+        print "Total lines of code:  ", ttlLOC
+        print "Average Transformations per commit:  ", ttlTrans/ttlComm
+        print "Average lines of code per commit:  ",ttlLOC/ttlComm

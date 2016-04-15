@@ -18,32 +18,32 @@ class Test(unittest.TestCase):
     def testOneCommitGitFile(self):
         myTransformations = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
-        self.myGitFile.readGitFile()
-        self.assertEqual(self.myGitFile.getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
+        self.myGitFile.readGitLogFile()
+        self.assertEqual(self.myGitFile.get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
         
     def testGitFileCommits(self):
         myCommits = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         self.assertEqual(len(self.myGitFile.getCommits()), 9)
      
     def testGitFileCommitsLOC(self):
         myCommits = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         myCommits = self.myGitFile.getCommits()
-        self.assertEqual((myCommits[1].getAddedLinesInCommit()), 14)
+        self.assertEqual((myCommits[1].get_added_lines_in_commit()), 14)
              
     def testGitFiles(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         self.assertEqual(len(self.myGitFile.getFiles()),4)
 
     def testGitFileNames(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         myFiles = self.myGitFile.getFiles()
         self.assertEqual(myFiles[0].extractFileName(),'testPrimeFactor.py')
 
@@ -61,7 +61,7 @@ class Test(unittest.TestCase):
     def testCommitDetails(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         myFiles = self.myGitFile.getFiles()
         myCommitDetails = myFiles[0].getCommitDetails()
         self.assertEqual(myCommitDetails[0].getCommitDetails(),[1,18,0])
@@ -71,24 +71,24 @@ class Test(unittest.TestCase):
     def testCommitTransformations(self):
         myCommit = Commit.Commit(1,14,4,1,1)
         myCommit.addTransformation(1)
-        self.assertEqual(myCommit.getTransformations(), [1])
+        self.assertEqual(myCommit.get_transformations(), [1])
 
     def testCommitTransformationsInShortGitFile(self):
 
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         myCommits = self.myGitFile.getCommits()
-        self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
+        self.assertEqual(myCommits[0].get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
 
     def testCommitTransformationsInLongGitFile(self):
 
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile")
-        self.myGitFile.readGitFile()
+        self.myGitFile.readGitLogFile()
         myCommits = self.myGitFile.getCommits()
-        self.assertEqual(myCommits[0].getTransformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
-        self.assertEqual(myCommits[1].getTransformations(), [self.myTrans.NEWFILE,self.myTrans.ConstOnly])
-        self.assertEqual(myCommits[2].getTransformations(), [self.myTrans.SF,self.myTrans.C2V])
-        self.assertEqual(myCommits[3].getTransformations(), [self.myTrans.SF,self.myTrans.SF])
+        self.assertEqual(myCommits[0].get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
+        self.assertEqual(myCommits[1].get_transformations(), [self.myTrans.NEWFILE,self.myTrans.ConstOnly])
+        self.assertEqual(myCommits[2].get_transformations(), [self.myTrans.SF,self.myTrans.C2V])
+        self.assertEqual(myCommits[3].get_transformations(), [self.myTrans.SF,self.myTrans.SF])
 
 
 if __name__ == "__main__":
