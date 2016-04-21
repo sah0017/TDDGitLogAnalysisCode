@@ -25,12 +25,17 @@ class Trans(object):
     VarOnly = -3
     WhileNoIf = -8
     transList = {"NEWFILE":0, "NULL":0, "N2C":0, "C2V":0, "AComp":0,"SF":0,"VA":0,"AC":0,"I2W":0,"REC":0,"IT":0,"AS":0,"ACase":0}
+    
+    @staticmethod    
+    def getTransList():
+        return Trans.transList
 
     def __init__(self):
         '''
         Constructor
         '''
-        
+
+    
     def getTransformationName(self, transNbr):
         if transNbr == 0:
             return "New file"

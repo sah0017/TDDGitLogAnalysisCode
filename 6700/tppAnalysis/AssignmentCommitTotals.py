@@ -11,12 +11,12 @@ class AssignmentCommitTotals(object):
     '''
 
 
-    def __init__(self, assignment, nbrCommits, redLight, greenLight, nbrRefactor, other, avgLperC, avgTperC, ratio, overallDeletedLines):
+    def __init__(self, nbrCommits, redLight, greenLight, nbrRefactor, other, avgLperC, avgTperC, ratio, overallDeletedLines):
         '''
         Constructor
         '''
 
-        self.assignment = assignment
+        #self.assignment = assignment
         self.nbrCommits = nbrCommits
         self.RLCommit = redLight
         self.GLCommit = greenLight

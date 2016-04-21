@@ -18,32 +18,32 @@ class Test(unittest.TestCase):
     def testOneCommitGitFile(self):
         myTransformations = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         self.assertEqual(self.myGitFile.get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
         
     def testGitFileCommits(self):
         myCommits = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         self.assertEqual(len(self.myGitFile.getCommits()), 9)
      
     def testGitFileCommitsLOC(self):
         myCommits = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         myCommits = self.myGitFile.getCommits()
         self.assertEqual((myCommits[1].get_added_lines_in_commit()), 14)
              
     def testGitFiles(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         self.assertEqual(len(self.myGitFile.getFiles()),4)
 
     def testGitFileNames(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         myFiles = self.myGitFile.getFiles()
         self.assertEqual(myFiles[0].extractFileName(),'testPrimeFactor.py')
 
@@ -61,7 +61,7 @@ class Test(unittest.TestCase):
     def testCommitDetails(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         myFiles = self.myGitFile.getFiles()
         myCommitDetails = myFiles[0].getCommitDetails()
         self.assertEqual(myCommitDetails[0].getCommitDetails(),[1,18,0])
@@ -76,14 +76,14 @@ class Test(unittest.TestCase):
     def testCommitTransformationsInShortGitFile(self):
 
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile-short")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         myCommits = self.myGitFile.getCommits()
         self.assertEqual(myCommits[0].get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
 
     def testCommitTransformationsInLongGitFile(self):
 
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogFile")
-        self.myGitFile.readGitLogFile()
+        self.myGitFile.analyzeGitLogFile()
         myCommits = self.myGitFile.getCommits()
         self.assertEqual(myCommits[0].get_transformations(),[self.myTrans.NEWFILE,self.myTrans.NULL])
         self.assertEqual(myCommits[1].get_transformations(), [self.myTrans.NEWFILE,self.myTrans.ConstOnly])
