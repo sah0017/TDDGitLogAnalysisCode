@@ -5,7 +5,7 @@ Created on Jul 10, 2014
 '''
 
 # import subprocess
-import Transformations
+from Transformations import Trans 
 import codecs
 import Commit
 import File
@@ -18,12 +18,129 @@ from datetime import date
 from time import strptime
 import sys
 
-myTrans = Transformations.Trans() 
+myTrans = Trans.getTransList
+
+totalCommits = 0
+totalTransformations = 0
+totalAntiTransformations = 0
+totalLinesOfCode = 0
+totalSubmissions = 0
+#self.assignment = assignment
+transTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+antitransTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+@staticmethod
+def get_total_commits():
+    return totalCommits
 
 
+@staticmethod
+def get_total_transformations():
+    return totalTransformations
 
-        
 
+@staticmethod
+def get_total_anti_transformations():
+    return totalAntiTransformations
+
+
+@staticmethod
+def get_total_lines_of_code():
+    return totalLinesOfCode
+
+
+@staticmethod
+def get_total_submissions():
+    return totalSubmissions
+
+
+@staticmethod
+def get_trans_totals():
+    return transTotals
+
+
+@staticmethod
+def get_antitrans_totals():
+    return antitransTotals
+
+
+@staticmethod
+def set_total_commits(value):
+    totalCommits = totalCommits + value
+
+
+@staticmethod
+def set_total_transformations(value):
+    totalTransformations = totalTransformations + value
+
+
+@staticmethod
+def set_total_anti_transformations(value):
+    totalAntiTransformations = totalAntiTransformations + value
+
+
+@staticmethod
+def set_total_lines_of_code(value):
+    totalLinesOfCode = totalLinesOfCode + value
+
+
+@staticmethod
+def set_total_submissions(value):
+    totalSubmissions = totalSubmissions + value
+
+
+@staticmethod
+def set_trans_totals(value, transType):
+    transTotals[transType] = transTotals[transType] + value
+
+
+@staticmethod
+def set_antitrans_totals(value, transType):
+    antitransTotals[transType] = antitransTotals[transType] + value
+
+
+@staticmethod
+def del_total_commits(self):
+    del self.__totalCommits
+
+
+@staticmethod
+def del_total_transformations(self):
+    del self.__totalTransformations
+
+
+@staticmethod
+def del_total_anti_transformations(self):
+    del self.__totalAntiTransformations
+
+
+@staticmethod
+def del_total_lines_of_code(self):
+    del self.__totalLinesOfCode
+
+
+@staticmethod
+def del_total_submissions(self):
+    del self.__totalSubmissions
+
+
+@staticmethod
+def del_trans_totals(self):
+    del self.__transTotals
+
+
+@staticmethod
+def del_antitrans_totals(self):
+    del self.__antitransTotals
+'''
+totalCommits = property(get_total_commits, set_total_commits, del_total_commits, "totalCommits's docstring")
+totalTransformations = property(get_total_transformations, set_total_transformations, del_total_transformations, "totalTransformations's docstring")
+totalAntiTransformations = property(get_total_anti_transformations, set_total_anti_transformations, del_total_anti_transformations, "totalAntiTransformations's docstring")
+totalLinesOfCode = property(get_total_lines_of_code, set_total_lines_of_code, del_total_lines_of_code, "totalLinesOfCode's docstring")
+totalSubmissions = property(get_total_submissions, set_total_submissions, del_total_submissions, "totalSubmissions's docstring")
+transTotals = property(get_trans_totals, set_trans_totals, del_trans_totals, "transTotals's docstring")
+antitransTotals = property(get_antitrans_totals, set_antitrans_totals, del_antitrans_totals, "antitransTotals's docstring")
+'''
 class GitFile(object):
     " Analyzes a single git log file"
  
@@ -49,14 +166,14 @@ class GitFile(object):
         self.readNextLine()             # advance to next line to get the first file name in the commit
         return commitType
 
-    def readGitLogFile(self, fileName):
+    def analyzeGitLogFile(self, fileName):
         "Controls the looping through the git file"
         
         self.fileName = fileName
         self.gitFile = codecs.open(self.fileName)
         print self.fileName
        
-        myAssignmentDict = self.myAssignment.getAssignmentDict()             # this dictionary tells us the dates for the asssignments
+        myAssignmentDict = self.myAssignment.get_assignment_dict()             # this dictionary tells us the dates for the asssignments
         self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
         self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
@@ -74,7 +191,7 @@ class GitFile(object):
         self.currAssignment = self.currAssignment + 1
         self.myAssignment = Assignment.Assignment(self.currAssignment)
         self.gitFile.close()
-        self.storeGitoutFileObject()
+        self.storeGitReportObject()
 
 
     def currentAssignment(self):
@@ -513,6 +630,10 @@ class GitFile(object):
         
         return fileIndex
 
+
+    def getFileName(self):
+        return self.fileName
+    
     def getAssignments(self):
         return self.myAssignmentsList
 
@@ -525,7 +646,7 @@ class GitFile(object):
     def getFiles(self):
         return self.myFiles
     
-    def storeGitoutFileObject(self):
+    def storeGitReportObject(self):
         out_s = open(self.fileName+'.json', 'w')
 
         # Write to the stream
@@ -533,13 +654,13 @@ class GitFile(object):
         out_s.write(myJsonString)
         out_s.close()
             
-    def retrieveGitoutFileObject(self,filename):
+    def retrieveGitReportObject(self,filename):
         
         in_s = open(filename+'.json', 'r')
 
         # Read from the stream
         myJsonString = in_s.read()
-        gitfileObject = jsonpickle.decode(myJsonString)
+        gitReportObject = jsonpickle.decode(myJsonString)
         in_s.close()
         
-        return gitfileObject
+        return gitReportObject

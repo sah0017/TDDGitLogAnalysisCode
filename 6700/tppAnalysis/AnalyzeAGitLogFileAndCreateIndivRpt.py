@@ -10,44 +10,41 @@ import Assignment
 import codecs
 import AssignmentCommitTotals
 
-class Results:
+
+class IndividualReport:
 
     
-    
-    def __init__(self):
-        self.totalCommits = 0
-        self.totalTransformations = 0
-        self.totalAntiTransformations = 0
-        self.totalLinesOfCode = 0
-        self.totalSubmissions = 0
-        #self.assignment = assignment
-        self.transTotals = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-        self.antitransTotals = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+        
+    def __init__(self,AnalysisRunTotals):
+        self.AnalysisRunTotals = AnalysisRunTotals
         
     
     def analyzeGitLog(self, path, fileName):
         myTransNames = Transformations.Trans()
-        myGitFile = GitFile.GitFile()
+        myGitFile = GitFile.GitFile()                       # instantiates a git log file object
         self.totalSubmissions = self.totalSubmissions + 1
-        myGitFile.readGitLogFile(path+"\\"+fileName)
-        myFiles = myGitFile.getFiles()
-        myAssignments = myGitFile.getAssignments()
-        addedLines = 0
-        addedTestLines = 0
-        deletedLines = 0
-        deletedTestLines = 0
-        nbrCommits = 0
-        nbrRedLight = 0
-        nbrGreenLight = 0
-        nbrRefactor = 0
-        nbrUnknownCommit = 0
-        nbrTransformations = 0
-        nbrAntiTransformations = 0
-        ratio = 0
+        myGitFile.analyzeGitLogFile(path+"\\"+fileName)        # reads through entire git log file and performs TDD/TPP analyzes
+        myFiles = myGitFile.getFiles()                      # list containing File objects with file name and relevant data
+        myAssignments = myGitFile.getAssignments()          # list containing all the assignments, which contains a list of all the commits in that assignment
+        
         outFile = open(path+"\\"+fileName+".gitout", "w")
         outFile.write( "Assignments in log file:  " + str(len(myAssignments)))
         nbrOfAssignments = len(myAssignments)
         for myAssignment in myAssignments:
+            addedLines = 0
+            addedTestLines = 0
+            deletedLines =0
+            deletedTestLines=0
+            nbrCommits=0
+            nbrRedLight=0
+            nbrGreenLight=0
+            nbrRefactor=0
+            nbrUnknownCommit=0
+            nbrTransformations=0
+            nbrAntiTransformations=0
+            ratio = 0
+            
             outFile.write("\r\nAssignment Number:"+str(myAssignment.assignmentNbr))
             nbrCommits = nbrCommits + len(myAssignment.myCommits)
             for myCommit in myAssignment.myCommits:
@@ -78,6 +75,12 @@ class Results:
                     else:
                         self.antitransTotals[abs(myTran)] = self.antitransTotals[abs(myTran)]+1
                         nbrAntiTransformations = nbrAntiTransformations + 1
+            overallDeletedLines = deletedLines + deletedTestLines
+            if nbrCommits > 0:
+                myCommitStats = AssignmentCommitTotals.AssignmentCommitTotals(nbrCommits, nbrRedLight, nbrGreenLight, nbrRefactor, nbrUnknownCommit, addedLines/float(nbrCommits), nbrTransformations/float(nbrCommits), ratio, overallDeletedLines)
+            else:
+                myCommitStats = AssignmentCommitTotals.AssignmentCommitTotals(0,0,0,0,0,0,0,ratio, overallDeletedLines)
+            myAssignment.addCommitTotalsToAssignment(myCommitStats)
             outFile.write("\r\nTotal test code lines added:"+str(addedTestLines))
             outFile.write("\r\nTotal production code lines added:"+str(addedLines))
             outFile.write("\r\nTotal test code lines deleted:"+str(deletedTestLines))
@@ -85,7 +88,7 @@ class Results:
             if addedLines > 0:
                 ratio = addedTestLines/float(addedLines)
                 outFile.write("\r\nRatio of test code to production code:" + format(ratio,'.2f')+":"+str(addedLines/addedLines))
-            self.totalCommits = self.totalCommits + nbrCommits
+            GitFile.set_total_commits(nbrCommits)
             self.totalTransformations = self.totalTransformations + nbrTransformations
             self.totalAntiTransformations = self.totalAntiTransformations + nbrAntiTransformations
             self.totalLinesOfCode = self.totalLinesOfCode + addedLines
@@ -101,12 +104,9 @@ class Results:
                         outFile.write("\r\t\t" + myMethod.methodName)
                     
         outFile.close()
-        overallDeletedLines = deletedLines + deletedTestLines
-        if nbrCommits > 0:
-            myCommitStats = AssignmentCommitTotals.AssignmentCommitTotals(nbrCommits, nbrRedLight, nbrGreenLight, nbrRefactor, nbrUnknownCommit, addedLines/float(nbrCommits), nbrTransformations/float(nbrCommits), ratio, overallDeletedLines)
-        else:
-            myCommitStats = AssignmentCommitTotals.AssignmentCommitTotals(0,0,0,0,0,0,0,ratio, overallDeletedLines)
-        return myCommitStats
+        
+        
+        return myAssignments
     
     
     
