@@ -8,142 +8,23 @@ Created on Jul 10, 2014
 from Transformations import Trans 
 import codecs
 import Commit
-import File
+import PyFile
 import Assignment
 import re
+import os 
 import Method
 import jsonpickle
 from DeletedLine import DeletedLine
 from datetime import date
 from time import strptime
-import sys
-
-myTrans = Trans.getTransList
-
-totalCommits = 0
-totalTransformations = 0
-totalAntiTransformations = 0
-totalLinesOfCode = 0
-totalSubmissions = 0
-#self.assignment = assignment
-transTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-antitransTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-@staticmethod
-def get_total_commits():
-    return totalCommits
 
 
-@staticmethod
-def get_total_transformations():
-    return totalTransformations
 
-
-@staticmethod
-def get_total_anti_transformations():
-    return totalAntiTransformations
-
-
-@staticmethod
-def get_total_lines_of_code():
-    return totalLinesOfCode
-
-
-@staticmethod
-def get_total_submissions():
-    return totalSubmissions
-
-
-@staticmethod
-def get_trans_totals():
-    return transTotals
-
-
-@staticmethod
-def get_antitrans_totals():
-    return antitransTotals
-
-
-@staticmethod
-def set_total_commits(value):
-    totalCommits = totalCommits + value
-
-
-@staticmethod
-def set_total_transformations(value):
-    totalTransformations = totalTransformations + value
-
-
-@staticmethod
-def set_total_anti_transformations(value):
-    totalAntiTransformations = totalAntiTransformations + value
-
-
-@staticmethod
-def set_total_lines_of_code(value):
-    totalLinesOfCode = totalLinesOfCode + value
-
-
-@staticmethod
-def set_total_submissions(value):
-    totalSubmissions = totalSubmissions + value
-
-
-@staticmethod
-def set_trans_totals(value, transType):
-    transTotals[transType] = transTotals[transType] + value
-
-
-@staticmethod
-def set_antitrans_totals(value, transType):
-    antitransTotals[transType] = antitransTotals[transType] + value
-
-
-@staticmethod
-def del_total_commits(self):
-    del self.__totalCommits
-
-
-@staticmethod
-def del_total_transformations(self):
-    del self.__totalTransformations
-
-
-@staticmethod
-def del_total_anti_transformations(self):
-    del self.__totalAntiTransformations
-
-
-@staticmethod
-def del_total_lines_of_code(self):
-    del self.__totalLinesOfCode
-
-
-@staticmethod
-def del_total_submissions(self):
-    del self.__totalSubmissions
-
-
-@staticmethod
-def del_trans_totals(self):
-    del self.__transTotals
-
-
-@staticmethod
-def del_antitrans_totals(self):
-    del self.__antitransTotals
-'''
-totalCommits = property(get_total_commits, set_total_commits, del_total_commits, "totalCommits's docstring")
-totalTransformations = property(get_total_transformations, set_total_transformations, del_total_transformations, "totalTransformations's docstring")
-totalAntiTransformations = property(get_total_anti_transformations, set_total_anti_transformations, del_total_anti_transformations, "totalAntiTransformations's docstring")
-totalLinesOfCode = property(get_total_lines_of_code, set_total_lines_of_code, del_total_lines_of_code, "totalLinesOfCode's docstring")
-totalSubmissions = property(get_total_submissions, set_total_submissions, del_total_submissions, "totalSubmissions's docstring")
-transTotals = property(get_trans_totals, set_trans_totals, del_trans_totals, "transTotals's docstring")
-antitransTotals = property(get_antitrans_totals, set_antitrans_totals, del_antitrans_totals, "antitransTotals's docstring")
-'''
 class GitFile(object):
     " Analyzes a single git log file"
- 
+
+    myTrans = Trans()
+    
     line = ''
     
     
@@ -159,13 +40,9 @@ class GitFile(object):
         self.gitFile = ''
         self.commits = 0
         self.myAssignment = Assignment.Assignment(1)
-
-    def getCommitType(self):
-        self.readNextLine()             # advance to next line to get commit type
-        commitType = self.line.strip()
-        self.readNextLine()             # advance to next line to get the first file name in the commit
-        return commitType
-
+        self.myTransformations = []
+        
+    
     def analyzeGitLogFile(self, fileName):
         "Controls the looping through the git file"
         
@@ -173,11 +50,11 @@ class GitFile(object):
         self.gitFile = codecs.open(self.fileName)
         print self.fileName
        
-        myAssignmentDict = self.myAssignment.get_assignment_dict()             # this dictionary tells us the dates for the asssignments
+        myAssignmentDict = Assignment.Assignment.get_assignment_dict()             # this dictionary tells us the dates for the asssignments
         self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
         self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
-            if self.currentAssignment():                                    # advances to next line to check the commit date
+            if self.isCurrentAssignment():                                    # advances to next line to check the commit date
                 self.commitType = self.getCommitType()                      # advances to next line to get commit type
                 self.myAssignment.addCommitToAssignment(self.analyzeCommit(self.commitType))
 
@@ -188,67 +65,53 @@ class GitFile(object):
                 self.myAssignment = Assignment.Assignment(self.currAssignment)
                 
         self.myAssignmentsList.append(self.myAssignment)                # save last Assignment in the file to Assignments List
-        self.currAssignment = self.currAssignment + 1
-        self.myAssignment = Assignment.Assignment(self.currAssignment)
+        #self.currAssignment = self.currAssignment + 1
+        #self.myAssignment = Assignment.Assignment(self.currAssignment)
         self.gitFile.close()
-        self.storeGitReportObject()
-
-
-    def currentAssignment(self):
-        " a git file can contain multiple assignments.  This is looking for the current one for analysis."
-        #self.line = self.readNextLine()         # line after commit contains the commit date
-        dateLine = self.line.split(" ")
-        commitMonth = strptime(dateLine[1], '%b').tm_mon
-        commitDay = int(dateLine[2])
-        commitYear = int(dateLine[4])
-        commitDate = date(commitYear,commitMonth,commitDay)
         
-        
-        if (commitDate <= self.currAssignmentDate):
-            return True
-        else:
-            return False
+
+    def getCommitType(self):
+        self.readNextLine()             # advance to next line to get commit type
+        commitType = self.line.strip()
+        self.readNextLine()             # advance to next line to get the first file name in the commit
+        return commitType
+
 
     def analyzeCommit(self,commitType):
         "Analyzes all the lines in an individual commit"
-        commitProdAddedLines = 0
-        commitProdDeletedLines = 0
-        commitTestAddedLines = 0
-        commitTestDeletedLines = 0
-        
-        testFiles = 0
-        prodFiles = 0
-        nbrTrans = 0
+       
         self.myTransformations = []
         
         self.commits = self.commits + 1
+        self.myNewCommit = Commit.Commit(self.commits)
+        self.myNewCommit.set_commit_type(commitType)
         while self.foundNewCommit() == False:
             if self.pythonFileFound():
                 path, fileName = self.extractFileName()
-                addedLines, deletedLines, prodFile, notSBFile = self.analyzeFile(path,fileName)
+                addedLines, deletedLines, prodFile, notSBFile = self.analyzePyFile(path,fileName)
                 if notSBFile:
                     
                     if prodFile:
-                        prodFiles = prodFiles + 1
-                        commitProdAddedLines = commitProdAddedLines + addedLines
-                        commitProdDeletedLines = commitProdDeletedLines + deletedLines
+                        self.myNewCommit.add_nbr_prod_files(1)
+                        self.myNewCommit.add_added_lines_in_commit(addedLines)
+                        self.myNewCommit.add_deleted_lines_in_commit(deletedLines)
                     else:
-                        testFiles = testFiles + 1
-                        commitTestAddedLines = commitTestAddedLines + addedLines
-                        commitTestDeletedLines = commitTestDeletedLines + deletedLines
+                        self.myNewCommit.add_nbr_test_files(1)
+                        self.myNewCommit.add_added_test_loc(addedLines)
+                        self.myNewCommit.add_deleted_test_loc(deletedLines)
                     
             else:
                 self.line = self.readNextLine()
                 if self.line == False:
                     self.line = ''
         nbrTrans = len(self.myTransformations)
-        self.newCommit = Commit.Commit(self.commits, commitType, commitProdAddedLines,commitProdDeletedLines, commitTestAddedLines,
-                                       commitTestDeletedLines, testFiles, prodFiles, nbrTrans)
-        for trans in self.myTransformations:
-            self.newCommit.addTransformation(trans)
-        return self.newCommit
+        self.myNewCommit.add_number_of_transformations(nbrTrans)
+        
+        self.myNewCommit.set_transformations(self.myTransformations)
+        
+        return self.myNewCommit
 
-    def analyzeFile(self, path, fileName):
+    def analyzePyFile(self, path, fileName):
         "Analyzes the information of an individual file within a commit"
         fileAddedLines = 0
         fileDeletedLines = 0
@@ -261,12 +124,7 @@ class GitFile(object):
         self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         if (self.fileIndex == -1):
             self.fileIndex = self.addNewFile(fileName, prodFile)
-        '''        
-        for x in range(0, 2): ## skips --- line, +++ line
-            if self.pythonFileFound(self.assignment):
-                break
-            self.line = self.gitFile.next()
-        '''
+        
         #if notSBFile:        
         fileAddedLines, fileDeletedLines, methods = self.evaluateTransformationsInAFile(prodFile)
         self.myFiles[self.fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines, methods)
@@ -378,7 +236,7 @@ class GitFile(object):
 
     def processAddedLine(self, currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine):
         if re.search(r"\bpass\b", lineWithNoComments):      # Transformation 1
-            self.myTransformations.append(myTrans.NULL)
+            self.myTransformations.append(self.myTrans.NULL)
         if currentMethod.methodName != "Unknown" and not methodLine:             # Transformation 9
             myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(currentMethod.methodName)
             #try:
@@ -387,23 +245,23 @@ class GitFile(object):
                     methodLineNoLeadingSpaces = noLeadingPlus.strip()
                     methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
                     if methodLineIndent > methodIndent:
-                        self.myTransformations.append(myTrans.REC)
+                        self.myTransformations.append(self.myTrans.REC)
             #except Exception as inst:
             #    print self.fileName, type(inst)
         if re.search(r"\breturn\b", lineWithNoComments):
             self.processLineWithReturn(currentMethod, lineWithNoComments, noLeadingPlus)
         elif (re.search(r"\bif.(?!_name__ == \"__main)", lineWithNoComments)):
-            self.myTransformations.append(myTrans.SF)
+            self.myTransformations.append(self.myTrans.SF)
         elif (re.search(r"\bwhile\b", lineWithNoComments)):
             whileTrans = self.checkWhileForMatchingIfOrWhile(currentMethod, lineWithNoComments)
             self.myTransformations.append(whileTrans)
         elif (re.search(r"\bfor\b", noLeadingPlus)):
-            self.myTransformations.append(myTrans.IT)
+            self.myTransformations.append(self.myTrans.IT)
         elif (re.search(r"\belif\b|\belse\b", noLeadingPlus)):
-            self.myTransformations.append(myTrans.ACase)
+            self.myTransformations.append(self.myTrans.ACase)
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):
             #elif (re.search(r"=",noLeadingPlus)):
-            self.myTransformations.append(myTrans.AComp)
+            self.myTransformations.append(self.myTrans.AComp)
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
         assignmentVars = noLeadingPlus.split("=")               # Check to see if we are assigning a new value to an input parameter
@@ -411,27 +269,27 @@ class GitFile(object):
             assignmentVar = assignmentVars[0].strip()
             for x in currentMethod.parameters:
                 if x == assignmentVar:
-                    self.myTransformations.append(myTrans.AS)
+                    self.myTransformations.append(self.myTrans.AS)
 
     def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
         rtnBoolean, rtnValue = self.returnWithNull()
         deletedLine = self.checkDeletedLinesForReturn(currentMethod)
         if rtnBoolean == True: # Transformation 1
-            self.myTransformations.append(myTrans.NULL) ## this is either a 'return' or a 'return None'
+            self.myTransformations.append(self.myTrans.NULL) ## this is either a 'return' or a 'return None'
         elif self.checkForConstantOnReturn(rtnValue): ## if there are constants and
             if deletedLine.deletedNullValue == True: ## if there was a Null expression before, they probably did Transformation 2 Null to Constant
-                self.myTransformations.append(myTrans.N2C)
+                self.myTransformations.append(self.myTrans.N2C)
             else:
-                self.myTransformations.append(myTrans.ConstOnly) ## if constants but no previous Null, they probably just went straight to constant
+                self.myTransformations.append(self.myTrans.ConstOnly) ## if constants but no previous Null, they probably just went straight to constant
         elif deletedLine.deletedLiteral: ## and the delete section removed a 'return' with a constant
-            self.myTransformations.append(myTrans.C2V) ## then it is probably a Transformation 3 constant to variable
+            self.myTransformations.append(self.myTrans.C2V) ## then it is probably a Transformation 3 constant to variable
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
-            self.myTransformations.append(myTrans.AComp)
+            self.myTransformations.append(self.myTrans.AComp)
         else:   
-            self.myTransformations.append(myTrans.VarOnly) ##  if we got to this point, they went straight to a variable.
+            self.myTransformations.append(self.myTrans.VarOnly) ##  if we got to this point, they went straight to a variable.
         for parm in currentMethod.parameters:
             if rtnValue == parm: ## if the return value is a parameter, then it is a Transformation 11 assign.
-                self.myTransformations.append(myTrans.AS)
+                self.myTransformations.append(self.myTrans.AS)
 
         ## if it wasn't constants on the return
         ## this looks for constants after 'return'
@@ -486,13 +344,13 @@ class GitFile(object):
     def checkWhileForMatchingIfOrWhile(self, currentMethod, currentLine):
         whileConditionalParts = currentLine.split("while")
         whileCondition = whileConditionalParts[1].strip()
-        whileTrans = myTrans.WhileNoIf
+        whileTrans = self.myTrans.WhileNoIf
         for dLine in currentMethod.deletedLines:
             if dLine.deletedIf:
                 if whileCondition == dLine.deletedIfContents:
-                    return myTrans.I2W
+                    return self.myTrans.I2W
                 else:
-                    whileTrans = myTrans.WhileNoIf
+                    whileTrans = self.myTrans.WhileNoIf
             if dLine.deletedWhile:
                 whileTrans = self.checkForConstantToVariableInCondition(dLine.deletedWhileContents,whileCondition)
         return whileTrans
@@ -520,9 +378,9 @@ class GitFile(object):
                 (myIfCond == myWhileCond) and
                 (mysecondIfCond.isdigit()) and
                 (mysecondWhileCond.isalpha())):
-                self.myTransformations.append(myTrans.C2V)
-                return myTrans.I2W
-        return myTrans.WhileNoIf
+                self.myTransformations.append(self.myTrans.C2V)
+                return self.myTrans.I2W
+        return self.myTrans.WhileNoIf
             
     def pythonFileFound(self):
         evalLine = self.line.rstrip()
@@ -583,6 +441,21 @@ class GitFile(object):
             rtnBoolean = False
         return rtnBoolean, rtnValue
 
+    def isCurrentAssignment(self):
+        " a git file can contain multiple assignments.  This is looking for the current one for analysis."
+        #self.line = self.readNextLine()         # line after commit contains the commit date
+        dateLine = self.line.split(" ")
+        commitMonth = strptime(dateLine[1], '%b').tm_mon
+        commitDay = int(dateLine[2])
+        commitYear = int(dateLine[4])
+        commitDate = date(commitYear,commitMonth,commitDay)
+        
+        
+        if (commitDate <= self.currAssignmentDate):
+            return True
+        else:
+            return False
+
     def isProdFile(self, fileName):
         fileNameLower = fileName.lower();
         if fileNameLower.startswith('prod'):
@@ -614,9 +487,9 @@ class GitFile(object):
 
     def addNewFile(self, fileName, prodFile):
         " This is a new file that isn't in our analysis yet. "
-        self.newFile = File.File(fileName, prodFile, self.commits)
+        self.newFile = PyFile.PyFile(fileName, prodFile, self.commits)
         self.myFiles.append(self.newFile)
-        self.myTransformations.append(myTrans.NEWFILE)
+        self.myTransformations.append(self.myTrans.NEWFILE)
         self.line = self.gitFile.next() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return fileIndex
@@ -637,6 +510,9 @@ class GitFile(object):
     def getAssignments(self):
         return self.myAssignmentsList
 
+    def setAssignments(self,assignmentList):
+        self.myAssignmentsList = assignmentList
+    
     def getCommits(self):
         return self.myCommits
     
@@ -646,8 +522,8 @@ class GitFile(object):
     def getFiles(self):
         return self.myFiles
     
-    def storeGitReportObject(self):
-        out_s = open(self.fileName+'.json', 'w')
+    def storeGitReportObject(self, fileName):
+        out_s = open(fileName+'.json', 'w')
 
         # Write to the stream
         myJsonString = jsonpickle.encode(self)
@@ -657,10 +533,15 @@ class GitFile(object):
     def retrieveGitReportObject(self,filename):
         
         in_s = open(filename+'.json', 'r')
-
+        
         # Read from the stream
         myJsonString = in_s.read()
-        gitReportObject = jsonpickle.decode(myJsonString)
+        try:
+            gitReportObject = jsonpickle.decode(myJsonString)
+        except Exception as e:
+            gitReportObject = None
+        
         in_s.close()
         
         return gitReportObject
+    

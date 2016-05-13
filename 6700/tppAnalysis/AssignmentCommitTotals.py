@@ -7,25 +7,182 @@ Created on Apr 12, 2016
 
 class AssignmentCommitTotals(object):
     '''
-    classdocs
+    These are overall totals for all the Assignments.
     '''
+    __totalSubmissions = 0
+    __totalCommits = 0
+    __totalRLCommits =0 
+    __totalGLCommits = 0
+    __totalRefCommits = 0
+    __totalOtherCommits = 0
+    __AvgLinesPerCommit = 0.0
+    __AvgTransPerCommit = 0.0
+    __RatioTestToProd = 0.0
+    __totalDeletedLines = 0
+    __totalNbrTransformations = 0
+    __totalProdFiles = 0
+    __totalTestFiles = 0
+    __totalProdLOC = 0
+    __totalTestLOC = 0
+    __totalLinesOfCodeAdded = 0
+    __totalTransByType = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+    __totalAntiTransByType = [0,0,0,0,0,0,0,0,0]
 
 
-    def __init__(self, nbrCommits, redLight, greenLight, nbrRefactor, other, avgLperC, avgTperC, ratio, overallDeletedLines):
+    def __init__(self):
         '''
-        Constructor
+        These are overall totals for an individual Assignment
+        
         '''
-
+        
         #self.assignment = assignment
-        self.nbrCommits = nbrCommits
-        self.RLCommit = redLight
-        self.GLCommit = greenLight
-        self.refCommit = nbrRefactor
-        self.otherCommit = other
-        self.avgLinesPerCommit = avgLperC
-        self.avgTransPerCommit = avgTperC
-        self.ratioTestToProd = ratio
-        self.totalDelLines = overallDeletedLines
+        self.__nbrCommits = 0
+        self.__RLCommit = 0
+        self.__GLCommit = 0
+        self.__refCommit = 0
+        self.__otherCommit = 0
+        self.__avgLinesPerCommit = 0
+        self.__avgTransPerCommit = 0
+        self.__ratioTestToProd = 0
+        self.__totalDelLines = 0
+        self.__totalTransByTypeInAssignment = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.__totalAntiTransByTypeInAssignment = [0,0,0,0,0,0,0,0,0]
+        
+    @classmethod
+    def set_total_submissions(cls, value):
+        cls.__totalSubmissions = cls.__totalSubmissions + value
+      
+    @classmethod
+    def set_total_deleted_lines(cls, value):
+        cls.__totalDeletedLines = cls.__totalDeletedLines + value
+        
+    @classmethod
+    def set_total_prod_LOC(cls, value):
+        cls.__totalProdLOC = cls.__totalProdLOC + value
+        
+    @classmethod
+    def set_total_test_LOC(cls, value):
+        cls.__totalTestLOC = cls.__totalTestLOC + value
+                
+    @classmethod
+    def set_total_nbr_transformations(cls, value):
+        cls.__totalNbrTransformations = cls.__totalNbrTransformations + value
+    
+    @classmethod
+    def set_total_prod_files(cls, value):
+        cls.__totalProdFiles = cls.__totalProdFiles + value
+    
+    @classmethod
+    def set_total_test_files(cls, value):
+        cls.__totalTestFiles = cls.__totalTestFiles + value
+    
+    @classmethod
+    def set_total_LOC(cls, value):
+        cls.__totalLinesOfCodeAdded = cls.__totalLinesOfCodeAdded + value
+    
+    
+                
+    @classmethod
+    def set_total_commits(cls, value):
+        cls.__totalCommits = cls.__totalCommits + value
+    
+    @classmethod
+    def set_total_RL_commits(cls, value):
+        cls.__totalRLCommits = cls.__totalRLCommits + value
+    
+    @classmethod
+    def set_total_GL_commits(cls, value):
+        cls.__totalGLCommits = cls.__totalGLCommits + value
+    
+    @classmethod
+    def set_total_ref_commits(cls, value):
+        cls.__totalRefCommits = cls.__totalRefCommits + value
+        
+    @classmethod
+    def set_total_other_commits(cls, value):
+        cls.__totalOtherCommits = cls.__totalOtherCommits + value
+        
+    @classmethod
+    def set_total_trans_by_type(cls, value, tranType):
+        cls.__totalTransByType[tranType] = cls.__totalTransByType[tranType] + value   
+    
+    @classmethod
+    def set_total_antitrans_by_type(cls, value, tranType):
+        cls.__totalAntiTransByType[tranType] = cls.__totalAntiTransByType[tranType] + value
+        
+    @classmethod
+    def get_total_submissions(cls):
+        return cls.__totalSubmissions 
+        
+    @classmethod
+    def get_total_prod_LOC(cls):
+        return cls.__totalProdLOC 
+        
+    @classmethod
+    def get_total_test_LOC(cls):
+        return cls.__totalTestLOC 
+                
+    @classmethod
+    def get_total_nbr_transformations(cls):
+        return cls.__totalNbrTransformations 
+    
+    @classmethod
+    def get_total_prod_files(cls):
+        return cls.__totalProdFiles 
+    
+    @classmethod
+    def get_total_test_files(cls):
+        return cls.__totalTestFiles 
+    
+    @classmethod
+    def get_total_LOC(cls):
+        return cls.__totalLinesOfCodeAdded 
+    
+    
+                
+    @classmethod
+    def get_total_commits(cls):
+        return cls.__totalCommits 
+    
+    @classmethod
+    def get_total_RL_commits(cls):
+        return cls.__totalRLCommits
+    
+    @classmethod
+    def get_total_GL_commits(cls):
+        return cls.__totalGLCommits 
+    
+    @classmethod
+    def get_total_ref_commits(cls):
+        return cls.__totalRefCommits 
+        
+    @classmethod
+    def get_total_other_commits(cls):
+        return cls.__totalOtherCommits 
+        
+    @classmethod
+    def get_total_avg_lines_per_commit(cls):
+        cls.__totalAvgLinesPerCommit = cls.__totalLinesOfCodeAdded / cls.__totalCommits
+        return cls.__totalAvgLinesPerCommit
+        
+    @classmethod
+    def get_total_avg_trans_per_commit(cls):
+        cls.__totalAvgTransPerCommit = cls.__totalNbrTransformations / cls.__totalCommits
+        return cls.__totalAvgTransPerCommit
+    
+    @classmethod
+    def get_total_ratio_test_to_prod(cls):
+        cls.__ratioTestToProd = cls.__totalTestLOC / cls.__totalProdLOC        
+        return cls.__ratioTestToProd
+    
+    @classmethod
+    def get_total_trans_by_type(cls):
+        return cls.__totalTransByType
+
+    @classmethod
+    def get_total_antitrans_by_type(cls):
+        return cls.__totalAntiTransByType
+    
     def get_assignment(self):
         return self.__assignment
 
@@ -64,6 +221,12 @@ class AssignmentCommitTotals(object):
 
     def get_total_del_lines(self):
         return self.__totalDelLines
+    
+    def get_total_nbr_transformations_in_assignment(self):
+        __nbrTrans = 0
+        for trans in self.__totalTransByTypeInAssignment:
+            __nbrTrans = __nbrTrans + self.__totalTransByTypeInAssignment[trans]
+        return __nbrTrans
 
 
     def set_assignment(self, value):
@@ -72,22 +235,28 @@ class AssignmentCommitTotals(object):
 
     def set_nbr_commits(self, value):
         self.__nbrCommits = value
+        AssignmentCommitTotals.set_total_commits(value)
+        
 
 
     def set_rlcommit(self, value):
         self.__RLCommit = value
+        AssignmentCommitTotals.set_total_RL_commits(value)
 
 
     def set_glcommit(self, value):
         self.__GLCommit = value
+        AssignmentCommitTotals.set_total_GL_commits(value)
 
 
     def set_ref_commit(self, value):
         self.__refCommit = value
+        AssignmentCommitTotals.set_total_ref_commits(value)
 
 
     def set_other_commit(self, value):
         self.__otherCommit = value
+        AssignmentCommitTotals.set_total_other_commits(value)
 
 
     def set_avg_lines_per_commit(self, value):
@@ -104,6 +273,7 @@ class AssignmentCommitTotals(object):
 
     def set_total_del_lines(self, value):
         self.__totalDelLines = value
+        AssignmentCommitTotals.set_total_deleted_lines(value)
 
 
     def del_assignment(self):
@@ -144,6 +314,33 @@ class AssignmentCommitTotals(object):
 
     def del_total_del_lines(self):
         del self.__totalDelLines
+        
+        
+    def get_total_trans_by_type_in_assignment(self):
+        return self.__totalTransByTypeInAssignment
+
+
+    def get_total_anti_trans_by_type_in_assignment(self):
+        return self.__totalAntiTransByTypeInAssignment
+
+
+    def set_total_trans_by_type_in_assignment(self, value):
+        self.__totalTransByTypeInAssignment = value
+
+
+    def set_total_anti_trans_by_type_in_assignment(self, value):
+        self.__totalAntiTransByTypeInAssignment = value
+
+
+    def del_total_trans_by_type_in_assignment(self):
+        del self.__totalTransByTypeInAssignment
+
+
+    def del_total_anti_trans_by_type_in_assignment(self):
+        del self.__totalAntiTransByTypeInAssignment
+
+    
+
 
     assignment = property(get_assignment, set_assignment, del_assignment, "assignment's docstring")
     nbrCommits = property(get_nbr_commits, set_nbr_commits, del_nbr_commits, "nbrCommits's docstring")
@@ -155,3 +352,8 @@ class AssignmentCommitTotals(object):
     avgTransPerCommit = property(get_avg_trans_per_commit, set_avg_trans_per_commit, del_avg_trans_per_commit, "avgTransPerCommit's docstring")
     ratioTestToProd = property(get_ratio_test_to_prod, set_ratio_test_to_prod, del_ratio_test_to_prod, "ratioTestToProd's docstring")
     totalDelLines = property(get_total_del_lines, set_total_del_lines, del_total_del_lines, "totalDelLines's docstring")
+    totalTransByTypeInAssignment = property(get_total_trans_by_type_in_assignment, set_total_trans_by_type_in_assignment, del_total_trans_by_type_in_assignment, "totalTransByTypeInAssignment's docstring")
+    totalAntiTransByTypeInAssignment = property(get_total_anti_trans_by_type_in_assignment, set_total_anti_trans_by_type_in_assignment, del_total_anti_trans_by_type_in_assignment, "totalAntiTransByTypeInAssignment's docstring")
+    
+    
+    

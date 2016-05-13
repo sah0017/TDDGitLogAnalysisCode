@@ -10,11 +10,24 @@ class Commit(object):
     classdocs
     '''
 
-
-    def __init__(self,commitNbr, commitType, addedLines,deletedLines, addedTestLines, deletedTestLines, testFiles,prodFiles, nbrOfTrans):
+    def __init__(self,commitNbr):
         '''
         Constructor
         '''
+        self.commitNbr = commitNbr
+        self.commitType = None
+        self.addedLinesInCommit = 0
+        self.deletedLinesInCommit = 0
+        self.addedTestLOC = 0
+        self.deletedTestLOC = 0
+        self.numberOfTransformations = 0
+        self.nbrTestFiles = 0
+        self.nbrProdFiles = 0
+        self.transformations = []
+    
+    '''    
+    def __init__(self,commitNbr, commitType, addedLines,deletedLines, addedTestLines, deletedTestLines, testFiles,prodFiles, nbrOfTrans):
+        
         self.commitNbr = commitNbr
         self.commitType = commitType
         self.addedLinesInCommit = addedLines
@@ -26,6 +39,7 @@ class Commit(object):
         self.nbrProdFiles = prodFiles
         self.transformations = []
         
+    '''
         
     def addTransformation(self, transformation):
         self.transformations.append(transformation)
@@ -82,30 +96,44 @@ class Commit(object):
     def set_added_lines_in_commit(self, value):
         self.__addedLinesInCommit = value
 
+    def add_added_lines_in_commit(self, value):
+        self.__addedLinesInCommit = self.__addedLinesInCommit + value
 
     def set_deleted_lines_in_commit(self, value):
         self.__deletedLinesInCommit = value
 
+    def add_deleted_lines_in_commit(self, value):
+        self.__deletedLinesInCommit = self.__deletedLinesInCommit + value
 
     def set_added_test_loc(self, value):
         self.__addedTestLOC = value
-
+    
+    def add_added_test_loc(self, value):
+        self.__addedTestLOC = self.__addedTestLOC + value
 
     def set_deleted_test_loc(self, value):
         self.__deletedTestLOC = value
 
+    def add_deleted_test_loc(self, value):
+        self.__deletedTestLOC = self.__deletedTestLOC + value
 
     def set_number_of_transformations(self, value):
         self.__numberOfTransformations = value
 
+    def add_number_of_transformations(self, value):
+        self.__numberOfTransformations = self.__numberOfTransformations + value
 
     def set_nbr_test_files(self, value):
         self.__nbrTestFiles = value
 
+    def add_nbr_test_files(self, value):
+        self.__nbrTestFiles = self.__nbrTestFiles + value
 
     def set_nbr_prod_files(self, value):
         self.__nbrProdFiles = value
 
+    def add_nbr_prod_files(self, value):
+        self.__nbrProdFiles = self.__nbrProdFiles + value
 
     def set_transformations(self, value):
         self.__transformations = value

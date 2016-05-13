@@ -3,10 +3,10 @@ Created on Jul 24, 2014
 
 @author: susanha
 '''
-import CommitDetails
+import PyFileCommitDetails
 import Method
 
-class File(object):
+class PyFile(object):
     '''
     classdocs
     '''
@@ -17,13 +17,13 @@ class File(object):
         Constructor
         '''
         self.fileName = fileName
-        self.commitAdded = commitNbr
+        self.nbrOfCommits = commitNbr
         self.commitDetails = []
         self.methods = []
         self.prodFile = prodFile
         
     def setCommitDetails(self, commitNbr, addedLines, deletedLines, methodNames):
-        myCommitDetails = CommitDetails.CommitDetails(commitNbr, addedLines, deletedLines, methodNames)
+        myCommitDetails = PyFileCommitDetails.PyFileCommitDetails(commitNbr, addedLines, deletedLines, methodNames)
         self.commitDetails.append(myCommitDetails)
 
     def setMethodName(self, methodName):

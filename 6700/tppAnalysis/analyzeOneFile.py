@@ -6,7 +6,7 @@ Created on Sep 17, 2014
 import os
 import subprocess
 import AssignmentCommitTotals
-import AnalyzeAGitLogFileAndCreateIndivRpt
+import AnalyzeGitLogFileAndCreateRpt
 import FormattedGitLog
 import Assignment
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myDirectory,fileName)
 
-    myAssignment = AnalyzeAGitLogFileAndCreateIndivRpt.IndividualReport()
+    myAssignment = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
     
     '''
     myCommitStatsList = myAssignment.get_my_commit_totals()
