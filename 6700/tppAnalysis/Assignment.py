@@ -10,7 +10,8 @@ class Assignment(object):
     classdocs
     '''
     assignment1Date = date(2016,4,6)
-    assignmentDict = {1:assignment1Date}
+    Assignment2Date = date(2016,4,25)
+    assignmentDict = {1:assignment1Date, 2:Assignment2Date}
 
     def __init__(self,assnNbr):
         '''
@@ -28,7 +29,7 @@ class Assignment(object):
     def addCommitTotalsToAssignment(self, commitTotals):
         self.myCommitTotals.append(commitTotals)
         
-    
+    @classmethod
     def get_assignment_dict(self):
         return self.assignmentDict
 
