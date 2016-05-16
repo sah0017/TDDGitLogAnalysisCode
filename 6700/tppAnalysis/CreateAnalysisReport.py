@@ -88,7 +88,7 @@ class AnalysisReport(object):
                 studentName = fileName.split("_")
                 #print fileName
                 if ext == ".gitdata":
-                    currentGitFile = myGitFile.retrieveGitReportObject(root + "\\" + item)
+                    currentGitFile = myGitFile.retrieveGitReportObject(root + "\\" + fileName)
                     if (currentGitFile != None):
                         AssignmentCommitTotals.AssignmentCommitTotals.set_total_submissions(1)
         
@@ -144,4 +144,4 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.createAnalysisReport("g:\\","yes","6700Spring16","CA02")
+    myReport.createAnalysisReport("g:\\","yes","6700Spring16","CA03")

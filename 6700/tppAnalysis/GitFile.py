@@ -54,16 +54,17 @@ class GitFile(object):
         self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
         self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
-            if self.isCurrentAssignment():                                    # advances to next line to check the commit date
-                self.commitType = self.getCommitType()                      # advances to next line to get commit type
-                self.myAssignment.addCommitToAssignment(self.analyzeCommit(self.commitType))
-
-
-            else:
+            if not (self.isCurrentAssignment()):                                    # advances to next line to check the commit date
+                
                 self.myAssignmentsList.append(self.myAssignment)
                 self.currAssignment = self.currAssignment + 1
+                if self.currAssignment <= len(myAssignmentDict):
+                    self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
                 self.myAssignment = Assignment.Assignment(self.currAssignment)
                 
+            self.commitType = self.getCommitType()                      # advances to next line to get commit type
+            self.myAssignment.addCommitToAssignment(self.analyzeCommit(self.commitType))
+    
         self.myAssignmentsList.append(self.myAssignment)                # save last Assignment in the file to Assignments List
         #self.currAssignment = self.currAssignment + 1
         #self.myAssignment = Assignment.Assignment(self.currAssignment)

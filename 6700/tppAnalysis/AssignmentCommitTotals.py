@@ -41,6 +41,12 @@ class AssignmentCommitTotals(object):
         self.__GLCommit = 0
         self.__refCommit = 0
         self.__otherCommit = 0
+        self.__addedLinesInAssignment = 0
+        self.__deletedLinesInAssignment = 0
+        self.__addedTestLOCInAssignment = 0
+        self.__deletedTestLOCInAssignment = 0
+        self.__nbrTestFilesInAssignment = 0
+        self.__nbrProdFilesInAssignment = 0
         self.__avgLinesPerCommit = 0
         self.__avgTransPerCommit = 0
         self.__ratioTestToProd = 0
@@ -228,6 +234,38 @@ class AssignmentCommitTotals(object):
             __nbrTrans = __nbrTrans + self.__totalTransByTypeInAssignment[trans]
         return __nbrTrans
 
+    def get_added_lines_in_assignment(self):
+        return self.__addedLinesInAssignment
+
+
+    def get_deleted_lines_in_assignment(self):
+        return self.__deletedLinesInAssignment
+
+
+    def get_added_test_locin_assignment(self):
+        return self.__addedTestLOCInAssignment
+
+
+    def get_deleted_test_locin_assignment(self):
+        return self.__deletedTestLOCInAssignment
+
+
+    def get_nbr_test_files_in_assignment(self):
+        return self.__nbrTestFilesInAssignment
+
+
+    def get_nbr_prod_files_in_assignment(self):
+        return self.__nbrProdFilesInAssignment
+    
+    def get_total_trans_by_type_in_assignment(self):
+        return self.__totalTransByTypeInAssignment
+
+
+    def get_total_anti_trans_by_type_in_assignment(self):
+        return self.__totalAntiTransByTypeInAssignment
+
+
+
 
     def set_assignment(self, value):
         self.__assignment = value
@@ -274,6 +312,39 @@ class AssignmentCommitTotals(object):
     def set_total_del_lines(self, value):
         self.__totalDelLines = value
         AssignmentCommitTotals.set_total_deleted_lines(value)
+        
+    def set_added_lines_in_assignment(self, value):
+        self.__addedLinesInAssignment = self.__addedLinesInAssignment + value
+
+
+    def set_deleted_lines_in_assignment(self, value):
+        self.__deletedLinesInAssignment = self.__deletedLinesInAssignment + value
+
+
+    def set_added_test_locin_assignment(self, value):
+        self.__addedTestLOCInAssignment = self.__addedTestLOCInAssignment + value
+
+
+    def set_deleted_test_locin_assignment(self, value):
+        self.__deletedTestLOCInAssignment = self.__deletedTestLOCInAssignment + value
+
+
+    def set_nbr_test_files_in_assignment(self, value):
+        self.__nbrTestFilesInAssignment = self.__nbrTestFilesInAssignment + value
+
+
+    def set_nbr_prod_files_in_assignment(self, value):
+        self.__nbrProdFilesInAssignment = self.__nbrProdFilesInAssignment + value
+
+
+    def set_total_trans_by_type_in_assignment(self, value):
+        self.__totalTransByTypeInAssignment = value
+
+
+    def set_total_anti_trans_by_type_in_assignment(self, value):
+        self.__totalAntiTransByTypeInAssignment = value
+
+        
 
 
     def del_assignment(self):
@@ -315,22 +386,31 @@ class AssignmentCommitTotals(object):
     def del_total_del_lines(self):
         del self.__totalDelLines
         
+    def del_added_lines_in_assignment(self):
+        del self.__addedLinesInAssignment
+
+
+    def del_deleted_lines_in_assignment(self):
+        del self.__deletedLinesInAssignment
+
+
+    def del_added_test_locin_assignment(self):
+        del self.__addedTestLOCInAssignment
+
+
+    def del_deleted_test_locin_assignment(self):
+        del self.__deletedTestLOCInAssignment
+
+
+    def del_nbr_test_files_in_assignment(self):
+        del self.__nbrTestFilesInAssignment
+
+
+    def del_nbr_prod_files_in_assignment(self):
+        del self.__nbrProdFilesInAssignment
+
         
-    def get_total_trans_by_type_in_assignment(self):
-        return self.__totalTransByTypeInAssignment
-
-
-    def get_total_anti_trans_by_type_in_assignment(self):
-        return self.__totalAntiTransByTypeInAssignment
-
-
-    def set_total_trans_by_type_in_assignment(self, value):
-        self.__totalTransByTypeInAssignment = value
-
-
-    def set_total_anti_trans_by_type_in_assignment(self, value):
-        self.__totalAntiTransByTypeInAssignment = value
-
+        
 
     def del_total_trans_by_type_in_assignment(self):
         del self.__totalTransByTypeInAssignment
@@ -354,6 +434,12 @@ class AssignmentCommitTotals(object):
     totalDelLines = property(get_total_del_lines, set_total_del_lines, del_total_del_lines, "totalDelLines's docstring")
     totalTransByTypeInAssignment = property(get_total_trans_by_type_in_assignment, set_total_trans_by_type_in_assignment, del_total_trans_by_type_in_assignment, "totalTransByTypeInAssignment's docstring")
     totalAntiTransByTypeInAssignment = property(get_total_anti_trans_by_type_in_assignment, set_total_anti_trans_by_type_in_assignment, del_total_anti_trans_by_type_in_assignment, "totalAntiTransByTypeInAssignment's docstring")
+    addedLinesInAssignment = property(get_added_lines_in_assignment, set_added_lines_in_assignment, del_added_lines_in_assignment, "addedLinesInAssignment's docstring")
+    deletedLinesInAssignment = property(get_deleted_lines_in_assignment, set_deleted_lines_in_assignment, del_deleted_lines_in_assignment, "deletedLinesInAssignment's docstring")
+    addedTestLOCInAssignment = property(get_added_test_locin_assignment, set_added_test_locin_assignment, del_added_test_locin_assignment, "addedTestLOCInAssignment's docstring")
+    deletedTestLOCInAssignment = property(get_deleted_test_locin_assignment, set_deleted_test_locin_assignment, del_deleted_test_locin_assignment, "deletedTestLOCInAssignment's docstring")
+    nbrTestFilesInAssignment = property(get_nbr_test_files_in_assignment, set_nbr_test_files_in_assignment, del_nbr_test_files_in_assignment, "nbrTestFilesInAssignment's docstring")
+    nbrProdFilesInAssignment = property(get_nbr_prod_files_in_assignment, set_nbr_prod_files_in_assignment, del_nbr_prod_files_in_assignment, "nbrProdFilesInAssignment's docstring")
     
     
     
