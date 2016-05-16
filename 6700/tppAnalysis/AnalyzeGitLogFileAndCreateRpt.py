@@ -36,7 +36,7 @@ class SubmissionReport:
         myAssignments = self.GenerateInvididualReport(path, fileParts[0], myGitFile)
                 
         myGitFile.setAssignments(myAssignments)    # Add commit stats to git file object
-        myGitFile.storeGitReportObject(fileParts[0])
+        myGitFile.storeGitReportObject(path+"\\"+fileParts[0])
     
     
 

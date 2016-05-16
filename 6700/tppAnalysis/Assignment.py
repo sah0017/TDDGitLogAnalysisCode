@@ -11,7 +11,8 @@ class Assignment(object):
     '''
     assignment1Date = date(2016,4,6)
     Assignment2Date = date(2016,4,25)
-    assignmentDict = {1:assignment1Date, 2:Assignment2Date}
+    Assignment3Date = date(2016,5,7)
+    assignmentDict = {1:assignment1Date, 2:Assignment2Date, 3:Assignment3Date}
 
     def __init__(self,assnNbr):
         '''
