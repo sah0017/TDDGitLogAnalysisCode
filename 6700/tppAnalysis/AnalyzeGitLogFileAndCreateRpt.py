@@ -125,6 +125,10 @@ class SubmissionReport:
         myCommitStats.GLCommit = nbrGreenLight
         myCommitStats.refCommit = nbrRefactor
         myCommitStats.otherCommit = nbrUnknownCommit
+        myCommitStats.addedLinesInAssignment = addedLines
+        myCommitStats.addedTestLOCInAssignment = addedTestLines
+        myCommitStats.deletedLinesInAssignment = deletedLines
+        myCommitStats.deletedTestLOCInAssignment = deletedTestLines
         if nbrCommits > 0:
             myCommitStats.avgLinesPerCommit = (addedLines + addedTestLines) / nbrCommits
             myCommitStats.avgTransPerCommit = nbrTransformations / nbrCommits
