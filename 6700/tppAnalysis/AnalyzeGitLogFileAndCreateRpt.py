@@ -49,15 +49,15 @@ class SubmissionReport:
         for myAssignment in myAssignments:
             myCommitStats = self.CalculateMyCommitStats(outFile, myAssignment)
             myAssignment.addCommitTotalsToAssignment(myCommitStats)
-            outFile.write("\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
-            for myFile in myFiles:
-                outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.prodFile))
-                for myCommitDetails in myFile.commitDetails:
-                    outFile.write("\r\n\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
-                    outFile.write("\r\n\t\tMethods added/modified:")
-                    for myMethod in myCommitDetails.methodNames:
-            # for myMethodName in myMethod.methodName:
-                        outFile.write("\r\t\t" + myMethod.methodName)
+        outFile.write("\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
+        for myFile in myFiles:
+            outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.prodFile))
+            for myCommitDetails in myFile.commitDetails:
+                outFile.write("\r\n\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
+                outFile.write("\r\n\t\tMethods added/modified:")
+                for myMethod in myCommitDetails.methodNames:
+        # for myMethodName in myMethod.methodName:
+                    outFile.write("\r\t\t" + myMethod.methodName)
         
         outFile.close()
         return myAssignments

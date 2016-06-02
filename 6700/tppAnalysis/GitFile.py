@@ -17,6 +17,7 @@ import jsonpickle
 from DeletedLine import DeletedLine
 from datetime import date
 from time import strptime
+import TATestCase
 
 
 
@@ -133,8 +134,8 @@ class GitFile(object):
     
     def evaluateTransformationsInAFile(self, prodFile):
         "Checks the line to see if it is a part of a transformation"
-        addedLines = 0
-        deletedLines = 0
+        addedLinesInFile = 0
+        deletedLinesInFile = 0
         # deletedLinesArray = []
         # ifContents = []
         # whileContents = []
@@ -153,7 +154,7 @@ class GitFile(object):
             if currentIndent <= methodIndent and len(noLeadingSpaces) > 0:
                 currentMethod = Method.Method("Unknown",[])
                 methodArray.append(currentMethod)
-            if noLeadingPlus != "\r\n":                         ## no need to go through all of this for a blank line
+            if len(noLeadingSpaces) > 0:                         ## no need to go through all of this for a blank line
                 if noLeadingSpaces.startswith("def "):   ## Looking for parameters in method call for assignment
                     methodLine = True
                     methodIndent = len(noLeadingPlus) - len(noLeadingSpaces)
@@ -161,23 +162,22 @@ class GitFile(object):
                     methodArray.append(currentMethod)
                 else:
                     methodLine = False
-                if lineWithNoComments[0] == '-' and lineWithNoComments[1] != '-':
+                if (lineWithNoComments[0] == '-' and lineWithNoComments[1] != '-' and currentMethod.isATATestCase() == False):
                     #if prodFile:
-                    deletedLines = deletedLines + 1
                     deletedLine = self.processDeletedLine(lineWithNoComments)
                     currentMethod.addDeletedLine(deletedLine)
                 
-                if lineWithNoComments[0] == '+' and lineWithNoComments[1] != '+':
+                if lineWithNoComments[0] == '+' and lineWithNoComments[1] != '+' and currentMethod.isATATestCase() == False:
                     #if prodFile:
-                    addedLines = addedLines + 1
                     currentMethod.addedLines = currentMethod.addedLines + 1
                     self.processAddedLine(currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine)
             
         for method in methodArray:
-            if method.addedLines == 0:
-                if len(method.deletedLines) == 0:
-                    methodArray.remove(method)      # empty method
-        return addedLines, deletedLines, methodArray
+            addedLinesInFile = addedLinesInFile + method.getAddedLines()
+            deletedLinesInFile = deletedLinesInFile + method.getDeletedLines()
+            #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
+            #        methodArray.remove(method)      # empty method
+        return addedLinesInFile, deletedLinesInFile, methodArray
 
     def readNextLine(self):
         try:
@@ -211,6 +211,9 @@ class GitFile(object):
                 defaultVal = False
                 #print params
             method = Method.Method(methodName[0], params)
+            if method.methodName in TATestCase.TATestCase.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
+                method.updateTATestLines(TATestCase.TATestCase.TATestCaseDict[method.methodName])
+                method.setIsTATestCase(True)
         return method
 
 
@@ -388,7 +391,8 @@ class GitFile(object):
         if ((evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine))):
             if re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine):
                 if not (re.search(r"\b\__init__\b",evalLine)):
-                    return True
+                    if not (re.search(r"\bmetadata\b",evalLine)):
+                        return True
         elif self.foundNewCommit() == True:
             return False
         return False

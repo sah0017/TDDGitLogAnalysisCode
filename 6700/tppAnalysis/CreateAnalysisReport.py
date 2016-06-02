@@ -24,7 +24,7 @@ class AnalysisReport(object):
         
         self.outFile = open(myDrive + "git\\" + mySemester + "\\Report" + myDirectory + ".gitrpt", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name\tNumber of Assignments\nAssignment Number\tNumber of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tOverall Deleted/Modified Lines \r")
+        self.outFile.write("Submission name\tNumber of Assignments\nAssignment Number\tNumber of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAverage Lines Per Commit\tAverage Transformations Per Commit\tRatio of Test to Prod Code\tAdded Prod Lines\tAdded Test Lines\t Deleted/Modified Lines \tDeleted/Modified Test Lines\r")
 
         myTotals = self.printIndividualTotalsAndCountAssignmentTotals(myDir, root, printToFile, myTotals, myTransNames)
         
@@ -115,7 +115,11 @@ class AnalysisReport(object):
                                 myAssignmentTotals.set_ref_commit(myCommitStats.get_ref_commit())
                                 '''
                                 if printToFile:
-                                    self.outFile.write(fileName + ext + "\t" + str(myCommitStats.nbrCommits) + "\t" + str(myCommitStats.RLCommit) + "\t" + str(myCommitStats.GLCommit) + "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + format(myCommitStats.avgLinesPerCommit, '.2f') + "\t" + format(myCommitStats.avgTransPerCommit, '.2f') + " \t" + format(myCommitStats.ratioTestToProd, '.2f') + "\t" + str(myCommitStats.totalDelLines) + "\r")
+                                    self.outFile.write(fileName + ext + "\t" + str(myCommitStats.nbrCommits) + "\t" + str(myCommitStats.RLCommit) + "\t" + str(myCommitStats.GLCommit) + 
+                                                       "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + format(myCommitStats.avgLinesPerCommit, '.2f') + 
+                                                       "\t" + format(myCommitStats.avgTransPerCommit, '.2f') + " \t" + format(myCommitStats.ratioTestToProd, '.2f') + "\t" + 
+                                                       str(myCommitStats.addedLinesInAssignment) + "\t" + str(myCommitStats.addedTestLOCInAssignment) + "\t" + 
+                                                       str(myCommitStats.deletedLinesInAssignment) + "\t" + str(myCommitStats.deletedTestLOCInAssignment)+ "\r")
                                 else:
                                     print fileName, ext, myCommitStats.get_nbr_commits, myCommitStats.get_avg_lines_per_commit, myCommitStats.get_avg_trans_per_commit
                             
@@ -144,4 +148,4 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.createAnalysisReport("g:\\","yes","6700Spring16","CA03")
+    myReport.createAnalysisReport("g:\\","yes","6700Spring16","CA05")
