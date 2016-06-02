@@ -19,6 +19,8 @@ class Method(object):
         self.deletedReturnValue = None
         self.deletedLines = []
         self.addedLines = 0
+        self.TATestLines = 0
+        self.TATestCase = False
         
         
     def setDeletedReturnValue(self, RtnValue):
@@ -31,4 +33,19 @@ class Method(object):
         return self.deletedReturnValue
         
     def getDeletedLines(self):
-        return self.deletedLines    
+        return len(self.deletedLines)   
+    
+    def getAddedLines(self):
+        addedLines = self.addedLines - self.TATestLines
+        if addedLines < 0:
+            return 0
+        return addedLines 
+    
+    def updateTATestLines(self, TATestLOC):
+        self.TATestLines = self.TATestLines + TATestLOC
+        
+    def setIsTATestCase(self, isTATestCase):
+        self.TATestCase = isTATestCase
+        
+    def isATATestCase(self):
+        return self.TATestCase
