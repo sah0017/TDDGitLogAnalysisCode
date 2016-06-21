@@ -5,7 +5,7 @@ Created on Sep 17, 2014
 '''
 import os
 import subprocess
-import AssignmentCommitTotals
+import AssignmentTotals
 import AnalyzeGitLogFileAndCreateRpt
 import FormattedGitLog
 import Assignment
@@ -19,9 +19,9 @@ if __name__ == '__main__':
     root = "g:\\"
     myDrive = "g:\\"
     mySemester = "6700Spring16\\"
-    myDirectory = "CA05\\"
-    currentDir = "git\\6700Spring16\\CA05\\submissions\\almohaishimoayad_3221348_74842094_mha0012CA05\\SoftwareProcess"                
-    fileName = "almohaishimoayad_3221348_74842094_mha0012CA05"                
+    myDirectory = "CA02\\"
+    currentDir = "git\\6700Spring16\\CA02\\submissions\\stelljessica_3072097_71347590_jrs0067ca02\\SoftwareProcess"                
+    fileName = "stelljessica_3072097_71347590_jrs0067ca02"                
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myDirectory,fileName)

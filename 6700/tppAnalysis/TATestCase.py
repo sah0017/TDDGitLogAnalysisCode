@@ -9,7 +9,7 @@ class TATestCase(object):
     '''
     classdocs
     '''
-    TATestCase1 = "test200_010_ShouldGetSightingsFileWithOneElement"
+    
     TATestCaseDict = {"test100_010_ShouldConstructFix":2,
                       "test200_010_ShouldGetSightingsFileWithOneElement":14, 
                       "test200_020_ShouldGetSightingsFileWithTwoElements":24, 
