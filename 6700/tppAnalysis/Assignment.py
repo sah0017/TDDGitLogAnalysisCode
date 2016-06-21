@@ -9,16 +9,17 @@ class Assignment(object):
     '''
     classdocs
     '''
-    TATestCase1 = date(2016,4,6)
-    Assignment2Date = date(2016,4,25)
-    Assignment3Date = date(2016,5,7)
-    assignmentDict = {1:TATestCase1, 2:Assignment2Date, 3:Assignment3Date}
+    CA01 = date(2016,3,9)
+    CA02 = date(2016,4,10)
+    CA03 = date(2016,4,28)
+    CA05 = date(2016,5,14)
+    assignmentNameDict = {CA01:"CA01", CA02:"CA02", CA03:"CA03", CA05:"CA05"}
 
-    def __init__(self,assnNbr):
+    def __init__(self,assnName):
         '''
         Constructor
         '''
-        self.assignmentNbr = assnNbr
+        self.assignmentName = assnName
         self.myCommits = []
         self.myCommitTotals = []
 
@@ -30,9 +31,10 @@ class Assignment(object):
     def addCommitTotalsToAssignment(self, commitTotals):
         self.myCommitTotals.append(commitTotals)
         
+
     @classmethod
-    def get_assignment_dict(self):
-        return self.assignmentDict
+    def get_assignment_name_dict(self):
+        return self.assignmentNameDict
 
 
     def get_assignment_nbr(self):
@@ -78,7 +80,7 @@ class Assignment(object):
     def del_my_commit_totals(self):
         del self.__myCommitTotals
 
-    assignmentNbr = property(get_assignment_nbr, set_assignment_nbr, del_assignment_nbr, "assignmentNbr's docstring")
+    assignmentName = property(get_assignment_nbr, set_assignment_nbr, del_assignment_nbr, "assignmentName's docstring")
     myCommits = property(get_my_commits, set_my_commits, del_my_commits, "myCommits's docstring")
     myCommitTotals = property(get_my_commit_totals, set_my_commit_totals, del_my_commit_totals, "myCommitTotals's docstring")
         

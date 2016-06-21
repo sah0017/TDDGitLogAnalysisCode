@@ -6,7 +6,7 @@ Created on Jul 25, 2014
 import GitFile
 import os
 import Transformations
-import AssignmentCommitTotals
+import AssignmentTotals
 
 
 class SubmissionReport:
@@ -53,7 +53,7 @@ class SubmissionReport:
         for myFile in myFiles:
             outFile.write("\r\n" + myFile.fileName + " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.prodFile))
             for myCommitDetails in myFile.commitDetails:
-                outFile.write("\r\n\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines))
+                outFile.write("\r\n\tAssignment " + str(myCommitDetails.assignmentName) + "\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines) + ".  Added TA Test Lines:" + str(myCommitDetails.taTestLines))
                 outFile.write("\r\n\t\tMethods added/modified:")
                 for myMethod in myCommitDetails.methodNames:
         # for myMethodName in myMethod.methodName:
@@ -78,10 +78,10 @@ class SubmissionReport:
         nbrTransformations = 0
         nbrAntiTransformations = 0
         ratio = 0
-        outFile.write("\r\nAssignment Number:" + str(myAssignment.assignmentNbr))
+        outFile.write("\r\nAssignment Name:" + str(myAssignment.assignmentName))
         nbrCommits = nbrCommits + len(myAssignment.myCommits)
         for myCommit in myAssignment.myCommits:
-            outFile.write("\r\nCommit Number:" + str(myCommit.commitNbr) + "\tCommit type: " + myCommit.commitType + "\tAdded lines:" + str(myCommit.addedLinesInCommit) + ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".\r\n  Added test lines:" + str(myCommit.addedTestLOC) + "  Deleted test lines:" + str(myCommit.deletedTestLOC) + ".\r\n  Test files:" + str(myCommit.nbrTestFiles) + ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " + str(myCommit.numberOfTransformations) + ". \n\r")
+            outFile.write("\r\n\tCommit Number:" + str(myCommit.commitNbr) + "\tCommit type: " + myCommit.commitType + "\tAdded lines:" + str(myCommit.addedLinesInCommit) + ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" + str(myCommit.addedTestLOC) + "  Deleted test lines:" + str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) + ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " + str(myCommit.numberOfTransformations) + ". \n\r")
             if myCommit.commitType.startswith("Red Light"):
                 nbrRedLight = nbrRedLight + 1
             elif myCommit.commitType.startswith("Green Light"):
@@ -95,9 +95,9 @@ class SubmissionReport:
             deletedLines = deletedLines + myCommit.deletedLinesInCommit
             deletedTestLines = deletedTestLines + myCommit.deletedTestLOC
             myTrans = myCommit.get_transformations()
-            outFile.write("Transformations:")
+            outFile.write("\tTransformations:")
             for myTran in myTrans:
-                outFile.write("\r" + myTransNames.getTransformationName(myTran))
+                outFile.write("\r\t" + myTransNames.getTransformationName(myTran))
                 if myTran >= 0:
                     self.__transTotalsInAnalysis[myTran] = self.__transTotalsInAnalysis[myTran] + 1
                     transTotalsInAssignment[myTran] = transTotalsInAssignment[myTran] + 1
@@ -119,7 +119,7 @@ class SubmissionReport:
         self.__totalTransformationsInAnalysis = self.__totalTransformationsInAnalysis + nbrTransformations
         self.__totalAntiTransformationsInAnalysis = self.__totalAntiTransformationsInAnalysis + nbrAntiTransformations
         self.__totalLinesOfCodeInAnalysis = self.__totalLinesOfCodeInAnalysis + addedLines
-        myCommitStats = AssignmentCommitTotals.AssignmentCommitTotals()
+        myCommitStats = AssignmentTotals.AssignmentTotals()
         myCommitStats.nbrCommits = nbrCommits
         myCommitStats.RLCommit = nbrRedLight
         myCommitStats.GLCommit = nbrGreenLight
@@ -129,10 +129,6 @@ class SubmissionReport:
         myCommitStats.addedTestLOCInAssignment = addedTestLines
         myCommitStats.deletedLinesInAssignment = deletedLines
         myCommitStats.deletedTestLOCInAssignment = deletedTestLines
-        if nbrCommits > 0:
-            myCommitStats.avgLinesPerCommit = (addedLines + addedTestLines) / nbrCommits
-            myCommitStats.avgTransPerCommit = nbrTransformations / nbrCommits
-        myCommitStats.ratioTestToProd = ratio
         myCommitStats.totalDelLines = overallDeletedLines
         myCommitStats.totalTransByTypeInAssignment = transTotalsInAssignment
         myCommitStats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment

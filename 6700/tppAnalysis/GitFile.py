@@ -11,7 +11,6 @@ import Commit
 import PyFile
 import Assignment
 import re
-import os 
 import Method
 import jsonpickle
 from DeletedLine import DeletedLine
@@ -19,7 +18,7 @@ from datetime import date
 from time import strptime
 import TATestCase
 
-
+originalAssignmentName = "CA01"
 
 class GitFile(object):
     " Analyzes a single git log file"
@@ -33,40 +32,41 @@ class GitFile(object):
         '''
         Constructor
         '''
-        self.fileName = ''
-        self.currAssignment = 1
+        
         self.myAssignmentsList = []
         self.myCommits = []
         self.myFiles = []
-        self.gitFile = ''
-        self.commits = 0
-        self.myAssignment = Assignment.Assignment(1)
         self.myTransformations = []
+        self.myAssignmentNameDict = Assignment.Assignment.get_assignment_name_dict()
+        self.keyIndexList = self.myAssignmentNameDict.keys()
+        self.keyIndexList.sort()
+
         
     
     def analyzeGitLogFile(self, fileName):
         "Controls the looping through the git file"
         
-        self.fileName = fileName
-        self.gitFile = codecs.open(self.fileName)
-        print self.fileName
-       
-        myAssignmentDict = Assignment.Assignment.get_assignment_dict()             # this dictionary tells us the dates for the asssignments
-        self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
+        __fileName = fileName
+        self.gitFile = codecs.open(__fileName)
+        print __fileName
+        __currAssignmentName = "CA01"     # last date for the first assignment
+        __myAssignment = Assignment.Assignment(__currAssignmentName)
+        
+        __commits = 0
         self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
-            if not (self.isCurrentAssignment()):                                    # advances to next line to check the commit date
+            __assignmentName = self.findCurrentAssignment()                                    # advances to next line to check the commit date
+            if __currAssignmentName != __assignmentName:    
+                __currAssignmentName = __assignmentName
+                self.myAssignmentsList.append(__myAssignment)
+                __commits = 0
+                __myAssignment = Assignment.Assignment(__currAssignmentName)
                 
-                self.myAssignmentsList.append(self.myAssignment)
-                self.currAssignment = self.currAssignment + 1
-                if self.currAssignment <= len(myAssignmentDict):
-                    self.currAssignmentDate = myAssignmentDict[self.currAssignment]     # last date for the first assignment
-                self.myAssignment = Assignment.Assignment(self.currAssignment)
-                
-            self.commitType = self.getCommitType()                      # advances to next line to get commit type
-            self.myAssignment.addCommitToAssignment(self.analyzeCommit(self.commitType))
+            __commitType = self.getCommitType()                      # advances to next line to get commit type
+            __commits = __commits + 1
+            __myAssignment.addCommitToAssignment(self.analyzeCommit(__currAssignmentName,__commitType, __commits))
     
-        self.myAssignmentsList.append(self.myAssignment)                # save last Assignment in the file to Assignments List
+        self.myAssignmentsList.append(__myAssignment)                # save last Assignment in the file to Assignments List
         #self.currAssignment = self.currAssignment + 1
         #self.myAssignment = Assignment.Assignment(self.currAssignment)
         self.gitFile.close()
@@ -79,18 +79,17 @@ class GitFile(object):
         return commitType
 
 
-    def analyzeCommit(self,commitType):
+    def analyzeCommit(self, assignmentName, commitType, commitNbr):
         "Analyzes all the lines in an individual commit"
        
         self.myTransformations = []
         
-        self.commits = self.commits + 1
-        self.myNewCommit = Commit.Commit(self.commits)
+        self.myNewCommit = Commit.Commit(commitNbr)
         self.myNewCommit.set_commit_type(commitType)
         while self.foundNewCommit() == False:
             if self.pythonFileFound():
                 path, fileName = self.extractFileName()
-                addedLines, deletedLines, prodFile, notSBFile = self.analyzePyFile(path,fileName)
+                addedLines, deletedLines, TATestLines, prodFile, notSBFile = self.analyzePyFile(path,fileName,assignmentName, commitNbr)
                 if notSBFile:
                     
                     if prodFile:
@@ -101,19 +100,20 @@ class GitFile(object):
                         self.myNewCommit.add_nbr_test_files(1)
                         self.myNewCommit.add_added_test_loc(addedLines)
                         self.myNewCommit.add_deleted_test_loc(deletedLines)
+                        self.myNewCommit.set_added_tatest_loc(TATestLines)
                     
             else:
                 self.line = self.readNextLine()
                 if self.line == False:
                     self.line = ''
-        nbrTrans = len(self.myTransformations)
-        self.myNewCommit.add_number_of_transformations(nbrTrans)
+
+        self.myNewCommit.add_number_of_transformations(len(self.myTransformations))
         
         self.myNewCommit.set_transformations(self.myTransformations)
         
         return self.myNewCommit
 
-    def analyzePyFile(self, path, fileName):
+    def analyzePyFile(self, path, fileName, assignmentName, commitNbr):
         "Analyzes the information of an individual file within a commit"
         fileAddedLines = 0
         fileDeletedLines = 0
@@ -123,19 +123,20 @@ class GitFile(object):
         #if notSBFile:
         prodFile = self.isProdFile(path)
         self.line = self.gitFile.next() ## either new file mode or index
-        self.fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
-        if (self.fileIndex == -1):
-            self.fileIndex = self.addNewFile(fileName, prodFile)
+        fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
+        if (fileIndex == -1):
+            fileIndex = self.addNewFile(fileName, prodFile, commitNbr)
         
         #if notSBFile:        
-        fileAddedLines, fileDeletedLines, methods = self.evaluateTransformationsInAFile(prodFile)
-        self.myFiles[self.fileIndex].setCommitDetails(self.commits, fileAddedLines, fileDeletedLines, methods)
-        return fileAddedLines, fileDeletedLines, prodFile, True
+        fileAddedLines, fileDeletedLines, fileTATestLines, methods = self.evaluateTransformationsInAFile(prodFile)
+        self.myFiles[fileIndex].setCommitDetails(assignmentName, commitNbr, fileAddedLines, fileDeletedLines, fileTATestLines, methods)
+        return fileAddedLines, fileDeletedLines, fileTATestLines, prodFile, True
     
     def evaluateTransformationsInAFile(self, prodFile):
         "Checks the line to see if it is a part of a transformation"
         addedLinesInFile = 0
         deletedLinesInFile = 0
+        taTestLinesInFile = 0
         # deletedLinesArray = []
         # ifContents = []
         # whileContents = []
@@ -175,9 +176,10 @@ class GitFile(object):
         for method in methodArray:
             addedLinesInFile = addedLinesInFile + method.getAddedLines()
             deletedLinesInFile = deletedLinesInFile + method.getDeletedLines()
+            taTestLinesInFile = taTestLinesInFile + method.getTATestLines()
             #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
             #        methodArray.remove(method)      # empty method
-        return addedLinesInFile, deletedLinesInFile, methodArray
+        return addedLinesInFile, deletedLinesInFile, taTestLinesInFile, methodArray
 
     def readNextLine(self):
         try:
@@ -446,7 +448,7 @@ class GitFile(object):
             rtnBoolean = False
         return rtnBoolean, rtnValue
 
-    def isCurrentAssignment(self):
+    def findCurrentAssignment(self):
         " a git file can contain multiple assignments.  This is looking for the current one for analysis."
         #self.line = self.readNextLine()         # line after commit contains the commit date
         dateLine = self.line.split(" ")
@@ -455,11 +457,14 @@ class GitFile(object):
         commitYear = int(dateLine[4])
         commitDate = date(commitYear,commitMonth,commitDay)
         
-        
-        if (commitDate <= self.currAssignmentDate):
-            return True
+        currAssignmentName = None
+        if commitDate <= self.keyIndexList[0]:
+            currAssignmentName = originalAssignmentName
         else:
-            return False
+            for k in range(0, len(self.keyIndexList)-1):
+                if (self.keyIndexList[k] <= commitDate <= self.keyIndexList[k+1]):
+                    currAssignmentName = self.myAssignmentNameDict.get(self.keyIndexList[k+1])
+        return currAssignmentName
 
     def isProdFile(self, fileName):
         fileNameLower = fileName.lower();
@@ -490,9 +495,9 @@ class GitFile(object):
         fileName = splLine[len(splLine) - 1]
         return path, fileName
 
-    def addNewFile(self, fileName, prodFile):
+    def addNewFile(self, fileName, prodFile, commitNbr):
         " This is a new file that isn't in our analysis yet. "
-        self.newFile = PyFile.PyFile(fileName, prodFile, self.commits)
+        self.newFile = PyFile.PyFile(fileName, prodFile, commitNbr)
         self.myFiles.append(self.newFile)
         self.myTransformations.append(self.myTrans.NEWFILE)
         self.line = self.gitFile.next() ## if this was a new file, then advance file pointer to index line
@@ -509,8 +514,6 @@ class GitFile(object):
         return fileIndex
 
 
-    def getFileName(self):
-        return self.fileName
     
     def getAssignments(self):
         return self.myAssignmentsList

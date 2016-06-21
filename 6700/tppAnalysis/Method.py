@@ -35,6 +35,9 @@ class Method(object):
     def getDeletedLines(self):
         return len(self.deletedLines)   
     
+    def getTATestLines(self):
+        return self.TATestLines
+    
     def getAddedLines(self):
         addedLines = self.addedLines - self.TATestLines
         if addedLines < 0:

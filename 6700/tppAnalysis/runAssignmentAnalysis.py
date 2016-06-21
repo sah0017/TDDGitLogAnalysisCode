@@ -14,7 +14,7 @@ if __name__ == '__main__':
     myDrive = "g:\\"
     printToFile = raw_input("Print output to file?  ")
     mySemester = "6700Spring16"
-    myDirectory = "CA05"
+    myDirectory = "CA03"
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     ''' 
     for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):

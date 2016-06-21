@@ -19,11 +19,15 @@ class Commit(object):
         self.addedLinesInCommit = 0
         self.deletedLinesInCommit = 0
         self.addedTestLOC = 0
+        self.addedTATestLOC = 0
         self.deletedTestLOC = 0
         self.numberOfTransformations = 0
         self.nbrTestFiles = 0
         self.nbrProdFiles = 0
         self.transformations = []
+
+    
+
     
     '''    
     def __init__(self,commitNbr, commitType, addedLines,deletedLines, addedTestLines, deletedTestLines, testFiles,prodFiles, nbrOfTrans):
@@ -40,7 +44,17 @@ class Commit(object):
         self.transformations = []
         
     '''
-        
+    def get_added_tatest_loc(self):
+        return self.__addedTATestLOC
+
+
+    def set_added_tatest_loc(self, value):
+        self.__addedTATestLOC = value
+
+
+    def del_added_tatest_loc(self):
+        del self.__addedTATestLOC
+            
     def addTransformation(self, transformation):
         self.transformations.append(transformation)
         
@@ -188,3 +202,4 @@ class Commit(object):
     nbrTestFiles = property(get_nbr_test_files, set_nbr_test_files, del_nbr_test_files, "nbrTestFiles's docstring")
     nbrProdFiles = property(get_nbr_prod_files, set_nbr_prod_files, del_nbr_prod_files, "nbrProdFiles's docstring")
     transformations = property(get_transformations, set_transformations, del_transformations, "transformations's docstring")
+    addedTATestLOC = property(get_added_tatest_loc, set_added_tatest_loc, del_added_tatest_loc, "addedTATestLOC's docstring")

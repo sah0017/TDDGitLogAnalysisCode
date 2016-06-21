@@ -22,8 +22,8 @@ class PyFile(object):
         self.methods = []
         self.prodFile = prodFile
         
-    def setCommitDetails(self, commitNbr, addedLines, deletedLines, methodNames):
-        myCommitDetails = PyFileCommitDetails.PyFileCommitDetails(commitNbr, addedLines, deletedLines, methodNames)
+    def setCommitDetails(self, assignmentName, commitNbr, addedLines, deletedLines, taTestLines, methodNames):
+        myCommitDetails = PyFileCommitDetails.PyFileCommitDetails(assignmentName, commitNbr, addedLines, deletedLines, taTestLines, methodNames)
         self.commitDetails.append(myCommitDetails)
 
     def setMethodName(self, methodName):
