@@ -1,10 +1,10 @@
 '''
-Created on Jul 7, 2015
+Created on Jun 23, 2016
 
 @author: susanha
 '''
 
-class MyClass(object):
+class CodeCoverage(object):
     '''
     classdocs
     '''
