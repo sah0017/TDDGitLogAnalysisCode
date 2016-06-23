@@ -9,7 +9,7 @@ import AssignmentTotals
 import AnalyzeGitLogFileAndCreateRpt
 import FormattedGitLog
 import Assignment
-import CreateAnalysisReport
+import CreateGitfileAnalysisReport
 
 
 if __name__ == '__main__':
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
     '''
          
-    myReport = CreateAnalysisReport.AnalysisReport()
+    myReport = CreateGitfileAnalysisReport.AnalysisReport()
     myReport.createAnalysisReport(myDrive, "yes",mySemester,"mha0012")
     myCommitStatsList = myAssignment.get_my_commit_totals()
     for myCommitStats in myCommitStatsList:

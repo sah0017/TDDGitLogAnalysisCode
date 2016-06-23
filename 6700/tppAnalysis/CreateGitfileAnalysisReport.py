@@ -73,7 +73,7 @@ class AnalysisReport(object):
             print "Average lines of code per commit:  ",ttlLOC/ttlComm
             
         assignment = assignment + 1
-    
+        self.outFile.close()
     
     
     
