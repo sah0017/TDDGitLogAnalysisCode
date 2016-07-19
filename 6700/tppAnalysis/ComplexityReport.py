@@ -13,7 +13,7 @@ from radon.cli import Config
 from radon.complexity import cc_rank
 from types import NoneType
 
-class RadonArguments():
+class RadonAnalysis():
     
     def __init__(self):
         self.path = "g:\\git\\6700Spring16\\CA05"
@@ -23,7 +23,7 @@ class RadonArguments():
         self.multi = False
     
 def createComplexityAnalysisReport():
-    configArgs = RadonArguments()
+    configArgs = RadonAnalysis()
     
     
     myDrive = "g:\\"

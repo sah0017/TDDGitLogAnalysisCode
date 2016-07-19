@@ -5,67 +5,54 @@ Created on Apr 25, 2016
 
 '''
 
-import CodeCoverage
+from CodeCoverage import CodeCoverage 
 import os
 import re
-import json
-import pkgutil
-import pkgutil
+import time
 
-class RadonArguments():
+
+
+class CodeCoverageAnalysisReport():
     
     def __init__(self):
-        self.path = "g:\\git\\6700Spring16\\CA05"
+        self.path = "g:\\git\\6700Spring16\\CA02\\"
         self.exclude = "*.pyc"
         self.ignore = ""
         self.no_assert = True
         self.multi = False
         
-def GetTestNames(path):
-  """Returns a list of the names of the test modules in gslib.tests."""
-  matcher = re.compile(r'^def test')
-  names = []
-  for _, modname, _ in pkgutil.iter_modules(path):
-    m = matcher.match(modname)
-    if m:
-      names.append(m.group('name'))
-  return names    
 
-def createCoverageAnalysisReport():
-    configArgs = RadonArguments()
-    
-    myDrive = "g:\\"
-#printToFile = raw_input("Print output to file?  ")
-    mySemester = "6700Spring16"
-    myDirectory = "CA05"
-    includePath = ""
-    reportLocation = os.path.join(myDrive,"git",mySemester)
-    #outFile = open(myDrive + "git\\" + mySemester + "\\" + myDirectory + "radon.rept", "a")
-    #outFile.write("CC Rank\tModule Name\t\tMaintainability Index\tMI Rank\n")
-    for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):
-        if re.search("test", root):
-            names = GetTestNames(root)
-            for name in names:
-                print name
-            nameSplit = root.split("\\")
-            for i in range(0,len(nameSplit)-2):
-                includePath = includePath + nameSplit[i] + "\\"
-            myCoverageAnalysis = CodeCoverage.CodeCoverage(myDrive, mySemester)
-            for myFile in files:
-                if (myFile.endswith(".py") and (not myFile.startswith("._")) and (myFile != '__init__.py')):
-                    #os.chdir(myDir)
-                    print root + "\\" + myFile
-                    dataFile = os.path.join(root,nameSplit[5],myFile)
-                    testFile = os.path.join(root, myFile)
-                    myCoverageAnalysis.analyzeCodeCoverage(dataFile,testFile,includePath)
-                    '''
-                    if results != None:
-                        for module, ma in results:
-                            outFile.write(ma + "\t\t" + module + "\t")
-                    '''
-            includePath = ""
-    #outFile.close()
+    def createCoverageAnalysisReport(self):
+        
+        myDirectory = "CA02"
+        includePath = ""
+        myCoverageAnalysis = CodeCoverage()
+        reportLocation = os.path.join(self.path)
+        with open(reportLocation + myDirectory + ".cvgrpt", "w") as outFile :
+            outFile.write("Module Name\t\tCode Coverage percentage\n\r")
+        with open(reportLocation + myDirectory + ".result", "w") as resultoutFile:
+            resultoutFile.write("Run date/time:  " + time.strftime("%a, %d %b %Y %H:%M:%S")+"\n\r")
+        for root, myDir, files in os.walk(self.path + "\\submissions"):
+            if re.search("test", root):
+                if not re.search("__MACOSX",root):
+                    nameSplit = root.split("\\")
+                    if nameSplit[len(nameSplit)-1] == "__pycache__":
+                        nameSplit = nameSplit[:len(nameSplit)-1]
+                    print nameSplit
+                    for i in range(0,len(nameSplit)-1):
+                        includePath = includePath + nameSplit[i] + "\\"
+                    print includePath
+                    myCoverageAnalysis = CodeCoverage()
+                    myCCPct = myCoverageAnalysis.analyzeCodeCoverage(includePath, myDirectory)
+                    time.sleep(2)
+                    fileName = nameSplit[6]
+                    studentName = fileName.split("_")
+                    with open(reportLocation + "\\" +myDirectory + ".cvgrpt", "a+") as outFile:
+                        outFile.write("\n\r" + studentName[0] + "\t\t" + format(myCCPct, ".2f"))
+                    includePath = ""
+        
 
 if __name__ == '__main__':
     
-    createCoverageAnalysisReport()
+    myCCReport = CodeCoverageAnalysisReport()
+    myCCReport.createCoverageAnalysisReport()
