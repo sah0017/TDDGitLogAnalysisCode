@@ -37,7 +37,7 @@ class CodeCoverage(object):
     
            
 
-    def analyzeCodeCoverage(self, root, assignment):
+    def analyzeCodeCoverage(self, root, assignment, htmlReport):
         try:
             submissionPath = ""
             cov = coverage.Coverage(data_file=root+".cvg",include=root + os.sep + "*.py", branch=True )
@@ -67,7 +67,7 @@ class CodeCoverage(object):
             from importlib import import_module
             '''
             with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
-                CCreportoutFile.write("Test Names\n\r")
+                CCreportoutFile.write("Test File Names\n\r")
             for mtn in moduleTestNames:
                 with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
                     CCreportoutFile.write(mtn + "\r")
@@ -93,7 +93,14 @@ class CodeCoverage(object):
         if CCreport.wasSuccessful():
             try:
                 #print root
-                #cov.html_report(directory=root)
+                if htmlReport:
+                    myHDrive = myConfig.get("Location","Root")
+                    myHHome = myConfig.get("Location","Home")
+                    myHSemester = myConfig.get("Location","Semester")
+                    myHAssignment = myConfig.get("Location","Assignment")
+                    HPath = os.path.join(myHDrive + os.sep + myHHome + os.sep + myHSemester + os.sep + myHAssignment + os.sep + studentName[0])
+                    os.mkdir(HPath)
+                    cov.html_report(directory=HPath)
                 with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as f, redirect_stdout(f):
                     pctg = cov.report()
                 print pctg
@@ -136,13 +143,18 @@ if __name__ == '__main__':
     if totalArgs > 1:
         dataFile = str(sys.argv[1])
         myCodeCoverage.assignment = str(sys.argv[2])
+        if str(sys.argv[3]) == "yes":
+            htmlReport = True
+        else:
+            htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
         dataFile = "g:\\git\\6700Spring16\\CA05\\submissions\\bakerthomas_late_1313011_74933289_thb0008CA05\\Software_Process03\\Software_Process03\\Assignment\\"
         myCodeCoverage.assignment = myAssignment
+        htmlReport = True
     print ("Datafile location is : %s" % dataFile)
     
-    myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile,myCodeCoverage.assignment)
+    myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile,myCodeCoverage.assignment, htmlReport)
     print myPct, sName
     with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment+os.sep+myCodeCoverage.assignment+".cvgrpt"), "a+") as outFile:
         if myPct < 0:
