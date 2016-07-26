@@ -20,13 +20,13 @@ class CodeCoverage(object):
         myDrive = "g:\\"
     #printToFile = raw_input("Print output to file?  ")
         mySemester = "6700Spring16"
-        myDirectory = "CA02"
+        myAssignment = "CA02"
         includePath = ""
         #myCoverageAnalysis = CodeCoverage()
         reportLocation = os.path.join(myDrive,"git\\",mySemester)
-        coverageResultsList = []
-        resultoutFile = open(reportLocation + myDirectory + ".result", "w")
-        for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):
+        coverageResultsList = {}
+        resultoutFile = open(reportLocation + myAssignment + ".result", "w")
+        for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myAssignment + "\\submissions"):
             if re.search("test", root):
                 includePath = ""
                 if not re.search("__MACOSX",root):
@@ -51,6 +51,7 @@ class CodeCoverage(object):
                     print sys.path
                     testfiles = os.listdir(testpath)                               
                     prodfiles = os.listdir(prodpath)                               
+                    os.chdir(testpath)  
                     myTestLoader = unittest.TestLoader()  
                     test = re.compile(r"\b.py\b", re.IGNORECASE)          
                     testfiles = filter(test.search, testfiles)                     
@@ -100,7 +101,7 @@ class CodeCoverage(object):
                             pctg = cov.report()
                             fileName = nameSplit[6]
                             studentName = fileName.split("_")
-                            coverageResultsList.append(studentName,pctg)
+                            coverageResultsList[studentName[0]] = pctg
                             print pctg
                             #return pctg
                         except CoverageException:
@@ -115,10 +116,10 @@ class CodeCoverage(object):
                     print sys.path
 
         
-        outFile = open(reportLocation + myDirectory + ".cvg", "w")
+        outFile = open(reportLocation + myAssignment + ".cvg", "w")
         outFile.write("Module Name\t\tCode Coverage percentage\n\r")
-        for studentNm, pctg in coverageResultsList:
-            outFile.write("\n\r" + studentNm + "\t\t" + format(pctg, ".2f"))
+        for studentNm in coverageResultsList:
+            outFile.write("\n\r" + studentNm + "\t\t" + format(coverageResultsList[studentNm], ".2f"))
                     
         outFile.close()
         resultoutFile.close()
@@ -128,13 +129,13 @@ class CodeCoverage(object):
         myDrive = "g:\\"
     #printToFile = raw_input("Print output to file?  ")
         mySemester = "6700Spring16\\"
-        myDirectory = "CA02"
+        myAssignment = "CA02"
         includePath = ""
         #myCoverageAnalysis = CodeCoverage()
         reportLocation = os.path.join(myDrive,"git\\",mySemester)
-        outFile = open(reportLocation + myDirectory + ".cvg", "w")
+        outFile = open(reportLocation + myAssignment + ".cvg", "w")
         outFile.write("Module Name\t\tCode Coverage percentage\n\r")
-        for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):
+        for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myAssignment + "\\submissions"):
             if re.search("test", root):
                 if not re.search("__MACOSX",root):
                     nameSplit = root.split("\\")
@@ -144,7 +145,7 @@ class CodeCoverage(object):
                     for i in range(0,len(nameSplit)-1):
                         includePath = includePath + nameSplit[i] + "\\"
                     print includePath
-                    myCCPct = myCoverageAnalysis.analyzeCodeCoverage(includePath, myDirectory)
+                    myCCPct = myCoverageAnalysis.analyzeCodeCoverage(includePath, myAssignment)
                     fileName = nameSplit[6]
                     studentName = fileName.split("_")
                     outFile.write("\n\r" + studentName[0] + "\t\t" + format(myCCPct, ".2f"))

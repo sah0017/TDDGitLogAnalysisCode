@@ -5,30 +5,50 @@ Created on Sep 12, 2014
 '''
 import os
 import AnalyzeGitLogFileAndCreateRpt
-import CreateAnalysisReport
+import CreateGitfileAnalysisReport
 import FormattedGitLog
+from py._iniconfig import SectionWrapper
+import ConfigParser
+from TATestCase import TATestCase
 
 
 if __name__ == '__main__':
     
-    myDrive = "g:\\"
-    printToFile = raw_input("Print output to file?  ")
-    mySemester = "6700Spring16"
-    myDirectory = "CA03"
+    myConfig = ConfigParser.ConfigParser() 
+    myConfig.read("TDDanalysis.cfg")
+    myDrive = myConfig.get("Location","Root")
+    myHome = myConfig.get("Location","Home")
+    printToFile = True
+    mySemester = myConfig.get("Location","Semester")
+    myAssignment = myConfig.get("Location","Assignment")
+    myTestLocation = myConfig.get("TA Test Case Location","Test Directory")
+    analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment)
+    reportRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester)
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
-    ''' 
-    for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):
-        nameSplit = root.split("\\")
-        for currentDir in myDir:
-            if currentDir.endswith(".git"):
-                #os.chdir(myDir)
-                print nameSplit[4], "Git directory", os.path.join(root, currentDir)
-                myFormattedGitLog.formatGitLogOutput(root, currentDir,myDrive, mySemester, myDirectory,nameSplit[5])    
-    '''    
-    myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    for gitDataFile in os.listdir(myDrive + "git\\" + mySemester + "\\" + myDirectory):
-        if gitDataFile.endswith(".gitdata"):
-            myAnalysis.analyzeGitLog(myDrive + "git\\" + mySemester + "\\" + myDirectory, gitDataFile)
+
+    gitfileCreation = raw_input("Have you created the formatted git files? (y/n)  ")
+
+    if gitfileCreation.strip() == "n":                  # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
+        myWorkingDirectory = os.getcwd()   # formatGitLogOutput changes the directory, it needs to be set back before create TATestCaseDict
+        for root, myDir, files in os.walk(analysisRoot + os.sep + "submissions"):
+            nameSplit = root.split(os.sep)
+            for currentDir in myDir:
+                if currentDir.endswith(".git"):
+                    #os.chdir(myDir)
+                    print "Git directory", os.path.join(root, currentDir)
+                    myFormattedGitLog.formatGitLogOutput(root, currentDir,analysisRoot,nameSplit[5]) 
+        os.chdir(myWorkingDirectory)
+        myTATestCase = TATestCase() 
+        TATestCaseDict = myTATestCase.createTATestCaseDict()
+  
+        
+    gitfileAnalysis = raw_input("Have you analyzed the formatted git files? (y/n)  ")
+
+    if gitfileAnalysis.strip() == "n":                  # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
+        myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
+        for gitDataFile in os.listdir(analysisRoot):
+            if gitDataFile.endswith(".gitdata"):
+                myAnalysis.analyzeGitLog(analysisRoot, gitDataFile)
          
-    myReport = CreateAnalysisReport.AnalysisReport()
-    myReport.createAnalysisReport(myDrive, printToFile,mySemester,myDirectory)
+    myReport = CreateGitfileAnalysisReport.AnalysisReport()
+    myReport.createAnalysisReport(reportRoot, analysisRoot, printToFile, myAssignment)

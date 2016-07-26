@@ -29,10 +29,10 @@ def createComplexityAnalysisReport():
     myDrive = "g:\\"
 #printToFile = raw_input("Print output to file?  ")
     mySemester = "6700Spring16"
-    myDirectory = "CA05"
-    outFile = open(myDrive + "git\\" + mySemester + "\\" + myDirectory + "radon.rept", "a")
+    myAssignment = "CA05"
+    outFile = open(myDrive + "git\\" + mySemester + "\\" + myAssignment + "radon.rept", "a")
     outFile.write("CC Rank\tModule Name\t\tMaintainability Index\tMI Rank\n")
-    for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myDirectory + "\\submissions"):
+    for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myAssignment + "\\submissions"):
         nameSplit = root.split("\\")
         myComplexityAnalysis = CodeComplexity.CodeComplexity(myDrive, mySemester)
         if (re.search("prod", root) or re.search("test", root)):

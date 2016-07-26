@@ -4,13 +4,19 @@ Created on Jul 15, 2016
 @author: susanha
 '''
 
-import re, os 
+import re, os, ConfigParser 
 
 if __name__ == '__main__':
-    assignment = "CA05"
-    dirList = open("g:\\git\\6700Spring16\\"+assignment+".dirList","w")
+    myConfig = ConfigParser.ConfigParser() 
+    myConfig.read("TDDanalysis.cfg")
+    myDrive = myConfig.get("Location","Root")
+    myHome = myConfig.get("Location","Home")
+    mySemester = myConfig.get("Location","Semester")
+    myAssignment = myConfig.get("Location","Assignment")
+
+    dirList = open(myAssignment+".dirList","w")
     includePath=""
-    for root, myDir, files in os.walk("g:\\git\\6700Spring16\\"+assignment+"\\submissions"):
+    for root, myDir, files in os.walk(myDrive+os.sep+myHome+os.sep+mySemester+os.sep+myAssignment+os.sep+"submissions"):
         if re.search("test", root):
             if not re.search("__MACOSX",root):
                 nameSplit = root.split("\\")
