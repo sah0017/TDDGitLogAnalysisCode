@@ -24,13 +24,13 @@ class CodeCoverageAnalysisReport():
 
     def createCoverageAnalysisReport(self):
         
-        myDirectory = "CA02"
+        myAssignment = "CA02"
         includePath = ""
         myCoverageAnalysis = CodeCoverage()
         reportLocation = os.path.join(self.path)
-        with open(reportLocation + myDirectory + ".cvgrpt", "w") as outFile :
+        with open(reportLocation + myAssignment + ".cvgrpt", "w") as outFile :
             outFile.write("Module Name\t\tCode Coverage percentage\n\r")
-        with open(reportLocation + myDirectory + ".result", "w") as resultoutFile:
+        with open(reportLocation + myAssignment + ".result", "w") as resultoutFile:
             resultoutFile.write("Run date/time:  " + time.strftime("%a, %d %b %Y %H:%M:%S")+"\n\r")
         for root, myDir, files in os.walk(self.path + "\\submissions"):
             if re.search("test", root):
@@ -43,11 +43,11 @@ class CodeCoverageAnalysisReport():
                         includePath = includePath + nameSplit[i] + "\\"
                     print includePath
                     myCoverageAnalysis = CodeCoverage()
-                    myCCPct = myCoverageAnalysis.analyzeCodeCoverage(includePath, myDirectory)
+                    myCCPct = myCoverageAnalysis.analyzeCodeCoverage(includePath, myAssignment)
                     time.sleep(2)
                     fileName = nameSplit[6]
                     studentName = fileName.split("_")
-                    with open(reportLocation + "\\" +myDirectory + ".cvgrpt", "a+") as outFile:
+                    with open(reportLocation + "\\" +myAssignment + ".cvgrpt", "a+") as outFile:
                         outFile.write("\n\r" + studentName[0] + "\t\t" + format(myCCPct, ".2f"))
                     includePath = ""
         

@@ -51,6 +51,8 @@ class GitFile(object):
         print __fileName
         __currAssignmentName = "CA01"     # last date for the first assignment
         __myAssignment = Assignment.Assignment(__currAssignmentName)
+        myTATestCase = TATestCase.TATestCase()
+        self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
         
         __commits = 0
         self.readNextLine()                                                 # first line says commit
@@ -213,8 +215,8 @@ class GitFile(object):
                 defaultVal = False
                 #print params
             method = Method.Method(methodName[0], params)
-            if method.methodName in TATestCase.TATestCase.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
-                method.updateTATestLines(TATestCase.TATestCase.TATestCaseDict[method.methodName])
+            if method.methodName in self.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
+                method.updateTATestLines(self.TATestCaseDict[method.methodName])
                 method.setIsTATestCase(True)
         return method
 

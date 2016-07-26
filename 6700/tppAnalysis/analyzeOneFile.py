@@ -19,16 +19,16 @@ if __name__ == '__main__':
     root = "g:\\"
     myDrive = "g:\\"
     mySemester = "6700Spring16\\"
-    myDirectory = "CA02\\"
+    myAssignment = "CA02\\"
     currentDir = "git\\6700Spring16\\CA02\\submissions\\stelljessica_3072097_71347590_jrs0067ca02\\SoftwareProcess"                
     fileName = "stelljessica_3072097_71347590_jrs0067ca02"                
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
-    myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myDirectory,fileName)
+    myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myAssignment,fileName)
 
     myAssignment = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
     myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    myAnalysis.analyzeGitLog(myDrive + "git\\" + mySemester + "\\" + myDirectory, fileName+"log.gitdata")
+    myAnalysis.analyzeGitLog(myDrive + "git\\" + mySemester + "\\" + myAssignment, fileName+"log.gitdata")
     
     '''
          

@@ -13,20 +13,16 @@ import AssignmentTotals
 class AnalysisReport(object):
     pass
 
-    def createAnalysisReport(self, drive,pToF,mySem,myDir):
-        myDrive = drive
+    def createAnalysisReport(self, reportRoot,analysisRoot, pToF, myAssignment):
         printToFile = pToF
-        mySemester = mySem
-        myDirectory = myDir
-        root = myDrive + "git\\" + mySemester + "\\" + myDirectory
-        myDir = os.listdir(root)
+        myDir = os.listdir(analysisRoot)
         myAssignmentTotals = []
         
-        self.outFile = open(myDrive + "git\\" + mySemester + "\\Report" + myDirectory + ".gitrpt", "w")
+        self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".gitrpt", "w")
         myTransNames = Transformations.Trans()
         self.outFile.write("Submission name\tNbr of Assignments\n\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAvg Lines Per Commit\tAvg Transformations Per Commit\tRatio of Test to Prod Code\tAdded Prod Lines\tAdded Test Lines\t Del/Mod Lines \tDel/Mod Test Lines\r")
 
-        self.printIndividualTotalsAndCountAssignmentTotals(myDir, root, printToFile, myTransNames)
+        self.printIndividualTotalsAndCountAssignmentTotals(myDir, analysisRoot, printToFile, myTransNames)
         
         assignment = 1
         #for myAssignmentStats in myTotals:
@@ -78,16 +74,16 @@ class AnalysisReport(object):
     
     
     
-    def printIndividualTotalsAndCountAssignmentTotals(self, myDir, root, printToFile, myTrans):
+    def printIndividualTotalsAndCountAssignmentTotals(self, myDir, analysisRoot, printToFile, myTrans):
         myGitFile = GitFile.GitFile()
         for item in myDir:
             #print item
-            if os.path.isfile(os.path.join(root, item)):
+            if os.path.isfile(os.path.join(analysisRoot, item)):
                 fileName, ext = os.path.splitext(item)
                 studentName = fileName.split("_")
                 #print fileName
                 if ext == ".gitdata":
-                    currentGitFile = myGitFile.retrieveGitReportObject(root + "\\" + fileName)
+                    currentGitFile = myGitFile.retrieveGitReportObject(analysisRoot + os.sep + fileName)
                     if (currentGitFile != None):
                         AssignmentTotals.AssignmentTotals.set_total_submissions(1)
                         studentSubmissionTotals = AssignmentTotals.AssignmentTotals()
@@ -153,4 +149,4 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.createAnalysisReport("g:\\","yes","6700Spring16","CA05")
+    myReport.createAnalysisReport("g:\\git\\6700Spring16","g:\\git\\6700Spring16\\CA05","yes","CA05")
