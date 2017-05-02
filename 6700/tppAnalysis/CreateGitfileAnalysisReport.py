@@ -20,7 +20,7 @@ class AnalysisReport(object):
         
         self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".gitrpt", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name\tNbr of Assignments\n\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAvg Lines Per Commit\tAvg Transformations Per Commit\tRatio of Test to Prod Code\tAdded Prod Lines\tAdded Test Lines\t Del/Mod Lines \tDel/Mod Test Lines\r")
+        self.outFile.write("Submission name\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAvg Lines Per Commit\tAvg Trans Per Commit\tRatio-Prod to Test Code\tAdded Prod Lines\tAdded Test Lines\tDel/Mod Lines \tDel/Mod Test Lines\r")
 
         self.printIndividualTotalsAndCountAssignmentTotals(myDir, analysisRoot, printToFile, myTransNames)
         
@@ -38,20 +38,20 @@ class AnalysisReport(object):
             self.outFile.write( "\n\r\n\rAssignment report"+" \n\r")
             self.outFile.write("Assignment:  \t" + str(assignment)+"\n\r")
             self.outFile.write( "Total submissions analyzed:  \t" + str(ttlSub)+" \n\r")
-            self.outFile.write( "Total number of commits:  \t" + str(ttlComm)+" \r")
-            self.outFile.write( "Total number of transformations:  \t" + str(ttlTrans)+" \r")
+            self.outFile.write( "Total nbr of commits:  \t" + str(ttlComm)+" \r")
+            self.outFile.write( "Total nbr of transformations:  \t" + str(ttlTrans)+" \r")
             for i in range(0,13):
-                self.outFile.write("Number of transformation type " + myTransNames.getTransformationName(i) + " is \t" + str(transTtlsList[i]) +"\r")
+                self.outFile.write("Nbr of trans type " + myTransNames.getTransformationName(i) + " is \t" + str(transTtlsList[i]) +"\r")
             #outFile.write( "Total number of anti-transformations:  \t" + str(ttlAntiTrans)+" \r")
             self.outFile.write("\n\r")
             for i in range(1,9):
                 if (myTransNames.getTransformationName(i) != ""):
-                    self.outFile.write( "Number of anti-transformation type "+ myTransNames.getTransformationName(-i) + " is \t" + str(antiTransTtlsList[i]) +"\r")
+                    self.outFile.write( "Nbr of anti-trans type "+ myTransNames.getTransformationName(-i) + " is \t" + str(antiTransTtlsList[i]) +"\r")
             
             self.outFile.write( "\n\r Total lines of code:  \t" + str(ttlLOC)+" \n\r")
             if ttlComm > 0:
-                self.outFile.write( "Average Transformations per commit: \t "+ str(ttlTrans/ttlComm)+" \r")
-                self.outFile.write( "Average lines of code per commit:  \t"+ str(ttlLOC/ttlComm)+" \n\r")
+                self.outFile.write( "Avg Trans per commit: \t "+ str(ttlTrans/ttlComm)+" \r")
+                self.outFile.write( "Avg loc per commit:  \t"+ str(ttlLOC/ttlComm)+" \n\r")
         else:
             print "Final report"
             print "Assignment:  ",assignment
@@ -59,14 +59,14 @@ class AnalysisReport(object):
             print "Total number of commits:  ",ttlComm
             print "Total number of transformations:  ", ttlTrans
             for i in range(0,13):
-                print "Number of transformation type",i,transTtlsList[i]
+                print "Nbr of trans type",i,transTtlsList[i]
             #print "Total number of anti-transformations:  ", ttlAntiTrans
             for i in range(0,9):
-                print "Number of anti-transformation type",i,antiTransTtlsList[i]
+                print "Nbr of anti-trans type",i,antiTransTtlsList[i]
             
             print "Total lines of code:  ", ttlLOC
-            print "Average Transformations per commit:  ", ttlTrans/ttlComm
-            print "Average lines of code per commit:  ",ttlLOC/ttlComm
+            print "Avg Trans per commit:  ", format(ttlTrans/ttlComm, '.2f')
+            print "Avg loc per commit:  ",format(ttlLOC/ttlComm, '.2f')
             
         assignment = assignment + 1
         self.outFile.close()
@@ -115,7 +115,7 @@ class AnalysisReport(object):
                                 if printToFile:
                                     self.outFile.write(fileName + ext + "\t" + str(myAssignment.assignmentName) + "\t" + str(myCommitStats.nbrCommits) + "\t" + str(myCommitStats.RLCommit) + "\t" + str(myCommitStats.GLCommit) + 
                                                        "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + format(myCommitStats.get_avg_lines_per_commit(), '.2f') + 
-                                                       "\t" + format(myCommitStats.get_avg_trans_per_commit(), '.2f') + " \t" + format(myCommitStats.get_ratio_test_to_prod(), '.2f') + "\t" + 
+                                                       "\t" + format(myCommitStats.get_avg_trans_per_commit(), '.2f') + " \t" + format(myCommitStats.get_ratio_prod_to_test(), '.2f') + "\t" + 
                                                        str(myCommitStats.addedLinesInAssignment) + "\t" + str(myCommitStats.addedTestLOCInAssignment) + "\t" + 
                                                        str(myCommitStats.deletedLinesInAssignment) + "\t" + str(myCommitStats.deletedTestLOCInAssignment)+ "\r")
                                 else:
@@ -138,7 +138,7 @@ class AnalysisReport(object):
                         if printToFile:
                             self.outFile.write("Totals for " + studentName[0] + "\t" + str(len(myAssignments)) + "\t" + str(studentSubmissionTotals.nbrCommits) + "\t" + str(studentSubmissionTotals.RLCommit) + "\t" + str(studentSubmissionTotals.GLCommit) + 
                                                        "\t" + str(studentSubmissionTotals.refCommit) + "\t" + str(studentSubmissionTotals.otherCommit) + "\t" + format(studentSubmissionTotals.get_avg_lines_per_commit(), '.2f') + 
-                                                       "\t" + format(studentSubmissionTotals.get_avg_trans_per_commit(), '.2f') + " \t" + format(studentSubmissionTotals.get_ratio_test_to_prod(), '.2f') + "\t" + 
+                                                       "\t" + format(studentSubmissionTotals.get_avg_trans_per_commit(), '.2f') + " \t" + format(studentSubmissionTotals.get_ratio_prod_to_test(), '.2f') + "\t" + 
                                                        str(studentSubmissionTotals.addedLinesInAssignment) + "\t" + str(studentSubmissionTotals.addedTestLOCInAssignment) + "\t" + 
                                                        str(studentSubmissionTotals.deletedLinesInAssignment) + "\t" + str(studentSubmissionTotals.deletedTestLOCInAssignment)+ "\r\r")
                         else:
@@ -149,4 +149,4 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.createAnalysisReport("g:\\git\\6700Spring16","g:\\git\\6700Spring16\\CA05","yes","CA05")
+    myReport.createAnalysisReport("g:\\git\\6700Spring17","g:\\git\\6700Spring17\\Assignment3","yes","Assignment3")

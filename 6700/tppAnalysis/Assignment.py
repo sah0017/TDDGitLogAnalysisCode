@@ -3,17 +3,38 @@ Created on Apr 7, 2016
 
 @author: susanha
 '''
-from datetime import date
+import time
+import ConfigParser
+
+
 
 class Assignment(object):
     '''
     classdocs
     '''
-    CA01 = date(2016,3,9)
-    CA02 = date(2016,4,10)
-    CA03 = date(2016,4,28)
-    CA05 = date(2016,5,14)
-    assignmentNameDict = {CA01:"CA01", CA02:"CA02", CA03:"CA03", CA05:"CA05"}
+    '''
+    Assignment3 = date(2017,3,20)
+    Assignment4 = date(2017,3,27)
+
+    assignmentNameDict = {Assignment3:"Assignment3", Assignment4:"Assignment4"}
+    '''
+    @classmethod
+    def loadAssignments(self):
+        myConfig = ConfigParser.SafeConfigParser() 
+        myConfig.read("TDDanalysis.cfg")
+        self.myFirstAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
+        self.assignmentNameDict = {}
+        for key, val in myConfig.items("Due Dates"):
+            self.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
+        #print self.assignmentNameDict
+    
+    @classmethod
+    def getMyFirstAssignment(self):
+        return self.myFirstAssignment   
+    
+    @classmethod
+    def get_assignment_name_dict(self):
+        return self.assignmentNameDict
 
     def __init__(self,assnName):
         '''
@@ -22,19 +43,15 @@ class Assignment(object):
         self.assignmentName = assnName
         self.myCommits = []
         self.myCommitTotals = []
-
       
+
 
     def addCommitToAssignment(self, commit):
         self.myCommits.append(commit)
         
     def addCommitTotalsToAssignment(self, commitTotals):
         self.myCommitTotals.append(commitTotals)
-        
-
-    @classmethod
-    def get_assignment_name_dict(self):
-        return self.assignmentNameDict
+    
 
 
     def get_assignment_nbr(self):
@@ -83,4 +100,9 @@ class Assignment(object):
     assignmentName = property(get_assignment_nbr, set_assignment_nbr, del_assignment_nbr, "assignmentName's docstring")
     myCommits = property(get_my_commits, set_my_commits, del_my_commits, "myCommits's docstring")
     myCommitTotals = property(get_my_commit_totals, set_my_commit_totals, del_my_commit_totals, "myCommitTotals's docstring")
+
+
+if __name__ == "__main__":
+    Assignment.loadAssignments()
+    
         
