@@ -7,7 +7,7 @@ import os
 import AnalyzeGitLogFileAndCreateRpt
 import CreateGitfileAnalysisReport
 import FormattedGitLog
-from py._iniconfig import SectionWrapper
+
 import ConfigParser
 from TATestCase import TATestCase
 

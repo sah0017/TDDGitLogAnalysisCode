@@ -14,11 +14,10 @@ import re
 import Method
 import jsonpickle
 from DeletedLine import DeletedLine
-from datetime import date
 from time import strptime
 import TATestCase
 
-originalAssignmentName = "CA01"
+
 
 class GitFile(object):
     " Analyzes a single git log file"
@@ -37,9 +36,12 @@ class GitFile(object):
         self.myCommits = []
         self.myFiles = []
         self.myTransformations = []
+        #myAssignments = Assignment.loadAssignments()
+        Assignment.Assignment.loadAssignments()
         self.myAssignmentNameDict = Assignment.Assignment.get_assignment_name_dict()
         self.keyIndexList = self.myAssignmentNameDict.keys()
         self.keyIndexList.sort()
+        self.originalAssignmentName = Assignment.Assignment.getMyFirstAssignment()
 
         
     
@@ -49,7 +51,7 @@ class GitFile(object):
         __fileName = fileName
         self.gitFile = codecs.open(__fileName)
         print __fileName
-        __currAssignmentName = "CA01"     # last date for the first assignment
+        __currAssignmentName = self.originalAssignmentName     # first assignment name
         __myAssignment = Assignment.Assignment(__currAssignmentName)
         myTATestCase = TATestCase.TATestCase()
         self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
@@ -124,7 +126,7 @@ class GitFile(object):
         #notSBFile = self.isNotSandBoxOrBinaryFile(path, fileName)
         #if notSBFile:
         prodFile = self.isProdFile(path)
-        self.line = self.gitFile.next() ## either new file mode or index
+        self.line = self.readNextLine() ## either new file mode or index
         fileIndex = self.findExistingFileToAddCommitDetails(fileName) 
         if (fileIndex == -1):
             fileIndex = self.addNewFile(fileName, prodFile, commitNbr)
@@ -215,9 +217,10 @@ class GitFile(object):
                 defaultVal = False
                 #print params
             method = Method.Method(methodName[0], params)
-            if method.methodName in self.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
-                method.updateTATestLines(self.TATestCaseDict[method.methodName])
-                method.setIsTATestCase(True)
+            if self.TATestCaseDict != None:
+                if method.methodName in self.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
+                    method.updateTATestLines(self.TATestCaseDict[method.methodName])
+                    method.setIsTATestCase(True)
         return method
 
 
@@ -322,8 +325,12 @@ class GitFile(object):
             if noPlus.startswith("'''") or noPlus.startswith("\"\"\""):
                 foundQuotedComment = True
                 if len(noPlus) > 3 and noPlus.endswith("'''") or noPlus.endswith("\"\"\""):   #one-line comment
-                    self.line = self.gitFile.next()
-                    endCommentFound = True
+                    self.line = self.readNextLine()
+                    if self.line == False:
+                        self.line = ' '
+                        foundQuotedComment = False
+                    else:
+                        endCommentFound = True
                 while not endCommentFound:
                     self.line = self.readNextLine()
                     if self.line == False:
@@ -332,8 +339,12 @@ class GitFile(object):
                     noPlus = self.stripGitActionAndSpaces()
                     if (self.line[0] == action) and (self.line[0] != " "):
                         if noPlus.startswith("'''") or noPlus.startswith("\"\"\"") or noPlus.endswith("'''") or noPlus.endswith("\"\"\""):
-                            self.line = self.gitFile.next()
-                            endCommentFound = True
+                            self.line = self.readNextLine()
+                            if self.line == False:
+                                self.line = ' '
+                                foundQuotedComment = False
+                            else:
+                                endCommentFound = True
                     else:
                         endCommentFound = True
             else:
@@ -391,9 +402,9 @@ class GitFile(object):
         return self.myTrans.WhileNoIf
             
     def pythonFileFound(self):
-        evalLine = self.line.rstrip()
+        evalLine = self.line.rstrip().lower()
         if ((evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine))):
-            if re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine):
+            if (re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine) or re.search(r"\bsoftwareprocess\b",evalLine)):
                 if not (re.search(r"\b\__init__\b",evalLine)):
                     if not (re.search(r"\bmetadata\b",evalLine)):
                         return True
@@ -453,24 +464,24 @@ class GitFile(object):
     def findCurrentAssignment(self):
         " a git file can contain multiple assignments.  This is looking for the current one for analysis."
         #self.line = self.readNextLine()         # line after commit contains the commit date
-        dateLine = self.line.split(" ")
-        commitMonth = strptime(dateLine[1], '%b').tm_mon
-        commitDay = int(dateLine[2])
-        commitYear = int(dateLine[4])
-        commitDate = date(commitYear,commitMonth,commitDay)
+        dateLine = self.line.split("-")
+        commitDate = strptime(dateLine[0].strip(), '%a %b %d %X %Y')
+        #commitDay = int(dateLine[2])
+        #commitYear = int(dateLine[4])
+        #commitDate = date(commitYear,commitMonth,commitDay)
         
         currAssignmentName = None
-        if commitDate <= self.keyIndexList[0]:
-            currAssignmentName = originalAssignmentName
+        if commitDate <= self.myAssignmentNameDict[self.keyIndexList[0]]:
+            currAssignmentName = self.originalAssignmentName
         else:
             for k in range(0, len(self.keyIndexList)-1):
-                if (self.keyIndexList[k] <= commitDate <= self.keyIndexList[k+1]):
-                    currAssignmentName = self.myAssignmentNameDict.get(self.keyIndexList[k+1])
+                if (self.myAssignmentNameDict[self.keyIndexList[k]] <= commitDate <= self.myAssignmentNameDict[self.keyIndexList[k+1]]):
+                    currAssignmentName = self.keyIndexList[k+1]
         return currAssignmentName
 
     def isProdFile(self, fileName):
         fileNameLower = fileName.lower();
-        if fileNameLower.startswith('prod'):
+        if (fileNameLower.startswith('prod')) or (fileNameLower.startswith('softwareprocess')):
             prodFile = True
         else:
             prodFile = False
@@ -484,7 +495,7 @@ class GitFile(object):
             if (re.search(r"\b\pyc\b",fileName)):
                 notSBFile = False
             elif (re.search(r"\b\__init__\b",fileName)):
-                self.line = self.gitFile.next()
+                self.line = self.readNextLine()
                 notSBFile = False
             else:
                 notSBFile = True
@@ -502,7 +513,7 @@ class GitFile(object):
         self.newFile = PyFile.PyFile(fileName, prodFile, commitNbr)
         self.myFiles.append(self.newFile)
         self.myTransformations.append(self.myTrans.NEWFILE)
-        self.line = self.gitFile.next() ## if this was a new file, then advance file pointer to index line
+        self.line = self.readNextLine() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return fileIndex
 

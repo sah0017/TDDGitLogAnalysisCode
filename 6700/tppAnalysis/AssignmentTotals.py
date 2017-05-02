@@ -228,7 +228,7 @@ class AssignmentTotals(object):
             return 0
 
 
-    def get_ratio_test_to_prod(self):
+    def get_ratio_prod_to_test(self):
         netAddedTestCode = self.get_added_test_locin_assignment() - self.get_deleted_test_locin_assignment()
         if netAddedTestCode > 0:
             return ((self.get_added_lines_in_assignment() - self.get_deleted_lines_in_assignment()) * 1.0) / netAddedTestCode
