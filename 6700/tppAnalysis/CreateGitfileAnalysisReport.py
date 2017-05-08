@@ -18,9 +18,9 @@ class AnalysisReport(object):
         myDir = os.listdir(analysisRoot)
         myAssignmentTotals = []
         
-        self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".gitrpt", "w")
+        self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".txt", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tAvg Lines Per Commit\tAvg Trans Per Commit\tRatio-Prod to Test Code\tAdded Prod Lines\tAdded Test Lines\tDel/Mod Lines \tDel/Mod Test Lines\r")
+        self.outFile.write("Submission name\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tNbr Consec RL\tNbr Consec GL\tAvg Lines Per Commit\tAvg Trans Per Commit\tRatio-Prod to Test Code\tAdded Prod Lines\tAdded Test Lines\tDel/Mod Lines \tDel/Mod Test Lines\r")
 
         self.printIndividualTotalsAndCountAssignmentTotals(myDir, analysisRoot, printToFile, myTransNames)
         
@@ -105,6 +105,7 @@ class AnalysisReport(object):
                                 studentSubmissionTotals.set_nbr_commits(myCommitStats.get_nbr_commits())
                                 studentSubmissionTotals.set_other_commit(myCommitStats.get_other_commit())
                                 studentSubmissionTotals.set_ref_commit(myCommitStats.get_ref_commit())
+
                                 studentSubmissionTotals.set_added_lines_in_assignment(myCommitStats.get_added_lines_in_assignment())
                                 studentSubmissionTotals.set_added_test_locin_assignment(myCommitStats.get_added_test_locin_assignment())
                                 studentSubmissionTotals.set_deleted_lines_in_assignment(myCommitStats.get_deleted_lines_in_assignment())
@@ -114,7 +115,8 @@ class AnalysisReport(object):
                                 
                                 if printToFile:
                                     self.outFile.write(fileName + ext + "\t" + str(myAssignment.assignmentName) + "\t" + str(myCommitStats.nbrCommits) + "\t" + str(myCommitStats.RLCommit) + "\t" + str(myCommitStats.GLCommit) + 
-                                                       "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + format(myCommitStats.get_avg_lines_per_commit(), '.2f') + 
+                                                       "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + str(myAssignment.getConsecutiveRedLights()) + "\t" +
+                                                        str(myAssignment.getConsecutiveGreenLights()) + "\t" + format(myCommitStats.get_avg_lines_per_commit(), '.2f') +
                                                        "\t" + format(myCommitStats.get_avg_trans_per_commit(), '.2f') + " \t" + format(myCommitStats.get_ratio_prod_to_test(), '.2f') + "\t" + 
                                                        str(myCommitStats.addedLinesInAssignment) + "\t" + str(myCommitStats.addedTestLOCInAssignment) + "\t" + 
                                                        str(myCommitStats.deletedLinesInAssignment) + "\t" + str(myCommitStats.deletedTestLOCInAssignment)+ "\r")
@@ -149,4 +151,4 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.createAnalysisReport("g:\\git\\6700Spring17","g:\\git\\6700Spring17\\Assignment3","yes","Assignment3")
+    myReport.createAnalysisReport("/Users/shammond/Google Drive/6700Spring17","/Users/shammond/Google Drive/6700Spring17/Assignment5","yes","Assignment5")

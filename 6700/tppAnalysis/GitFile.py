@@ -57,6 +57,7 @@ class GitFile(object):
         self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
         
         __commits = 0
+        prevCommit = None
         self.readNextLine()                                                 # first line says commit
         for self.line in self.gitFile:
             __assignmentName = self.findCurrentAssignment()                                    # advances to next line to check the commit date
@@ -67,6 +68,12 @@ class GitFile(object):
                 __myAssignment = Assignment.Assignment(__currAssignmentName)
                 
             __commitType = self.getCommitType()                      # advances to next line to get commit type
+            if prevCommit == __commitType:
+                if __commitType.startswith("Red Light"):
+                    __myAssignment.incrementConsecutiveRedLights()
+                elif __commitType.startswith("Green Light"):
+                    __myAssignment.incrementConsecutiveGreenLights()
+            prevCommit = __commitType
             __commits = __commits + 1
             __myAssignment.addCommitToAssignment(self.analyzeCommit(__currAssignmentName,__commitType, __commits))
     
@@ -565,4 +572,3 @@ class GitFile(object):
         in_s.close()
         
         return gitReportObject
-    

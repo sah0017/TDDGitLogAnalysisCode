@@ -24,6 +24,7 @@ if __name__ == '__main__':
     myTestLocation = myConfig.get("TA Test Case Location","Test Directory")
     analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment)
     reportRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester)
+    namePathDepth = myConfig.getint("Location","Name Path Depth")
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
 
     gitfileCreation = raw_input("Have you created the formatted git files? (y/n)  ")
@@ -36,7 +37,7 @@ if __name__ == '__main__':
                 if currentDir.endswith(".git"):
                     #os.chdir(myDir)
                     print "Git directory", os.path.join(root, currentDir)
-                    myFormattedGitLog.formatGitLogOutput(root, currentDir,analysisRoot,nameSplit[5]) 
+                    myFormattedGitLog.formatGitLogOutput(root, currentDir,analysisRoot,nameSplit[namePathDepth])
         os.chdir(myWorkingDirectory)
         myTATestCase = TATestCase() 
         TATestCaseDict = myTATestCase.createTATestCaseDict()

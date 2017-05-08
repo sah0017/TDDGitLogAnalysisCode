@@ -42,8 +42,36 @@ class Commit(object):
         self.nbrTestFiles = testFiles
         self.nbrProdFiles = prodFiles
         self.transformations = []
+        self.validCommit = True
         
     '''
+
+    def is_valid_gl_commit(self):
+        # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
+        validCommit = True
+
+        if self.commitType.startswith("Green Light"):
+            if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0):
+                validCommit = False
+
+        return validCommit
+
+    def is_valid_rl_commit(self):
+        validCommit = True
+        if self.commitType.startswith("Red Light"):
+            if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0):
+                validCommit = False
+
+        return validCommit
+
+    def has_too_many_files_in_commit(self):
+        if self.commitType.startswith("Green Light") and self.nbrProdFiles > 1:
+            return True
+        if self.commitType.startswith("Red Light") and self.nbrTestFiles > 1:
+            return True
+        return False
+
+
     def get_added_tatest_loc(self):
         return self.__addedTATestLOC
 

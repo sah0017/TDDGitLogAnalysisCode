@@ -43,8 +43,21 @@ class Assignment(object):
         self.assignmentName = assnName
         self.myCommits = []
         self.myCommitTotals = []
-      
+        self.consecutiveRedLights = 0
+        self.consecutiveGreenLights = 0
 
+
+    def incrementConsecutiveRedLights(self):
+        self.consecutiveRedLights += 1
+
+    def incrementConsecutiveGreenLights(self):
+        self.consecutiveGreenLights += 1
+
+    def getConsecutiveRedLights(self):
+        return self.consecutiveRedLights
+
+    def getConsecutiveGreenLights(self):
+        return self.consecutiveGreenLights
 
     def addCommitToAssignment(self, commit):
         self.myCommits.append(commit)
@@ -105,4 +118,3 @@ class Assignment(object):
 if __name__ == "__main__":
     Assignment.loadAssignments()
     
-        
