@@ -102,14 +102,16 @@ class Commit(object):
         "Analyzes all the lines in an individual commit"
 
 
-        while self.foundNewCommit(gitFileHandle.line) == False:
-            if self.pythonFileFound():
-                path, fileName = self.extractFileName()
+        while Commit.foundNewCommit(gitFileHandle.line) == False:
+            if PyFile.pythonFileFound():
+                path, fileName = PyFile.PyFile.extractFileName(gitFileHandle.line)
                 fileIndex = self.findExistingFileToAddCommitDetails(fileName)
                 if fileIndex == -1:
                     myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr)
 
-                addedLines, deletedLines, TATestLines, prodFile, notSBFile = self.analyzePyFile(path,self.assignmentName)
+                addedLines, deletedLines, TATestLines, notSBFile = myPyFile.analyzePyFile(path,
+                                                                                          self.assignmentName,
+                                                                                          gitFileHandle)
                 if notSBFile:
 
                     if prodFile:

@@ -13,9 +13,8 @@ import Assignment
 import re
 import Method
 import jsonpickle
-from DeletedLine import DeletedLine
 from time import strptime
-import TATestCase
+
 
 
 
@@ -53,12 +52,10 @@ class GitFile(object):
         "Controls the looping through the git file"
         __currAssignmentName = self.originalAssignmentName     # first assignment name
         __myAssignment = Assignment.Assignment(__currAssignmentName)
-        myTATestCase = TATestCase.TATestCase()
-        self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
 
         __commits = 0
         prevCommit = None
-        GitFile.readNextLine(self.gitFile)                                     # first line says commit
+        GitFile.GitFile.readNextLine(self.gitFile)                                     # first line says commit
         for line in self.gitFile:
             __assignmentName = self.findCurrentAssignment(line)  # advances to next line to check the commit date
             if __currAssignmentName != __assignmentName:
@@ -84,9 +81,9 @@ class GitFile(object):
         self.gitFile.close()
 
     def getCommitType(self):
-        line = self.readNextLine()             # advance to next line to get commit type
+        line = GitFile.readNextLine()             # advance to next line to get commit type
         commitType = line.strip()
-        self.readNextLine()         # advance to next line to get the first file name in the commit
+        GitFile.readNextLine()         # advance to next line to get the first file name in the commit
         return commitType
 
 

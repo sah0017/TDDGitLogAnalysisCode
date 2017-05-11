@@ -8,6 +8,8 @@ import Method
 import re
 import Commit
 import GitFile
+import DeletedLine
+import TATestCase
 
 class PyFile(object):
     '''
@@ -21,9 +23,17 @@ class PyFile(object):
                 if not (re.search(r"\b\__init__\b",evalLine)):
                     if not (re.search(r"\bmetadata\b",evalLine)):
                         return True
-        elif Commit.foundNewCommit(evalLine) == True:
+        elif Commit.Commit.foundNewCommit(evalLine) == True:
             return False
         return False
+
+    @classmethod
+    def extractFileName(self, line):
+        strLine = line.rstrip() ## should be on diff line now
+        splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
+        path = splLine[len(splLine) - 2]
+        fileName = splLine[len(splLine) - 1]
+        return path, fileName
 
     def __init__(self, fileName, commitNbr):
         '''
@@ -45,31 +55,28 @@ class PyFile(object):
         
     def getCommitDetails(self):
         return self.commitDetails
-        
-    def extractFileName(self):
-        return self.fileName
 
-    def analyzePyFile(self, path, fileName, assignmentName, commitNbr):
+    def analyzePyFile(self, path, assignmentName, gitFileHandle):
         self.myTransformations = []
 
         "Analyzes the information of an individual file within a commit"
         self.assignmentName = assignmentName
-        self.commitNbr = commitNbr
         fileAddedLines = 0
         fileDeletedLines = 0
         methods = []
-        prodFile = False
         #notSBFile = self.isNotSandBoxOrBinaryFile(path, fileName)
         #if notSBFile:
         prodFile = self.isProdFile(path)
-        line = GitFile.readNextLine() ## either new file mode or index
+        line = GitFile.GitFile.readNextLine(gitFileHandle) ## either new file mode or index
+        myTATestCase = TATestCase.TATestCase()
+        self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
 
         #if notSBFile:
-        MypyFileCommitDetails = self.evaluateTransformationsInAFile(prodFile)
+        MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
         self.myFiles[fileIndex].setCommitDetails(assignmentName, commitNbr, fileAddedLines, fileDeletedLines, fileTATestLines, methods)
-        return fileAddedLines, fileDeletedLines, fileTATestLines, prodFile, True
+        return fileAddedLines, fileDeletedLines, fileTATestLines,  True
 
-    def evaluateTransformationsInAFile(self, prodFile):
+    def evaluateTransformationsInAFile(self, line, gitFileHandle):
         "Checks the line to see if it is a part of a transformation"
         addedLinesInFile = 0
         deletedLinesInFile = 0
@@ -82,9 +89,9 @@ class PyFile(object):
         methodIndent = 0
         lineWithNoComments = ""
 
-        while self.samePythonFile():             ## have we found a new python file within the same commit?
+        while self.samePythonFile(gitFileHandle):             ## have we found a new python file within the same commit?
             prevLine = lineWithNoComments
-            lineWithNoComments = self.removeComments()
+            lineWithNoComments = self.removeComments(line, gitFileHandle)
             noLeadingPlus = lineWithNoComments[1:]
             noLeadingSpaces = noLeadingPlus.strip()
             currentIndent = len(noLeadingPlus) - len(noLeadingSpaces)
@@ -116,7 +123,7 @@ class PyFile(object):
             taTestLinesInFile = taTestLinesInFile + method.getTATestLines()
             #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
             #        methodArray.remove(method)      # empty method
-        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.assignmentName, self.commitNbr,
+        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.assignmentName, self.nbrOfCommits,
                                                                   addedLinesInFile, deletedLinesInFile,
                                                                   taTestLinesInFile, methodArray)
         return myPyFileDetails
@@ -154,8 +161,8 @@ class PyFile(object):
 
 
     def processDeletedLine(self, lineWithNoComments):
-        deletedLine = DeletedLine(lineWithNoComments)
-        deletedLine.deletedNullValue = self.checkForDeletedNullValue()
+        deletedLine = DeletedLine.DeletedLine(lineWithNoComments)
+        deletedLine.deletedNullValue = self.checkForDeletedNullValue(lineWithNoComments)
         if re.search("return", lineWithNoComments):
             deletedLine.deletedReturn = True
             deletedLine.deletedLiteral = self.checkForConstantOnReturn(lineWithNoComments)
@@ -209,7 +216,7 @@ class PyFile(object):
                     self.myTransformations.append(self.myTrans.AS)
 
     def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
-        rtnBoolean, rtnValue = self.returnWithNull()
+        rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)
         deletedLine = self.checkDeletedLinesForReturn(currentMethod)
         if rtnBoolean == True: # Transformation 1
             self.myTransformations.append(self.myTrans.NULL) ## this is either a 'return' or a 'return None'
@@ -234,39 +241,39 @@ class PyFile(object):
         for dLine in currentMethod.deletedLines:
             if dLine.deletedReturn:
                 return dLine
-        return DeletedLine("")
+        return DeletedLine.DeletedLine("")
 
-    def stripGitActionAndSpaces(self):
-        noPlus = self.line[1:]
+    def stripGitActionAndSpaces(self, line):
+        noPlus = line[1:]
         noPlus = noPlus.strip()
         return noPlus
 
-    def removeComments(self):
+    def removeComments(self, line, gitFileHandle):
         foundQuotedComment = True
         while foundQuotedComment:
-            action = self.line[0]       # either blank space, + or -
-            noPlus = self.stripGitActionAndSpaces()
+            action = line[0]       # either blank space, + or -
+            noPlus = self.stripGitActionAndSpaces(line)
             endCommentFound = False
             if noPlus.startswith("'''") or noPlus.startswith("\"\"\""):
                 foundQuotedComment = True
                 if len(noPlus) > 3 and noPlus.endswith("'''") or noPlus.endswith("\"\"\""):   #one-line comment
-                    self.line = self.readNextLine()
-                    if self.line == False:
-                        self.line = ' '
+                    line = GitFile.GitFile.readNextLine(gitFileHandle)
+                    if line == False:
+                        line = ' '
                         foundQuotedComment = False
                     else:
                         endCommentFound = True
                 while not endCommentFound:
-                    self.line = self.readNextLine()
-                    if self.line == False:
-                        self.line = ' '
+                    line = GitFile.GitFile.readNextLine(gitFileHandle)
+                    if line == False:
+                        line = ' '
                         break
-                    noPlus = self.stripGitActionAndSpaces()
-                    if (self.line[0] == action) and (self.line[0] != " "):
+                    noPlus = self.stripGitActionAndSpaces(line)
+                    if (line[0] == action) and (line[0] != " "):
                         if noPlus.startswith("'''") or noPlus.startswith("\"\"\"") or noPlus.endswith("'''") or noPlus.endswith("\"\"\""):
-                            self.line = self.readNextLine()
-                            if self.line == False:
-                                self.line = ' '
+                            line = GitFile.GitFile.readNextLine(gitFileHandle)
+                            if line == False:
+                                line = ' '
                                 foundQuotedComment = False
                             else:
                                 endCommentFound = True
@@ -275,14 +282,14 @@ class PyFile(object):
             else:
                 foundQuotedComment = False
         if re.search(r"\#", self.line):
-            noPlus = self.stripGitActionAndSpaces()
+            noPlus = self.stripGitActionAndSpaces(line)
             if noPlus.startswith("#"):
                 lineWithNoComments = "\r\n"
             else:
-                commentSplit = self.line.split("#")
+                commentSplit = line.split("#")
                 lineWithNoComments = commentSplit[0]
         else:
-            lineWithNoComments = self.line
+            lineWithNoComments = line
         return lineWithNoComments
 
     def checkWhileForMatchingIfOrWhile(self, currentMethod, currentLine):
@@ -327,9 +334,9 @@ class PyFile(object):
         return self.myTrans.WhileNoIf
 
 
-    def samePythonFile(self):
+    def samePythonFile(self, gitFileHandle):
         " Are we still in the same python file changes or is this a new python file? "
-        line = GitFile.readNextLine()
+        line = GitFile.readNextLine(gitFileHandle)
         if line == False:              ## EOF
             line = ''
             return False
@@ -343,22 +350,22 @@ class PyFile(object):
         return True
 
 
-    def checkForDeletedNullValue(self):
+    def checkForDeletedNullValue(self, line):
         deletedNullValue = False
-        if self.line.find("pass") > -1:
+        if line.find("pass") > -1:
             deletedNullValue = True
-        rtnMatchObj = re.search("return", self.line)
+        rtnMatchObj = re.search("return", line)
         if rtnMatchObj:
-            deletedNullValue = self.returnWithNull()
+            deletedNullValue = self.returnWithNull(line)
         return deletedNullValue
 
     def checkForConstantOnReturn(self,line):
         return re.search(r'[0-9]+|[[]]|["]|[\\\']',line)   ## if return is followed by a number or [] or " or ', it is probably a constant
 
-    def returnWithNull(self):
+    def returnWithNull(self, line):
         rtnBoolean = False
         rtnValue = ''
-        strLine = self.line.rstrip()
+        strLine = line.rstrip()
         splLine = strLine.split(" ")
         if len(splLine) > 1:
             rtnValue = splLine[len(splLine) - 1]
@@ -376,7 +383,7 @@ class PyFile(object):
         else:
             prodFile = False
         return prodFile
-
+    '''
     def isNotSandBoxOrBinaryFile(self, path, fileName):
         pathLower = path.lower();
         if pathLower.startswith('sandbox'):
@@ -385,16 +392,10 @@ class PyFile(object):
             if (re.search(r"\b\pyc\b",fileName)):
                 notSBFile = False
             elif (re.search(r"\b\__init__\b",fileName)):
-                self.line = self.readNextLine()
+                self.line = GitFile.readNextLine()
                 notSBFile = False
             else:
                 notSBFile = True
         return notSBFile
-
-    def extractFileName(self):
-        strLine = self.line.rstrip() ## should be on diff line now
-        splLine = strLine.split("/") ## split the line to get the file name, it's in the last element of the list
-        path = splLine[len(splLine) - 2]
-        fileName = splLine[len(splLine) - 1]
-        return path, fileName
+    '''
 
