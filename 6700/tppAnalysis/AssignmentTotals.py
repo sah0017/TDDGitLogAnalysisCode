@@ -36,7 +36,9 @@ class AssignmentTotals(object):
         #self.assignment = assignment
         self.__nbrCommits = 0
         self.__RLCommit = 0
+        self.__nbrValidRLCommits=0
         self.__GLCommit = 0
+        self.__nbrValidGLCommits = 0
         self.__refCommit = 0
         self.__otherCommit = 0
         self.__addedLinesInAssignment = 0
@@ -210,6 +212,11 @@ class AssignmentTotals(object):
     def get_other_commit(self):
         return self.__otherCommit
 
+    def increment_valid_rl_commits(self):
+        self.__nbrValidRLCommits =+ 1
+
+    def increment_valid_gl_commits(self):
+        self.__nbrValidGLCommits =+ 1
 
     def get_avg_lines_per_commit(self):
         nbrCommits = self.get_nbr_commits()
@@ -431,6 +438,5 @@ class AssignmentTotals(object):
     deletedTestLOCInAssignment = property(get_deleted_test_locin_assignment, set_deleted_test_locin_assignment, del_deleted_test_locin_assignment, "deletedTestLOCInAssignment's docstring")
     nbrTestFilesInAssignment = property(get_nbr_test_files_in_assignment, set_nbr_test_files_in_assignment, del_nbr_test_files_in_assignment, "nbrTestFilesInAssignment's docstring")
     nbrProdFilesInAssignment = property(get_nbr_prod_files_in_assignment, set_nbr_prod_files_in_assignment, del_nbr_prod_files_in_assignment, "nbrProdFilesInAssignment's docstring")
-    
     
     

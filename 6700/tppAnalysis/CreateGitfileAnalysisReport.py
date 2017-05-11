@@ -18,7 +18,7 @@ class AnalysisReport(object):
         myDir = os.listdir(analysisRoot)
         myAssignmentTotals = []
         
-        self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".txt", "w")
+        self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".csv", "w")
         myTransNames = Transformations.Trans()
         self.outFile.write("Submission name\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tNbr Consec RL\tNbr Consec GL\tAvg Lines Per Commit\tAvg Trans Per Commit\tRatio-Prod to Test Code\tAdded Prod Lines\tAdded Test Lines\tDel/Mod Lines \tDel/Mod Test Lines\r")
 
@@ -81,7 +81,7 @@ class AnalysisReport(object):
             if os.path.isfile(os.path.join(analysisRoot, item)):
                 fileName, ext = os.path.splitext(item)
                 studentName = fileName.split("_")
-                #print fileName
+                print 'Processing ' + studentName
                 if ext == ".gitdata":
                     currentGitFile = myGitFile.retrieveGitReportObject(analysisRoot + os.sep + fileName)
                     if (currentGitFile != None):
@@ -101,6 +101,8 @@ class AnalysisReport(object):
                                 AssignmentTotals.AssignmentTotals.set_total_commits(myCommitStats.nbrCommits)
                                 
                                 studentSubmissionTotals.set_rlcommit(myCommitStats.get_rlcommit())
+                                if myCommitStats.
+                                studentSubmissionTotals.increment_valid_rl_commits()
                                 studentSubmissionTotals.set_glcommit(myCommitStats.get_glcommit())
                                 studentSubmissionTotals.set_nbr_commits(myCommitStats.get_nbr_commits())
                                 studentSubmissionTotals.set_other_commit(myCommitStats.get_other_commit())

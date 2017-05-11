@@ -29,9 +29,9 @@ class SubmissionReport:
     
     def analyzeGitLog(self, path, fileName):
         self.add_to_total_submissions_in_analysis(1)
-        myGitFile = GitFile.GitFile()                       # instantiates a git log file object
+        myGitFile = GitFile.GitFile(path+os.sep+fileName)                       # instantiates a git log file object
 
-        myGitFile.analyzeGitLogFile(path+os.sep+fileName)        # reads through entire git log file and performs TDD/TPP analyzes
+        myGitFile.analyzeGitLogFile()        # reads through entire git log file and performs TDD/TPP analyzes
         fileParts = os.path.splitext((fileName))
         myAssignments = self.GenerateInvididualReport(path, fileParts[0], myGitFile)
                 
@@ -47,7 +47,7 @@ class SubmissionReport:
         outFile.write("Assignments in log file:  " + str(len(myAssignments)))
         nbrOfAssignments = len(myAssignments)
         for myAssignment in myAssignments:
-            myCommitStats = self.CalculateMyCommitStats(outFile, myAssignment)
+            myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
             myAssignment.addCommitTotalsToAssignment(myCommitStats)
         outFile.write("\r\n**********************************************\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
         for myFile in myFiles:
@@ -83,11 +83,11 @@ class SubmissionReport:
         nbrCommits = nbrCommits + len(myAssignment.myCommits)
         for myCommit in myAssignment.myCommits:
             outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) + "\tCommit type: " + myCommit.commitType + "\tAdded lines:" + str(myCommit.addedLinesInCommit) + ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" + str(myCommit.addedTestLOC) + "  Deleted test lines:" + str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) + ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " + str(myCommit.numberOfTransformations) + ". \n\r")
-            if myCommit.commitType.startswith("Red Light"):
+            if myCommit.get_commit_type()=="Red Light":
                 nbrRedLight = nbrRedLight + 1
-            elif myCommit.commitType.startswith("Green Light"):
+            elif myCommit.get_commit_type()=="Green Light":
                 nbrGreenLight = nbrGreenLight + 1
-            elif myCommit.commitType.startswith("Refactor"):
+            elif myCommit.get_commit_type()=="Refactor":
                 nbrRefactor = nbrRefactor + 1
             else:
                 nbrUnknownCommit = nbrUnknownCommit + 1

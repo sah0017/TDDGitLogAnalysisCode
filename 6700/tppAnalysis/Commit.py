@@ -4,18 +4,31 @@ Created on Jul 24, 2014
 @author: susanha
 '''
 
+import PyFile
+import GitFile
 
 class Commit(object):
     '''
     classdocs
     '''
 
-    def __init__(self,commitNbr):
+    @classmethod
+    def foundNewCommit(self, line):
+        " Are we still in the same commit or is this a new one? "
+        if line.startswith("\"commit"):   ## using this key word in the commit comment line to find the next commit
+            return True
+        elif line == '':   ## looking for end of file
+            return True
+        else:
+            return False
+
+    def __init__(self, assignmentName, commitType, commitNbr):
         '''
         Constructor
         '''
+        self.assignmentName = assignmentName
         self.commitNbr = commitNbr
-        self.commitType = None
+        self.commitType = commitType
         self.addedLinesInCommit = 0
         self.deletedLinesInCommit = 0
         self.addedTestLOC = 0
@@ -25,32 +38,14 @@ class Commit(object):
         self.nbrTestFiles = 0
         self.nbrProdFiles = 0
         self.transformations = []
-
-    
-
-    
-    '''    
-    def __init__(self,commitNbr, commitType, addedLines,deletedLines, addedTestLines, deletedTestLines, testFiles,prodFiles, nbrOfTrans):
-        
-        self.commitNbr = commitNbr
-        self.commitType = commitType
-        self.addedLinesInCommit = addedLines
-        self.deletedLinesInCommit = deletedLines
-        self.addedTestLOC = addedTestLines
-        self.deletedTestLOC = deletedTestLines
-        self.numberOfTransformations = nbrOfTrans
-        self.nbrTestFiles = testFiles
-        self.nbrProdFiles = prodFiles
-        self.transformations = []
         self.validCommit = True
         
-    '''
 
     def is_valid_gl_commit(self):
         # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
         validCommit = True
 
-        if self.commitType.startswith("Green Light"):
+        if self.get_commit_type() == "Green Light":
             if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0):
                 validCommit = False
 
@@ -58,7 +53,7 @@ class Commit(object):
 
     def is_valid_rl_commit(self):
         validCommit = True
-        if self.commitType.startswith("Red Light"):
+        if self.get_commit_type() == "Red Light":
             if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0):
                 validCommit = False
 
@@ -92,7 +87,68 @@ class Commit(object):
 
 
     def get_commit_type(self):
-        return self.__commitType
+        if self.commitType.startswith("Red Light"):
+            ct = "Red Light"
+        elif self.commitType.startswith("Green Light"):
+            ct = "Green Light"
+        elif self.commitType.startswith("Refactor"):
+            ct = "Refactor"
+        else:
+            ct = "Other"
+        return ct
+
+
+    def analyzeCommit(self, gitFileHandle):
+        "Analyzes all the lines in an individual commit"
+
+
+        while self.foundNewCommit(gitFileHandle.line) == False:
+            if self.pythonFileFound():
+                path, fileName = self.extractFileName()
+                fileIndex = self.findExistingFileToAddCommitDetails(fileName)
+                if fileIndex == -1:
+                    myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr)
+
+                addedLines, deletedLines, TATestLines, prodFile, notSBFile = self.analyzePyFile(path,self.assignmentName)
+                if notSBFile:
+
+                    if prodFile:
+                        self.increment_nbr_prod_files()
+                        self.add_added_lines_in_commit(addedLines)
+                        self.add_deleted_lines_in_commit(deletedLines)
+                    else:
+                        self.increment_nbr_test_files()
+                        self.add_added_test_loc(addedLines)
+                        self.add_deleted_test_loc(deletedLines)
+                        self.set_added_tatest_loc(TATestLines)
+
+            else:
+                line = GitFile.readNextLine()
+                if line == False:
+                    line = ''
+
+        self.add_number_of_transformations(len(self.myTransformations))
+
+        self.set_transformations(self.myTransformations)
+
+        return self
+
+    def addNewFile(self, fileName, commitNbr):
+        " This is a new file that isn't in our analysis yet. "
+        newFile = PyFile.PyFile(fileName, commitNbr)
+        self.myFiles.append(self.newFile)
+        self.myTransformations.append(self.myTrans.NEWFILE)
+        self.line = GitFile.readNextLine() ## if this was a new file, then advance file pointer to index line
+        fileIndex = len(self.myFiles) - 1
+        return newFile, fileIndex
+
+    def findExistingFileToAddCommitDetails(self, fileName):
+        fileIndex = -1
+        for x in self.myFiles:
+            if x.extractFileName() == fileName:
+                fileIndex = self.myFiles.index(x)
+
+        return fileIndex
 
 
     def get_added_lines_in_commit(self):
@@ -149,7 +205,7 @@ class Commit(object):
 
     def set_added_test_loc(self, value):
         self.__addedTestLOC = value
-    
+
     def add_added_test_loc(self, value):
         self.__addedTestLOC = self.__addedTestLOC + value
 
@@ -168,14 +224,14 @@ class Commit(object):
     def set_nbr_test_files(self, value):
         self.__nbrTestFiles = value
 
-    def add_nbr_test_files(self, value):
-        self.__nbrTestFiles = self.__nbrTestFiles + value
+    def increment_nbr_test_files(self):
+        self.__nbrTestFiles =+ 1
 
     def set_nbr_prod_files(self, value):
         self.__nbrProdFiles = value
 
-    def add_nbr_prod_files(self, value):
-        self.__nbrProdFiles = self.__nbrProdFiles + value
+    def increment_nbr_prod_files(self):
+        self.__nbrProdFiles =+ 1
 
     def set_transformations(self, value):
         self.__transformations = value
@@ -219,6 +275,7 @@ class Commit(object):
 
     def del_transformations(self):
         del self.__transformations
+
 
     commitNbr = property(get_commit_nbr, set_commit_nbr, del_commit_nbr, "commitNbr's docstring")
     commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")
