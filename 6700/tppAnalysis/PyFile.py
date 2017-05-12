@@ -10,11 +10,16 @@ import Commit
 import GitFile
 import DeletedLine
 import TATestCase
+from Transformations import Trans
+
 
 class PyFile(object):
     '''
     classdocs
     '''
+
+    myTrans = Trans()   # get Transformation static variables and dictionary from Transformation class
+
     @classmethod
     def pythonFileFound(self, line):
         evalLine = line.rstrip().lower()
@@ -40,41 +45,21 @@ class PyFile(object):
         Constructor
         '''
         self.fileName = fileName
-        self.nbrOfCommits = commitNbr
-        self.commitDetails = []
+        self.commitNbr = commitNbr
+        self.prodFile = True
+        self.commitDetails = []   # these are commit details on this file in this commit
         self.methods = []
-        
-    def setCommitDetails(self, assignmentName, commitNbr, addedLines, deletedLines, taTestLines, methodNames):
-        myCommitDetails = PyFileCommitDetails.PyFileCommitDetails(assignmentName, commitNbr, addedLines, deletedLines, taTestLines, methodNames)
-        self.commitDetails.append(myCommitDetails)
-
-    def setMethodName(self, methodName):
-        myMethod = Method.Method(methodName,[])
-        self.methods.append(myMethod)
-        
-        
-    def getCommitDetails(self):
-        return self.commitDetails
+        self.transformations = []
 
     def analyzePyFile(self, path, assignmentName, gitFileHandle):
-        self.myTransformations = []
-
         "Analyzes the information of an individual file within a commit"
         self.assignmentName = assignmentName
-        fileAddedLines = 0
-        fileDeletedLines = 0
-        methods = []
-        #notSBFile = self.isNotSandBoxOrBinaryFile(path, fileName)
-        #if notSBFile:
-        prodFile = self.isProdFile(path)
+        self.prodFile = self.isProdOrTest(path)
         line = GitFile.GitFile.readNextLine(gitFileHandle) ## either new file mode or index
-        myTATestCase = TATestCase.TATestCase()
-        self.TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
 
-        #if notSBFile:
         MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
-        self.myFiles[fileIndex].setCommitDetails(assignmentName, commitNbr, fileAddedLines, fileDeletedLines, fileTATestLines, methods)
-        return fileAddedLines, fileDeletedLines, fileTATestLines,  True
+        self.setCommitDetails(MypyFileCommitDetails)
+        return MypyFileCommitDetails,  True
 
     def evaluateTransformationsInAFile(self, line, gitFileHandle):
         "Checks the line to see if it is a part of a transformation"
@@ -123,7 +108,7 @@ class PyFile(object):
             taTestLinesInFile = taTestLinesInFile + method.getTATestLines()
             #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
             #        methodArray.remove(method)      # empty method
-        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.assignmentName, self.nbrOfCommits,
+        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.assignmentName, self.commitNbr,
                                                                   addedLinesInFile, deletedLinesInFile,
                                                                   taTestLinesInFile, methodArray)
         return myPyFileDetails
@@ -180,7 +165,7 @@ class PyFile(object):
 
     def processAddedLine(self, currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine):
         if re.search(r"\bpass\b", lineWithNoComments):      # Transformation 1
-            self.myTransformations.append(self.myTrans.NULL)
+            self.transformations.append(self.myTrans.NULL)
         if currentMethod.methodName != "Unknown" and not methodLine:             # Transformation 9
             myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(currentMethod.methodName)
             #try:
@@ -189,23 +174,23 @@ class PyFile(object):
                     methodLineNoLeadingSpaces = noLeadingPlus.strip()
                     methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
                     if methodLineIndent > methodIndent:
-                        self.myTransformations.append(self.myTrans.REC)
+                        self.transformations.append(self.myTrans.REC)
             #except Exception as inst:
             #    print self.fileName, type(inst)
         if re.search(r"\breturn\b", lineWithNoComments):
             self.processLineWithReturn(currentMethod, lineWithNoComments, noLeadingPlus)
         elif re.search(r"\bif.(?!_name__ == \"__main)", lineWithNoComments):
-            self.myTransformations.append(self.myTrans.SF)
+            self.transformations.append(self.myTrans.SF)
         elif re.search(r"\bwhile\b", lineWithNoComments):
             whileTrans = self.checkWhileForMatchingIfOrWhile(currentMethod, lineWithNoComments)
-            self.myTransformations.append(whileTrans)
+            self.transformations.append(whileTrans)
         elif re.search(r"\bfor\b", noLeadingPlus):
-            self.myTransformations.append(self.myTrans.IT)
+            self.transformations.append(self.myTrans.IT)
         elif re.search(r"\belif\b|\belse\b", noLeadingPlus):
-            self.myTransformations.append(self.myTrans.ACase)
+            self.transformations.append(self.myTrans.ACase)
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):
             #elif (re.search(r"=",noLeadingPlus)):
-            self.myTransformations.append(self.myTrans.AComp)
+            self.transformations.append(self.myTrans.AComp)
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
         assignmentVars = noLeadingPlus.split("=")               # Check to see if we are assigning a new value to an input parameter
@@ -213,27 +198,27 @@ class PyFile(object):
             assignmentVar = assignmentVars[0].strip()
             for x in currentMethod.parameters:
                 if x == assignmentVar:
-                    self.myTransformations.append(self.myTrans.AS)
+                    self.transformations.append(self.myTrans.AS)
 
     def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
         rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)
         deletedLine = self.checkDeletedLinesForReturn(currentMethod)
         if rtnBoolean == True: # Transformation 1
-            self.myTransformations.append(self.myTrans.NULL) ## this is either a 'return' or a 'return None'
+            self.transformations.append(self.myTrans.NULL) ## this is either a 'return' or a 'return None'
         elif self.checkForConstantOnReturn(rtnValue): ## if there are constants and
             if deletedLine.deletedNullValue == True: ## if there was a Null expression before, they probably did Transformation 2 Null to Constant
-                self.myTransformations.append(self.myTrans.N2C)
+                self.transformations.append(self.myTrans.N2C)
             else:
-                self.myTransformations.append(self.myTrans.ConstOnly) ## if constants but no previous Null, they probably just went straight to constant
+                self.transformations.append(self.myTrans.ConstOnly) ## if constants but no previous Null, they probably just went straight to constant
         elif deletedLine.deletedLiteral: ## and the delete section removed a 'return' with a constant
-            self.myTransformations.append(self.myTrans.C2V) ## then it is probably a Transformation 3 constant to variable
+            self.transformations.append(self.myTrans.C2V) ## then it is probably a Transformation 3 constant to variable
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
-            self.myTransformations.append(self.myTrans.AComp)
+            self.transformations.append(self.myTrans.AComp)
         else:
-            self.myTransformations.append(self.myTrans.VarOnly) ##  if we got to this point, they went straight to a variable.
+            self.transformations.append(self.myTrans.VarOnly) ##  if we got to this point, they went straight to a variable.
         for parm in currentMethod.parameters:
             if rtnValue == parm: ## if the return value is a parameter, then it is a Transformation 11 assign.
-                self.myTransformations.append(self.myTrans.AS)
+                self.transformations.append(self.myTrans.AS)
 
         ## if it wasn't constants on the return
         ## this looks for constants after 'return'
@@ -281,7 +266,7 @@ class PyFile(object):
                         endCommentFound = True
             else:
                 foundQuotedComment = False
-        if re.search(r"\#", self.line):
+        if re.search(r"\#", line):
             noPlus = self.stripGitActionAndSpaces(line)
             if noPlus.startswith("#"):
                 lineWithNoComments = "\r\n"
@@ -329,7 +314,7 @@ class PyFile(object):
                 (myIfCond == myWhileCond) and
                 (mysecondIfCond.isdigit()) and
                 (mysecondWhileCond.isalpha())):
-                self.myTransformations.append(self.myTrans.C2V)
+                self.transformations.append(self.myTrans.C2V)
                 return self.myTrans.I2W
         return self.myTrans.WhileNoIf
 
@@ -340,10 +325,10 @@ class PyFile(object):
         if line == False:              ## EOF
             line = ''
             return False
-        evalLine = self.line.rstrip()
+        evalLine = line.rstrip()
         if (evalLine.startswith("diff")):
             return False
-        elif Commit.foundNewCommit(evalLine) == True:
+        elif Commit.Commit.foundNewCommit(evalLine) == True:
             return False
         elif (re.search("if __name__", evalLine)):
             return False
@@ -375,14 +360,35 @@ class PyFile(object):
             rtnBoolean = False
         return rtnBoolean, rtnValue
 
+    def isProdOrTest(self, pathName):
+        pathNameLower = pathName.lower()
+        if (pathNameLower.startswith('prod')) or (pathNameLower.startswith('softwareprocess')):
+            if not (re.search("test",pathNameLower)):
+                return True
+        return False
 
-    def isProdFile(self, fileName):
-        fileNameLower = fileName.lower();
-        if (fileNameLower.startswith('prod')) or (fileNameLower.startswith('softwareprocess')):
-            prodFile = True
-        else:
-            prodFile = False
-        return prodFile
+    def isProdFile(self):
+        return self.prodFile
+
+    def getFileName(self):
+        return self.fileName
+
+    def setCommitDetails(self, myCommitDetails):
+        self.commitDetails.append(myCommitDetails)
+
+    def setMethodName(self, methodName):
+        myMethod = Method.Method(methodName,[])
+        self.methods.append(myMethod)
+
+    def getCommitDetails(self):
+        return self.commitDetails
+
+    def numberOfTransformationsInPyFile(self):
+        return len(self.transformations)
+
+    def getTransformations(self):
+        return self.transformations
+
     '''
     def isNotSandBoxOrBinaryFile(self, path, fileName):
         pathLower = path.lower();

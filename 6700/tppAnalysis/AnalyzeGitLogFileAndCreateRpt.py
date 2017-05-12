@@ -41,19 +41,26 @@ class SubmissionReport:
     
 
     def GenerateInvididualReport(self, path, fileName, myGitFile):
-        myFiles = myGitFile.getFiles()                      # list containing PyFile objects with file name and relevant data
-        myAssignments = myGitFile.getAssignments()          # list containing all the assignments, which contains a list of all the commits in that assignment
+        # list containing PyFile objects with file name and relevant data
+        myFiles = myGitFile.getFiles()
+        # list containing all the assignments, which contains a list of all the commits in that assignment
+        myAssignments = myGitFile.getAssignments()
         outFile = open(path + os.sep + fileName + ".gitout", "w")
         outFile.write("Assignments in log file:  " + str(len(myAssignments)))
         nbrOfAssignments = len(myAssignments)
         for myAssignment in myAssignments:
             myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
             myAssignment.addCommitTotalsToAssignment(myCommitStats)
-        outFile.write("\r\n**********************************************\r\nFiles in logfile:  " + str(len(myFiles)) + "\r\n")
+        outFile.write("\r\n**********************************************\r\nFiles in logfile:  " +
+                      str(len(myFiles)) + "\r\n")
         for myFile in myFiles:
-            outFile.write("\r\n----------------------------------------------\r\n" + myFile.fileName + " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.prodFile))
+            outFile.write("\r\n----------------------------------------------\r\n" + myFile.fileName +
+                          " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.isProdFile()))
             for myCommitDetails in myFile.commitDetails:
-                outFile.write("\r\n\tAssignment " + str(myCommitDetails.assignmentName) + "\tCommit " + str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) + ".  Deleted lines:" + str(myCommitDetails.deletedLines) + ".  Added TA Test Lines:" + str(myCommitDetails.taTestLines))
+                outFile.write("\r\n\tAssignment " + str(myCommitDetails.assignmentName) + "\tCommit " +
+                              str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) +
+                              ".  Deleted lines:" + str(myCommitDetails.deletedLines) + ".  Added TA Test Lines:" +
+                              str(myCommitDetails.taTestLines))
                 outFile.write("\r\n\t\tMethods added/modified:")
                 for myMethod in myCommitDetails.methodNames:
         # for myMethodName in myMethod.methodName:
@@ -78,11 +85,19 @@ class SubmissionReport:
         nbrTransformations = 0
         nbrAntiTransformations = 0
         ratio = 0
-        outFile.write("\r\n*********************************\r\nAssignment Name:" + str(myAssignment.assignmentName)+"\r\n*********************************")
-        outFile.write("\r\nConsecutive Green Lights:  " + str(myAssignment.getConsecutiveGreenLights()) + "\tConsecutive Red Lights:  " + str(myAssignment.getConsecutiveRedLights()))
+        outFile.write("\r\n*********************************\r\nAssignment Name:" + str(myAssignment.assignmentName)+
+                      "\r\n*********************************")
+        outFile.write("\r\nConsecutive Green Lights:  " + str(myAssignment.getConsecutiveGreenLights()) +
+                      "\tConsecutive Red Lights:  " + str(myAssignment.getConsecutiveRedLights()))
         nbrCommits = nbrCommits + len(myAssignment.myCommits)
         for myCommit in myAssignment.myCommits:
-            outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) + "\tCommit type: " + myCommit.commitType + "\tAdded lines:" + str(myCommit.addedLinesInCommit) + ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" + str(myCommit.addedTestLOC) + "  Deleted test lines:" + str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) + ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " + str(myCommit.numberOfTransformations) + ". \n\r")
+            outFile.write("\r\n------------------------------\r\n\tCommit Nbr:" + str(myCommit.commitNbr) +
+                          "\tCommit type: " + myCommit.commitType + "\tAdded lines:" +
+                          str(myCommit.addedLinesInCommit) + ".  Del lines:" + str(myCommit.deletedLinesInCommit) +
+                          ".\r\n\t  Added test lines:" + str(myCommit.addedTestLOC) + "  Del test lines:" +
+                          str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) +
+                          ".  Prod files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " +
+                          str(myCommit.numberOfTransformations) + ". \n\r")
             if myCommit.get_commit_type()=="Red Light":
                 nbrRedLight = nbrRedLight + 1
             elif myCommit.get_commit_type()=="Green Light":
@@ -107,15 +122,18 @@ class SubmissionReport:
                     self.__antitransTotalsInAnalysis[abs(myTran)] = self.__antitransTotalsInAnalysis[abs(myTran)] + 1
                     antitransTotalsInAssignment[abs(myTran)] = antitransTotalsInAssignment[abs(myTran)] + 1
                     nbrAntiTransformations = nbrAntiTransformations + 1
-        
+            outFile.write("\r\n")
+
         overallDeletedLines = deletedLines + deletedTestLines
-        outFile.write("\r\n============================================\r\nTotal test code lines added:" + str(addedTestLines))
+        outFile.write("\r\n============================================\r\nTotal test code lines added:" +
+                      str(addedTestLines))
         outFile.write("\r\nTotal production code lines added:" + str(addedLines))
         outFile.write("\r\nTotal test code lines deleted:" + str(deletedTestLines))
         outFile.write("\r\nTotal production code lines deleted:" + str(deletedLines))
         if addedLines > 0:
             ratio = addedTestLines / float(addedLines)
-            outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') + ":1\r\n============================================")
+            outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') +
+                          ":1\r\n============================================")
         self.add_to_total_commits_in_analysis(nbrCommits)
         self.__totalTransformationsInAnalysis = self.__totalTransformationsInAnalysis + nbrTransformations
         self.__totalAntiTransformationsInAnalysis = self.__totalAntiTransformationsInAnalysis + nbrAntiTransformations

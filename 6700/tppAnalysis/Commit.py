@@ -9,11 +9,19 @@ import GitFile
 
 class Commit(object):
     '''
-    classdocs
+    The Commit object will hold the total statistics for a particular commit, including
+    a list of the files added/modified in the commit.
     '''
 
     @classmethod
-    def foundNewCommit(self, line):
+    def readCommitType(cls, gitFileHandle):
+        line = GitFile.GitFile.readNextLine(gitFileHandle)             # advance to next line to get commit type
+        commitType = line.strip().rstrip("\"|")
+        GitFile.GitFile.readNextLine(gitFileHandle)         # advance to next line to get the first file name in the commit
+        return commitType
+
+    @classmethod
+    def foundNewCommit(cls, line):
         " Are we still in the same commit or is this a new one? "
         if line.startswith("\"commit"):   ## using this key word in the commit comment line to find the next commit
             return True
@@ -39,7 +47,7 @@ class Commit(object):
         self.nbrProdFiles = 0
         self.transformations = []
         self.validCommit = True
-        
+        self.myFiles = []
 
     def is_valid_gl_commit(self):
         # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
@@ -66,25 +74,73 @@ class Commit(object):
             return True
         return False
 
+    def analyzeCommit(self, gitFileHandle):
+        "Analyzes all the lines in an individual commit"
+
+        while Commit.foundNewCommit(gitFileHandle.line) == False:
+            if PyFile.PyFile.pythonFileFound(gitFileHandle.line):
+                path, fileName = PyFile.PyFile.extractFileName(gitFileHandle.line)
+                fileIndex = self.findExistingFileToAddCommitDetails(fileName)
+                if fileIndex == -1:
+                    myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr)
+
+
+                myPyFileCommitDetails, notSBFile = myPyFile.analyzePyFile(path,self.assignmentName,
+                                                                                gitFileHandle)
+                if notSBFile:
+
+                    if myPyFile.isProdFile():
+                        self.increment_nbr_prod_files()
+                        self.add_added_lines_in_commit(myPyFileCommitDetails.addedLines)
+                        self.add_deleted_lines_in_commit(myPyFileCommitDetails.deletedLines)
+                    else:
+                        self.increment_nbr_test_files()
+                        self.add_added_test_loc(myPyFileCommitDetails.addedLines)
+                        self.add_deleted_test_loc(myPyFileCommitDetails.deletedLines)
+                        self.set_added_tatest_loc(myPyFileCommitDetails.TATestLines)
+
+            else:
+                line = GitFile.Gitfile.readNextLine()
+                if line == False:
+                    line = ''
+
+        self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
+
+        self.set_transformations(myPyFile.getTransformations())
+
+        return self
+
+    def addNewFile(self, fileName, commitNbr):
+        " This is a new file that isn't in our analysis yet. "
+        newFile = PyFile.PyFile(fileName, commitNbr)
+        self.myFiles.append(newFile)
+        self.transformations.append(self.myTrans.NEWFILE)
+        self.line = GitFile.GitFile.readNextLine() ## if this was a new file, then advance file pointer to index line
+        fileIndex = len(self.myFiles) - 1
+        return newFile, fileIndex
+
+    def findExistingFileToAddCommitDetails(self, fileName):
+        fileIndex = -1
+        for x in self.myFiles:
+            if x.getFileName() == fileName:
+                fileIndex = self.myFiles.index(x)
+
+        return fileIndex
 
     def get_added_tatest_loc(self):
         return self.__addedTATestLOC
 
-
     def set_added_tatest_loc(self, value):
         self.__addedTATestLOC = value
 
-
     def del_added_tatest_loc(self):
         del self.__addedTATestLOC
-            
+
     def addTransformation(self, transformation):
         self.transformations.append(transformation)
-        
 
     def get_commit_nbr(self):
         return self.__commitNbr
-
 
     def get_commit_type(self):
         if self.commitType.startswith("Red Light"):
@@ -97,101 +153,35 @@ class Commit(object):
             ct = "Other"
         return ct
 
-
-    def analyzeCommit(self, gitFileHandle):
-        "Analyzes all the lines in an individual commit"
-
-
-        while Commit.foundNewCommit(gitFileHandle.line) == False:
-            if PyFile.pythonFileFound():
-                path, fileName = PyFile.PyFile.extractFileName(gitFileHandle.line)
-                fileIndex = self.findExistingFileToAddCommitDetails(fileName)
-                if fileIndex == -1:
-                    myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr)
-
-                addedLines, deletedLines, TATestLines, notSBFile = myPyFile.analyzePyFile(path,
-                                                                                          self.assignmentName,
-                                                                                          gitFileHandle)
-                if notSBFile:
-
-                    if prodFile:
-                        self.increment_nbr_prod_files()
-                        self.add_added_lines_in_commit(addedLines)
-                        self.add_deleted_lines_in_commit(deletedLines)
-                    else:
-                        self.increment_nbr_test_files()
-                        self.add_added_test_loc(addedLines)
-                        self.add_deleted_test_loc(deletedLines)
-                        self.set_added_tatest_loc(TATestLines)
-
-            else:
-                line = GitFile.readNextLine()
-                if line == False:
-                    line = ''
-
-        self.add_number_of_transformations(len(self.myTransformations))
-
-        self.set_transformations(self.myTransformations)
-
-        return self
-
-    def addNewFile(self, fileName, commitNbr):
-        " This is a new file that isn't in our analysis yet. "
-        newFile = PyFile.PyFile(fileName, commitNbr)
-        self.myFiles.append(self.newFile)
-        self.myTransformations.append(self.myTrans.NEWFILE)
-        self.line = GitFile.readNextLine() ## if this was a new file, then advance file pointer to index line
-        fileIndex = len(self.myFiles) - 1
-        return newFile, fileIndex
-
-    def findExistingFileToAddCommitDetails(self, fileName):
-        fileIndex = -1
-        for x in self.myFiles:
-            if x.extractFileName() == fileName:
-                fileIndex = self.myFiles.index(x)
-
-        return fileIndex
-
-
     def get_added_lines_in_commit(self):
         return self.__addedLinesInCommit
-
 
     def get_deleted_lines_in_commit(self):
         return self.__deletedLinesInCommit
 
-
     def get_added_test_loc(self):
         return self.__addedTestLOC
-
 
     def get_deleted_test_loc(self):
         return self.__deletedTestLOC
 
-
     def get_number_of_transformations(self):
         return self.__numberOfTransformations
-
 
     def get_nbr_test_files(self):
         return self.__nbrTestFiles
 
-
     def get_nbr_prod_files(self):
         return self.__nbrProdFiles
-
 
     def get_transformations(self):
         return self.__transformations
 
-
     def set_commit_nbr(self, value):
         self.__commitNbr = value
 
-
     def set_commit_type(self, value):
         self.__commitType = value
-
 
     def set_added_lines_in_commit(self, value):
         self.__addedLinesInCommit = value
@@ -238,46 +228,35 @@ class Commit(object):
     def set_transformations(self, value):
         self.__transformations = value
 
-
     def del_commit_nbr(self):
         del self.__commitNbr
-
 
     def del_commit_type(self):
         del self.__commitType
 
-
     def del_added_lines_in_commit(self):
         del self.__addedLinesInCommit
-
 
     def del_deleted_lines_in_commit(self):
         del self.__deletedLinesInCommit
 
-
     def del_added_test_loc(self):
         del self.__addedTestLOC
-
 
     def del_deleted_test_loc(self):
         del self.__deletedTestLOC
 
-
     def del_number_of_transformations(self):
         del self.__numberOfTransformations
-
 
     def del_nbr_test_files(self):
         del self.__nbrTestFiles
 
-
     def del_nbr_prod_files(self):
         del self.__nbrProdFiles
 
-
     def del_transformations(self):
         del self.__transformations
-
 
     commitNbr = property(get_commit_nbr, set_commit_nbr, del_commit_nbr, "commitNbr's docstring")
     commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")

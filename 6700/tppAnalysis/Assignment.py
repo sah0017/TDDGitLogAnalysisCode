@@ -7,36 +7,32 @@ import time
 import ConfigParser
 import Transformations
 import AssignmentTotals
-
+import Commit
+import GitFile
+from time import strptime
 
 
 class Assignment(object):
     '''
     classdocs
     '''
-    '''
-    Assignment3 = date(2017,3,20)
-    Assignment4 = date(2017,3,27)
-
-    assignmentNameDict = {Assignment3:"Assignment3", Assignment4:"Assignment4"}
-    '''
     @classmethod
-    def loadAssignments(self):
+    def loadAssignments(cls):
         myConfig = ConfigParser.SafeConfigParser() 
         myConfig.read("TDDanalysis.cfg")
-        self.myFirstAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
-        self.assignmentNameDict = {}
+        myFirstAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
+        assignmentNameDict = {}
         for key, val in myConfig.items("Due Dates"):
-            self.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
+            cls.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
         #print self.assignmentNameDict
     
     @classmethod
-    def getMyFirstAssignment(self):
-        return self.myFirstAssignment   
+    def getMyFirstAssignment(cls):
+        return Assignment.myFirstAssignment
     
     @classmethod
-    def get_assignment_name_dict(self):
-        return self.assignmentNameDict
+    def get_assignment_name_dict(cls):
+        return Assignment.assignmentNameDict
 
     def __init__(self,assnName):
         '''
@@ -48,70 +44,39 @@ class Assignment(object):
         self.consecutiveRedLights = 0
         self.consecutiveGreenLights = 0
 
+    def analyzeAssignment(self, gitFileHandle):
+        __commits = 0
+        prevCommit = None
 
-    def incrementConsecutiveRedLights(self):
-        self.consecutiveRedLights += 1
+        for line in gitFileHandle:
+            __assignmentName = self.findCurrentAssignment(line)  # advances to next line to check the commit date
+            if self.assignmentName != __assignmentName:
+                return  __assignmentName                    # we've moved to a new assingment, done with this one
 
-    def incrementConsecutiveGreenLights(self):
-        self.consecutiveGreenLights += 1
+            __commitType = Commit.Commit.readCommitType(gitFileHandle)  # advances to next line to get commit type
+            if prevCommit == __commitType:            # looking for consecutive Red or Green Lights
+                if __commitType.startswith("Red Light"):
+                    self.incrementConsecutiveRedLights()
+                elif __commitType.startswith("Green Light"):
+                    self.incrementConsecutiveGreenLights()
+            prevCommit = __commitType
+            __commits = __commits + 1
+            myNewCommit = Commit.Commit(self.assignmentName, __commitType, __commits)
 
-    def getConsecutiveRedLights(self):
-        return self.consecutiveRedLights
+            self.addCommitToAssignment(myNewCommit.analyzeCommit(gitFileHandle))
 
-    def getConsecutiveGreenLights(self):
-        return self.consecutiveGreenLights
+    def findCurrentAssignment(self, line):
+        " a git file can contain multiple assignments.  This is looking for the current one for analysis."
+        # line after commit contains the commit date.  Use this date to determine which assignment commit belongs in
+        dateLine = line.split("-")
+        commitDate = strptime(dateLine[0].strip(), '%a %b %d %X %Y')
 
-    def addCommitToAssignment(self, commit):
-        self.myCommits.append(commit)
-        
-    def addCommitTotalsToAssignment(self, commitTotals):
-        self.myCommitTotals.append(commitTotals)
-    
+        if GitFile.GitFile.is_first_assignment(commitDate):
+            currAssignmentName = GitFile.GitFile.originalAssignmentName
+        else:
+            currAssignmentName = GitFile.GitFile.get_curr_assignmentName(commitDate)
+        return currAssignmentName
 
-
-    def get_assignment_nbr(self):
-        return self.__assignmentNbr
-
-
-    def get_my_commits(self):
-        return self.__myCommits
-
-
-    def get_my_commit_totals(self):
-        return self.__myCommitTotals
-
-
-    def set_assignment_dict(self, value):
-        self.__assignmentDict = value
-
-
-    def set_assignment_nbr(self, value):
-        self.__assignmentNbr = value
-
-
-    def set_my_commits(self, value):
-        self.__myCommits = value
-
-
-    def set_my_commit_totals(self, value):
-        self.__myCommitTotals = value
-
-
-    def del_assignment_dict(self):
-        del self.__assignmentDict
-
-
-    def del_assignment_nbr(self):
-        del self.__assignmentNbr
-
-
-    def del_my_commits(self):
-        del self.__myCommits
-
-
-    def del_my_commit_totals(self):
-        del self.__myCommitTotals
-        
     def CalculateMyCommitStats(self, outFile):
         myTransNames = Transformations.Trans()
         transTotalsInAssignment = [0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -183,6 +148,57 @@ class Assignment(object):
         myCommitStats.totalDelLines = overallDeletedLines
         myCommitStats.totalTransByTypeInAssignment = transTotalsInAssignment
         myCommitStats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment
+
+    def incrementConsecutiveRedLights(self):
+        self.consecutiveRedLights += 1
+
+    def incrementConsecutiveGreenLights(self):
+        self.consecutiveGreenLights += 1
+
+    def getConsecutiveRedLights(self):
+        return self.consecutiveRedLights
+
+    def getConsecutiveGreenLights(self):
+        return self.consecutiveGreenLights
+
+    def addCommitToAssignment(self, commit):
+        self.myCommits.append(commit)
+
+    def addCommitTotalsToAssignment(self, commitTotals):
+        self.myCommitTotals.append(commitTotals)
+
+    def get_assignment_nbr(self):
+        return self.__assignmentNbr
+
+    def get_my_commits(self):
+        return self.__myCommits
+
+    def get_my_commit_totals(self):
+        return self.__myCommitTotals
+
+    def set_assignment_dict(self, value):
+        self.__assignmentDict = value
+
+    def set_assignment_nbr(self, value):
+        self.__assignmentNbr = value
+
+    def set_my_commits(self, value):
+        self.__myCommits = value
+
+    def set_my_commit_totals(self, value):
+        self.__myCommitTotals = value
+
+    def del_assignment_dict(self):
+        del self.__assignmentDict
+
+    def del_assignment_nbr(self):
+        del self.__assignmentNbr
+
+    def del_my_commits(self):
+        del self.__myCommits
+
+    def del_my_commit_totals(self):
+        del self.__myCommitTotals
 
 
     assignmentName = property(get_assignment_nbr, set_assignment_nbr, del_assignment_nbr, "assignmentName's docstring")
