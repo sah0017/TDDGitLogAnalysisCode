@@ -61,7 +61,7 @@ class Assignment(object):
                     self.incrementConsecutiveGreenLights()
             prevCommit = __commitType
             __commits = __commits + 1
-            myNewCommit = Commit.Commit(self.assignmentName, __commitType, __commits)
+            myNewCommit = Commit.Commit(self.assignmentName, __commits)
 
             self.addCommitToAssignment(myNewCommit.analyzeCommit(gitFileHandle))
 

@@ -35,39 +35,12 @@ class SubmissionReport:
         fileParts = os.path.splitext((fileName))
         myAssignments = self.GenerateInvididualReport(path, fileParts[0], myGitFile)
                 
-        myGitFile.setAssignments(myAssignments)    # Add commit stats to git file object
+        #myGitFile.setAssignments(myAssignments)    # Add commit stats to git file object
         myGitFile.storeGitReportObject(path+os.sep+fileParts[0])
     
     
 
-    def GenerateInvididualReport(self, path, fileName, myGitFile):
-        # list containing PyFile objects with file name and relevant data
-        myFiles = myGitFile.getFiles()
-        # list containing all the assignments, which contains a list of all the commits in that assignment
-        myAssignments = myGitFile.getAssignments()
-        outFile = open(path + os.sep + fileName + ".gitout", "w")
-        outFile.write("Assignments in log file:  " + str(len(myAssignments)))
-        nbrOfAssignments = len(myAssignments)
-        for myAssignment in myAssignments:
-            myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
-            myAssignment.addCommitTotalsToAssignment(myCommitStats)
-        outFile.write("\r\n**********************************************\r\nFiles in logfile:  " +
-                      str(len(myFiles)) + "\r\n")
-        for myFile in myFiles:
-            outFile.write("\r\n----------------------------------------------\r\n" + myFile.fileName +
-                          " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.isProdFile()))
-            for myCommitDetails in myFile.commitDetails:
-                outFile.write("\r\n\tAssignment " + str(myCommitDetails.assignmentName) + "\tCommit " +
-                              str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) +
-                              ".  Deleted lines:" + str(myCommitDetails.deletedLines) + ".  Added TA Test Lines:" +
-                              str(myCommitDetails.taTestLines))
-                outFile.write("\r\n\t\tMethods added/modified:")
-                for myMethod in myCommitDetails.methodNames:
-        # for myMethodName in myMethod.methodName:
-                    outFile.write("\r\t\t" + myMethod.methodName)
-        
-        outFile.close()
-        return myAssignments
+        #return myAssignments
 
     def CalculateMyCommitStats(self, outFile, myAssignment):
         myTransNames = Transformations.Trans()

@@ -14,13 +14,6 @@ class Commit(object):
     '''
 
     @classmethod
-    def readCommitType(cls, gitFileHandle):
-        line = GitFile.GitFile.readNextLine(gitFileHandle)             # advance to next line to get commit type
-        commitType = line.strip().rstrip("\"|")
-        GitFile.GitFile.readNextLine(gitFileHandle)         # advance to next line to get the first file name in the commit
-        return commitType
-
-    @classmethod
     def foundNewCommit(cls, line):
         " Are we still in the same commit or is this a new one? "
         if line.startswith("\"commit"):   ## using this key word in the commit comment line to find the next commit
@@ -30,13 +23,13 @@ class Commit(object):
         else:
             return False
 
-    def __init__(self, assignmentName, commitType, commitNbr):
+    def __init__(self, assignmentName, commitNbr):
         '''
         Constructor
         '''
         self.assignmentName = assignmentName
         self.commitNbr = commitNbr
-        self.commitType = commitType
+        self.commitType = "Other"
         self.addedLinesInCommit = 0
         self.deletedLinesInCommit = 0
         self.addedTestLOC = 0
@@ -45,9 +38,9 @@ class Commit(object):
         self.numberOfTransformations = 0
         self.nbrTestFiles = 0
         self.nbrProdFiles = 0
-        self.transformations = []
+        #self.transformations = []
         self.validCommit = True
-        self.myFiles = []
+        self.myFiles = []       # a list of pyFile objects for this commit
 
     def is_valid_gl_commit(self):
         # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
@@ -77,6 +70,7 @@ class Commit(object):
     def analyzeCommit(self, gitFileHandle):
         "Analyzes all the lines in an individual commit"
 
+        self.commitType = self.readCommitType(gitFileHandle)
         while Commit.foundNewCommit(gitFileHandle.line) == False:
             if PyFile.PyFile.pythonFileFound(gitFileHandle.line):
                 path, fileName = PyFile.PyFile.extractFileName(gitFileHandle.line)
@@ -114,7 +108,7 @@ class Commit(object):
         " This is a new file that isn't in our analysis yet. "
         newFile = PyFile.PyFile(fileName, commitNbr)
         self.myFiles.append(newFile)
-        self.transformations.append(self.myTrans.NEWFILE)
+        newFile.addToTransformationList(self.myTrans.NEWFILE)
         self.line = GitFile.GitFile.readNextLine() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return newFile, fileIndex
@@ -152,6 +146,12 @@ class Commit(object):
         else:
             ct = "Other"
         return ct
+
+    def readCommitType(cls, gitFileHandle):
+        line = GitFile.GitFile.readNextLine(gitFileHandle)             # advance to next line to get commit type
+        commitType = line.strip().rstrip("\"|")
+        GitFile.GitFile.readNextLine(gitFileHandle)         # advance to next line to get the first file name in the commit
+        return commitType
 
     def get_added_lines_in_commit(self):
         return self.__addedLinesInCommit

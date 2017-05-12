@@ -45,10 +45,10 @@ class PyFile(object):
         Constructor
         '''
         self.fileName = fileName
-        self.commitNbr = commitNbr
+        self.commitNbr = commitNbr  # this is the commit when it was created
         self.prodFile = True
-        self.commitDetails = []   # these are commit details on this file in this commit
-        self.methods = []
+        self.commitDetails = []   # a list of pyFileCommitDetail objects on this file in this commit
+        self.methods = []         # a list of Method objects in this pyFile
         self.transformations = []
 
     def analyzePyFile(self, path, assignmentName, gitFileHandle):
@@ -321,7 +321,7 @@ class PyFile(object):
 
     def samePythonFile(self, gitFileHandle):
         " Are we still in the same python file changes or is this a new python file? "
-        line = GitFile.readNextLine(gitFileHandle)
+        line = GitFile.GitFile.readNextLine(gitFileHandle)
         if line == False:              ## EOF
             line = ''
             return False
@@ -385,6 +385,9 @@ class PyFile(object):
 
     def numberOfTransformationsInPyFile(self):
         return len(self.transformations)
+
+    def addToTransformationList(self, new_trans):
+        self.transformations.append(new_trans)
 
     def getTransformations(self):
         return self.transformations
