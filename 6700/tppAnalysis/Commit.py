@@ -5,6 +5,7 @@ Created on Jul 24, 2014
 '''
 
 import PyFile
+import FileHandler
 import GitFile
 
 class Commit(object):
@@ -23,13 +24,20 @@ class Commit(object):
         else:
             return False
 
-    def __init__(self, assignmentName, commitNbr):
+    @classmethod
+    def readCommitType(self, gitFileHandle):
+        line = gitFileHandle.readNextLine()             # advance to next line to get commit type
+        commitType = line.strip().rstrip("\"|")
+        gitFileHandle.readNextLine()         # advance to next line to get the first file name in the commit
+        return commitType
+
+    def __init__(self, assignmentName, commitNbr, commitType):
         '''
         Constructor
         '''
         self.assignmentName = assignmentName
         self.commitNbr = commitNbr
-        self.commitType = "Other"
+        self.commitType = commitType
         self.addedLinesInCommit = 0
         self.deletedLinesInCommit = 0
         self.addedTestLOC = 0
@@ -67,49 +75,51 @@ class Commit(object):
             return True
         return False
 
-    def analyzeCommit(self, gitFileHandle):
+    def analyzeCommit(self, gitFileHandle, line):
         "Analyzes all the lines in an individual commit"
 
-        self.commitType = self.readCommitType(gitFileHandle)
-        while Commit.foundNewCommit(gitFileHandle.line) == False:
-            if PyFile.PyFile.pythonFileFound(gitFileHandle.line):
-                path, fileName = PyFile.PyFile.extractFileName(gitFileHandle.line)
+        #self.commitType = self.readCommitType(gitFileHandle)
+        #for line in gitFileHandle:
+        while Commit.foundNewCommit(line) == False:
+            if PyFile.PyFile.pythonFileFound(line):
+                path, fileName = PyFile.PyFile.extractFileName(line)
                 fileIndex = self.findExistingFileToAddCommitDetails(fileName)
                 if fileIndex == -1:
-                    myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr)
+                    myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr, gitFileHandle)
 
 
-                myPyFileCommitDetails, notSBFile = myPyFile.analyzePyFile(path,self.assignmentName,
-                                                                                gitFileHandle)
-                if notSBFile:
-
-                    if myPyFile.isProdFile():
-                        self.increment_nbr_prod_files()
-                        self.add_added_lines_in_commit(myPyFileCommitDetails.addedLines)
-                        self.add_deleted_lines_in_commit(myPyFileCommitDetails.deletedLines)
-                    else:
-                        self.increment_nbr_test_files()
-                        self.add_added_test_loc(myPyFileCommitDetails.addedLines)
-                        self.add_deleted_test_loc(myPyFileCommitDetails.deletedLines)
-                        self.set_added_tatest_loc(myPyFileCommitDetails.TATestLines)
+                myPyFileCommitDetails = myPyFile.analyzePyFile(path,self.assignmentName,
+                                                                    gitFileHandle)
+                if myPyFile.isProdFile():
+                    self.increment_nbr_prod_files()
+                    self.add_added_lines_in_commit(myPyFileCommitDetails.addedLines)
+                    self.add_deleted_lines_in_commit(myPyFileCommitDetails.deletedLines)
+                else:
+                    self.increment_nbr_test_files()
+                    self.add_added_test_loc(myPyFileCommitDetails.addedLines)
+                    self.add_deleted_test_loc(myPyFileCommitDetails.deletedLines)
+                    self.set_added_tatest_loc(myPyFileCommitDetails.TATestLines)
 
             else:
-                line = GitFile.Gitfile.readNextLine()
+                line = gitFileHandle.readNextLine()
                 if line == False:
                     line = ''
 
-        self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
+        try:
+            self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
 
-        self.set_transformations(myPyFile.getTransformations())
+            self.set_transformations(myPyFile.getTransformations())
+        except:
+            pass
 
         return self
 
-    def addNewFile(self, fileName, commitNbr):
+    def addNewFile(self, fileName, commitNbr, gitFileHandle):
         " This is a new file that isn't in our analysis yet. "
         newFile = PyFile.PyFile(fileName, commitNbr)
         self.myFiles.append(newFile)
-        newFile.addToTransformationList(self.myTrans.NEWFILE)
-        self.line = GitFile.GitFile.readNextLine() ## if this was a new file, then advance file pointer to index line
+        newFile.addToTransformationList(PyFile.PyFile.myTrans.NEWFILE)
+        self.line = gitFileHandle.readNextLine() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return newFile, fileIndex
 
@@ -147,11 +157,6 @@ class Commit(object):
             ct = "Other"
         return ct
 
-    def readCommitType(cls, gitFileHandle):
-        line = GitFile.GitFile.readNextLine(gitFileHandle)             # advance to next line to get commit type
-        commitType = line.strip().rstrip("\"|")
-        GitFile.GitFile.readNextLine(gitFileHandle)         # advance to next line to get the first file name in the commit
-        return commitType
 
     def get_added_lines_in_commit(self):
         return self.__addedLinesInCommit

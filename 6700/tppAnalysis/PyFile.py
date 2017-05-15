@@ -18,6 +18,8 @@ class PyFile(object):
     classdocs
     '''
 
+    myTATestCase = TATestCase.TATestCase()
+    TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
     myTrans = Trans()   # get Transformation static variables and dictionary from Transformation class
 
     @classmethod
@@ -55,11 +57,11 @@ class PyFile(object):
         "Analyzes the information of an individual file within a commit"
         self.assignmentName = assignmentName
         self.prodFile = self.isProdOrTest(path)
-        line = GitFile.GitFile.readNextLine(gitFileHandle) ## either new file mode or index
+        line = gitFileHandle.readNextLine() ## either new file mode or index
 
         MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
         self.setCommitDetails(MypyFileCommitDetails)
-        return MypyFileCommitDetails,  True
+        return MypyFileCommitDetails
 
     def evaluateTransformationsInAFile(self, line, gitFileHandle):
         "Checks the line to see if it is a part of a transformation"
@@ -74,7 +76,9 @@ class PyFile(object):
         methodIndent = 0
         lineWithNoComments = ""
 
-        while self.samePythonFile(gitFileHandle):             ## have we found a new python file within the same commit?
+        line = gitFileHandle.readNextLine()
+
+        while self.samePythonFile(line):             ## have we found a new python file within the same commit?
             prevLine = lineWithNoComments
             lineWithNoComments = self.removeComments(line, gitFileHandle)
             noLeadingPlus = lineWithNoComments[1:]
@@ -101,6 +105,7 @@ class PyFile(object):
                     currentMethod.addedLines = currentMethod.addedLines + 1
                     self.processAddedLine(currentMethod, methodIndent, lineWithNoComments,
                                           prevLine, noLeadingPlus, methodLine)
+            line = gitFileHandle.readNextLine()
 
         for method in methodArray:
             addedLinesInFile = addedLinesInFile + method.getAddedLines()
@@ -138,9 +143,9 @@ class PyFile(object):
                 defaultVal = False
                 #print params
             method = Method.Method(methodName[0], params)
-            if self.TATestCaseDict != None:
-                if method.methodName in self.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
-                    method.updateTATestLines(self.TATestCaseDict[method.methodName])
+            if PyFile.TATestCaseDict != None:
+                if method.methodName in PyFile.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
+                    method.updateTATestLines(PyFile.TATestCaseDict[method.methodName])
                     method.setIsTATestCase(True)
         return method
 
@@ -242,21 +247,21 @@ class PyFile(object):
             if noPlus.startswith("'''") or noPlus.startswith("\"\"\""):
                 foundQuotedComment = True
                 if len(noPlus) > 3 and noPlus.endswith("'''") or noPlus.endswith("\"\"\""):   #one-line comment
-                    line = GitFile.GitFile.readNextLine(gitFileHandle)
+                    line = gitFileHandle.readNextLine()
                     if line == False:
                         line = ' '
                         foundQuotedComment = False
                     else:
                         endCommentFound = True
                 while not endCommentFound:
-                    line = GitFile.GitFile.readNextLine(gitFileHandle)
+                    line = gitFileHandle.readNextLine()
                     if line == False:
                         line = ' '
                         break
                     noPlus = self.stripGitActionAndSpaces(line)
                     if (line[0] == action) and (line[0] != " "):
                         if noPlus.startswith("'''") or noPlus.startswith("\"\"\"") or noPlus.endswith("'''") or noPlus.endswith("\"\"\""):
-                            line = GitFile.GitFile.readNextLine(gitFileHandle)
+                            line = gitFileHandle.readNextLine()
                             if line == False:
                                 line = ' '
                                 foundQuotedComment = False
@@ -319,9 +324,8 @@ class PyFile(object):
         return self.myTrans.WhileNoIf
 
 
-    def samePythonFile(self, gitFileHandle):
+    def samePythonFile(self, line):
         " Are we still in the same python file changes or is this a new python file? "
-        line = GitFile.GitFile.readNextLine(gitFileHandle)
         if line == False:              ## EOF
             line = ''
             return False

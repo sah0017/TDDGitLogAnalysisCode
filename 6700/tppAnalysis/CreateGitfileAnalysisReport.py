@@ -101,7 +101,7 @@ class AnalysisReport(object):
                                 AssignmentTotals.AssignmentTotals.set_total_commits(myCommitStats.nbrCommits)
                                 
                                 studentSubmissionTotals.set_rlcommit(myCommitStats.get_rlcommit())
-                                if myCommitStats.
+                                #if myCommitStats.
                                 studentSubmissionTotals.increment_valid_rl_commits()
                                 studentSubmissionTotals.set_glcommit(myCommitStats.get_glcommit())
                                 studentSubmissionTotals.set_nbr_commits(myCommitStats.get_nbr_commits())

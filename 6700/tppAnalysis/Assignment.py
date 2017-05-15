@@ -8,6 +8,7 @@ import ConfigParser
 import Transformations
 import AssignmentTotals
 import Commit
+import FileHandler
 import GitFile
 from time import strptime
 
@@ -16,23 +17,46 @@ class Assignment(object):
     '''
     classdocs
     '''
+    assignmentNameDict = {}
+    keyIndexList = []
+    originalAssignment = None
+
+    @classmethod
+    def is_first_assignment(cls, commitDate):
+        if commitDate <= cls.assignmentNameDict[cls.keyIndexList[0]]:
+            return True
+        else:
+            return False
+
+    '''
+    This method uses the date on the commit to determine which assignment the commit goes with
+    '''
+    @classmethod
+    def get_curr_assignmentName(cls, commitDate):
+        for k in range(0, len(cls.keyIndexList)-1):
+            if (cls.assignmentNameDict[cls.keyIndexList[k]] <= commitDate <= cls.assignmentNameDict[cls.keyIndexList[k+1]]):
+                return cls.keyIndexList[k+1]
+
+
     @classmethod
     def loadAssignments(cls):
         myConfig = ConfigParser.SafeConfigParser() 
         myConfig.read("TDDanalysis.cfg")
-        myFirstAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
-        assignmentNameDict = {}
+        cls.originalAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
+
         for key, val in myConfig.items("Due Dates"):
             cls.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
+        cls.keyIndexList = cls.assignmentNameDict.keys()
+        cls.keyIndexList.sort()
         #print self.assignmentNameDict
-    
+
     @classmethod
     def getMyFirstAssignment(cls):
-        return Assignment.myFirstAssignment
+        return cls.originalAssignment
     
     @classmethod
     def get_assignment_name_dict(cls):
-        return Assignment.assignmentNameDict
+        return cls.assignmentNameDict
 
     def __init__(self,assnName):
         '''
@@ -44,16 +68,17 @@ class Assignment(object):
         self.consecutiveRedLights = 0
         self.consecutiveGreenLights = 0
 
-    def analyzeAssignment(self, gitFileHandle):
+    def analyzeAssignment(self, fileIOobject):
         __commits = 0
         prevCommit = None
 
-        for line in gitFileHandle:
+        line = fileIOobject.readNextLine()
+        while line != False:
             __assignmentName = self.findCurrentAssignment(line)  # advances to next line to check the commit date
             if self.assignmentName != __assignmentName:
                 return  __assignmentName                    # we've moved to a new assingment, done with this one
 
-            __commitType = Commit.Commit.readCommitType(gitFileHandle)  # advances to next line to get commit type
+            __commitType = Commit.Commit.readCommitType(fileIOobject)  # advances to next line to get commit type
             if prevCommit == __commitType:            # looking for consecutive Red or Green Lights
                 if __commitType.startswith("Red Light"):
                     self.incrementConsecutiveRedLights()
@@ -61,9 +86,9 @@ class Assignment(object):
                     self.incrementConsecutiveGreenLights()
             prevCommit = __commitType
             __commits = __commits + 1
-            myNewCommit = Commit.Commit(self.assignmentName, __commits)
+            myNewCommit = Commit.Commit(self.assignmentName, __commits, __commitType)
 
-            self.addCommitToAssignment(myNewCommit.analyzeCommit(gitFileHandle))
+            self.addCommitToAssignment(myNewCommit.analyzeCommit(fileIOobject, line))
 
     def findCurrentAssignment(self, line):
         " a git file can contain multiple assignments.  This is looking for the current one for analysis."
@@ -71,10 +96,10 @@ class Assignment(object):
         dateLine = line.split("-")
         commitDate = strptime(dateLine[0].strip(), '%a %b %d %X %Y')
 
-        if GitFile.GitFile.is_first_assignment(commitDate):
-            currAssignmentName = GitFile.GitFile.originalAssignmentName
+        if Assignment.is_first_assignment(commitDate):
+            currAssignmentName = Assignment.originalAssignment
         else:
-            currAssignmentName = GitFile.GitFile.get_curr_assignmentName(commitDate)
+            currAssignmentName = Assignment.get_curr_assignmentName(commitDate)
         return currAssignmentName
 
     def CalculateMyCommitStats(self, outFile):

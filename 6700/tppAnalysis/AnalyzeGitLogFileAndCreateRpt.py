@@ -29,11 +29,11 @@ class SubmissionReport:
     
     def analyzeGitLog(self, path, fileName):
         self.add_to_total_submissions_in_analysis(1)
-        myGitFile = GitFile.GitFile(path+os.sep+fileName)                       # instantiates a git log file object
+        myGitFile = GitFile.GitFile()                       # instantiates a git log file object
 
-        myGitFile.analyzeGitLogFile()        # reads through entire git log file and performs TDD/TPP analyzes
+        myGitFile.analyzeGitLogFile(path+os.sep+fileName)        # reads through entire git log file and performs TDD/TPP analyzes
         fileParts = os.path.splitext((fileName))
-        myAssignments = self.GenerateInvididualReport(path, fileParts[0], myGitFile)
+        myAssignments = myGitFile.GenerateInvididualReport(path, fileParts[0])
                 
         #myGitFile.setAssignments(myAssignments)    # Add commit stats to git file object
         myGitFile.storeGitReportObject(path+os.sep+fileParts[0])
@@ -41,7 +41,7 @@ class SubmissionReport:
     
 
         #return myAssignments
-
+    '''
     def CalculateMyCommitStats(self, outFile, myAssignment):
         myTransNames = Transformations.Trans()
         transTotalsInAssignment = [0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -125,7 +125,7 @@ class SubmissionReport:
         myCommitStats.totalTransByTypeInAssignment = transTotalsInAssignment
         myCommitStats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment
         return myCommitStats
-
+    '''
     @classmethod
     
     def get_total_commits(cls):

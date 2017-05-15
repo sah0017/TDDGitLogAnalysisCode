@@ -16,19 +16,19 @@ if __name__ == '__main__':
     #  antley--matthew_1247150_45465189_mra0016Log
     #  romanowski--brenden_481945_45480789_btr0005Log
     #  bryant--james_2270195_45451066_jab0091Log
-    root = "g:\\"
-    myDrive = "g:\\"
-    mySemester = "6700Spring16\\"
-    myAssignment = "CA02\\"
-    currentDir = "git\\6700Spring16\\CA02\\submissions\\stelljessica_3072097_71347590_jrs0067ca02\\SoftwareProcess"                
-    fileName = "stelljessica_3072097_71347590_jrs0067ca02"                
+    root = "/Users"
+    myDrive = "shammond/Google Drive"
+    mySemester = "6700Spring17"
+    myAssignment = "Assignment5"
+    currentDir = "/Users/shammond/Google Drive/6700Spring17/Assignment5/submissions/Andrew Peters/softwareprocess"
+    fileName = "Andrew Peters"
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myAssignment,fileName)
 
     myAssignment = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
     myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    myAnalysis.analyzeGitLog(myDrive + "git\\" + mySemester + "\\" + myAssignment, fileName+"log.gitdata")
+    myAnalysis.analyzeGitLog(root + os.sep + myDrive + os.sep + mySemester + os.sep + myAssignment, fileName+"log.gitdata")
     
     '''
          
