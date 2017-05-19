@@ -5,6 +5,7 @@ Created on Jul 24, 2014
 '''
 
 import PyFile
+import Transformations
 import FileHandler
 import GitFile
 
@@ -25,7 +26,7 @@ class Commit(object):
             return False
 
     @classmethod
-    def readCommitType(self, gitFileHandle):
+    def readCommitType(cls, gitFileHandle):
         line = gitFileHandle.readNextLine()             # advance to next line to get commit type
         commitType = line.strip().rstrip("\"|")
         gitFileHandle.readNextLine()         # advance to next line to get the first file name in the commit
@@ -88,7 +89,7 @@ class Commit(object):
                     myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr, gitFileHandle)
 
 
-                myPyFileCommitDetails = myPyFile.analyzePyFile(path,self.assignmentName,
+                myPyFileCommitDetails, line = myPyFile.analyzePyFile(path,self.assignmentName,
                                                                     gitFileHandle)
                 if myPyFile.isProdFile():
                     self.increment_nbr_prod_files()
@@ -108,7 +109,7 @@ class Commit(object):
         try:
             self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
 
-            self.set_transformations(myPyFile.getTransformations())
+            # self.set_transformations(myPyFile.getTransformations())
         except:
             pass
 
@@ -118,7 +119,7 @@ class Commit(object):
         " This is a new file that isn't in our analysis yet. "
         newFile = PyFile.PyFile(fileName, commitNbr)
         self.myFiles.append(newFile)
-        newFile.addToTransformationList(PyFile.PyFile.myTrans.NEWFILE)
+        newFile.addToTransformationList(Transformations.Trans.getTransValue("NEWFILE"))
         self.line = gitFileHandle.readNextLine() ## if this was a new file, then advance file pointer to index line
         fileIndex = len(self.myFiles) - 1
         return newFile, fileIndex
@@ -140,8 +141,8 @@ class Commit(object):
     def del_added_tatest_loc(self):
         del self.__addedTATestLOC
 
-    def addTransformation(self, transformation):
-        self.transformations.append(transformation)
+    #def addTransformation(self, transformation):
+    #    self.transformations.append(transformation)
 
     def get_commit_nbr(self):
         return self.__commitNbr
@@ -179,8 +180,8 @@ class Commit(object):
     def get_nbr_prod_files(self):
         return self.__nbrProdFiles
 
-    def get_transformations(self):
-        return self.__transformations
+    #def get_transformations(self):
+    #    return self.__transformations
 
     def set_commit_nbr(self, value):
         self.__commitNbr = value
@@ -230,8 +231,8 @@ class Commit(object):
     def increment_nbr_prod_files(self):
         self.__nbrProdFiles =+ 1
 
-    def set_transformations(self, value):
-        self.__transformations = value
+    #def set_transformations(self, value):
+    #    self.__transformations = value
 
     def del_commit_nbr(self):
         del self.__commitNbr
@@ -260,8 +261,8 @@ class Commit(object):
     def del_nbr_prod_files(self):
         del self.__nbrProdFiles
 
-    def del_transformations(self):
-        del self.__transformations
+    #def del_transformations(self):
+    #    del self.__transformations
 
     commitNbr = property(get_commit_nbr, set_commit_nbr, del_commit_nbr, "commitNbr's docstring")
     commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")
@@ -272,5 +273,5 @@ class Commit(object):
     numberOfTransformations = property(get_number_of_transformations, set_number_of_transformations, del_number_of_transformations, "numberOfTransformations's docstring")
     nbrTestFiles = property(get_nbr_test_files, set_nbr_test_files, del_nbr_test_files, "nbrTestFiles's docstring")
     nbrProdFiles = property(get_nbr_prod_files, set_nbr_prod_files, del_nbr_prod_files, "nbrProdFiles's docstring")
-    transformations = property(get_transformations, set_transformations, del_transformations, "transformations's docstring")
+    #transformations = property(get_transformations, set_transformations, del_transformations, "transformations's docstring")
     addedTATestLOC = property(get_added_tatest_loc, set_added_tatest_loc, del_added_tatest_loc, "addedTATestLOC's docstring")

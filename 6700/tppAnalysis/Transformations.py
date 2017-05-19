@@ -29,9 +29,14 @@ class Trans(object):
     NA6 = -6
     NA7 = -7
     WhileNoIf = -8
-    transList = {"NEWFILE":0, "NULL":1, "N2C":2, "C2V":3, "AComp":4,"SF":5,"VA":6,"AC":7,"I2W":8,"REC":9,"IT":10,"AS":11,"ACase":12}
+    transList = {"NEWFILE":0, "NULL":1, "N2C":2, "C2V":3, "AComp":4,"SF":5,"VA":6,"AC":7,"I2W":8,
+                 "REC":9,"IT":10,"AS":11,"ACase":12,"NA1":-1, "ConstOnly":-2, "VarOnly":-3, "NA4":-4,
+                 "WhileNoIf":-8}
     
-        
+    @classmethod
+    def getTransValue(cls, transkey):
+        return cls.transList[transkey]
+
     def getTransList(self):
         return self.transList
 
@@ -82,4 +87,3 @@ class Trans(object):
 class NewFile(Trans):
     def getTransformationName(self):
         return "New PyFile"
-        

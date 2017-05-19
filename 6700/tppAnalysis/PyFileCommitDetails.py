@@ -18,7 +18,7 @@ class PyFileCommitDetails(object):
         self.commitNbr = commitNbr
         self.addedLines = addedLines
         self.deletedLines = deletedLines
-        self.taTestLines = taTestLines
+        self.TATestLines = taTestLines
         self.methodNames = methodNames
         
     def getCommitDetails(self):

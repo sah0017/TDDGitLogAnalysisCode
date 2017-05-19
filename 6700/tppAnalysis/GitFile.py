@@ -20,6 +20,8 @@ class GitFile(object):
 
     line = ''
     Assignment.Assignment.loadAssignments()
+    myTATestCase = TATestCase.TATestCase()
+    TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
 
 
     def __init__(self):

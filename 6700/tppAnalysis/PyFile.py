@@ -10,7 +10,7 @@ import Commit
 import GitFile
 import DeletedLine
 import TATestCase
-from Transformations import Trans
+import Transformations
 
 
 class PyFile(object):
@@ -18,9 +18,7 @@ class PyFile(object):
     classdocs
     '''
 
-    myTATestCase = TATestCase.TATestCase()
-    TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
-    myTrans = Trans()   # get Transformation static variables and dictionary from Transformation class
+    #myTrans = Trans()   # get Transformation static variables and dictionary from Transformation class
 
     @classmethod
     def pythonFileFound(self, line):
@@ -61,7 +59,7 @@ class PyFile(object):
 
         MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
         self.setCommitDetails(MypyFileCommitDetails)
-        return MypyFileCommitDetails
+        return MypyFileCommitDetails, line
 
     def evaluateTransformationsInAFile(self, line, gitFileHandle):
         "Checks the line to see if it is a part of a transformation"
@@ -143,9 +141,9 @@ class PyFile(object):
                 defaultVal = False
                 #print params
             method = Method.Method(methodName[0], params)
-            if PyFile.TATestCaseDict != None:
-                if method.methodName in PyFile.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
-                    method.updateTATestLines(PyFile.TATestCaseDict[method.methodName])
+            if GitFile.GitFile.TATestCaseDict != None:
+                if method.methodName in GitFile.GitFile.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
+                    method.updateTATestLines(GitFile.GitFile.TATestCaseDict[method.methodName])
                     method.setIsTATestCase(True)
         return method
 
@@ -170,7 +168,7 @@ class PyFile(object):
 
     def processAddedLine(self, currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine):
         if re.search(r"\bpass\b", lineWithNoComments):      # Transformation 1
-            self.transformations.append(self.myTrans.NULL)
+            self.transformations.append(Transformations.Trans.getTransValue("NULL"))
         if currentMethod.methodName != "Unknown" and not methodLine:             # Transformation 9
             myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(currentMethod.methodName)
             #try:
@@ -179,23 +177,23 @@ class PyFile(object):
                     methodLineNoLeadingSpaces = noLeadingPlus.strip()
                     methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
                     if methodLineIndent > methodIndent:
-                        self.transformations.append(self.myTrans.REC)
+                        self.transformations.append(Transformations.Trans.getTransValue("REC"))
             #except Exception as inst:
             #    print self.fileName, type(inst)
         if re.search(r"\breturn\b", lineWithNoComments):
             self.processLineWithReturn(currentMethod, lineWithNoComments, noLeadingPlus)
         elif re.search(r"\bif.(?!_name__ == \"__main)", lineWithNoComments):
-            self.transformations.append(self.myTrans.SF)
+            self.transformations.append(Transformations.Trans.getTransValue("SF"))
         elif re.search(r"\bwhile\b", lineWithNoComments):
             whileTrans = self.checkWhileForMatchingIfOrWhile(currentMethod, lineWithNoComments)
             self.transformations.append(whileTrans)
         elif re.search(r"\bfor\b", noLeadingPlus):
-            self.transformations.append(self.myTrans.IT)
+            self.transformations.append(Transformations.Trans.getTransValue("IT"))
         elif re.search(r"\belif\b|\belse\b", noLeadingPlus):
-            self.transformations.append(self.myTrans.ACase)
+            self.transformations.append(Transformations.Trans.getTransValue("ACase"))
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):
             #elif (re.search(r"=",noLeadingPlus)):
-            self.transformations.append(self.myTrans.AComp)
+            self.transformations.append(Transformations.Trans.getTransValue("AComp"))
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
         assignmentVars = noLeadingPlus.split("=")               # Check to see if we are assigning a new value to an input parameter
@@ -203,27 +201,27 @@ class PyFile(object):
             assignmentVar = assignmentVars[0].strip()
             for x in currentMethod.parameters:
                 if x == assignmentVar:
-                    self.transformations.append(self.myTrans.AS)
+                    self.transformations.append(Transformations.Trans.getTransValue("AS"))
 
     def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
         rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)
         deletedLine = self.checkDeletedLinesForReturn(currentMethod)
         if rtnBoolean == True: # Transformation 1
-            self.transformations.append(self.myTrans.NULL) ## this is either a 'return' or a 'return None'
+            self.transformations.append(Transformations.Trans.getTransValue("NULL")) ## this is either a 'return' or a 'return None'
         elif self.checkForConstantOnReturn(rtnValue): ## if there are constants and
             if deletedLine.deletedNullValue == True: ## if there was a Null expression before, they probably did Transformation 2 Null to Constant
-                self.transformations.append(self.myTrans.N2C)
+                self.transformations.append(Transformations.Trans.getTransValue("N2C"))
             else:
-                self.transformations.append(self.myTrans.ConstOnly) ## if constants but no previous Null, they probably just went straight to constant
+                self.transformations.append(Transformations.Trans.getTransValue("ConstOnly")) ## if constants but no previous Null, they probably just went straight to constant
         elif deletedLine.deletedLiteral: ## and the delete section removed a 'return' with a constant
-            self.transformations.append(self.myTrans.C2V) ## then it is probably a Transformation 3 constant to variable
+            self.transformations.append(Transformations.Trans.getTransValue("C2V")) ## then it is probably a Transformation 3 constant to variable
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
-            self.transformations.append(self.myTrans.AComp)
+            self.transformations.append(Transformations.Trans.getTransValue("AComp"))
         else:
-            self.transformations.append(self.myTrans.VarOnly) ##  if we got to this point, they went straight to a variable.
+            self.transformations.append(Transformations.Trans.getTransValue("VarOnly")) ##  if we got to this point, they went straight to a variable.
         for parm in currentMethod.parameters:
             if rtnValue == parm: ## if the return value is a parameter, then it is a Transformation 11 assign.
-                self.transformations.append(self.myTrans.AS)
+                self.transformations.append(Transformations.Trans.getTransValue("AS"))
 
         ## if it wasn't constants on the return
         ## this looks for constants after 'return'
@@ -285,13 +283,13 @@ class PyFile(object):
     def checkWhileForMatchingIfOrWhile(self, currentMethod, currentLine):
         whileConditionalParts = currentLine.split("while")
         whileCondition = whileConditionalParts[1].strip()
-        whileTrans = self.myTrans.WhileNoIf
+        whileTrans = Transformations.Trans.getTransValue("WhileNoIf")
         for dLine in currentMethod.deletedLines:
             if dLine.deletedIf:
                 if whileCondition == dLine.deletedIfContents:
-                    return self.myTrans.I2W
+                    return Transformations.Trans.getTransValue("I2W")
                 else:
-                    whileTrans = self.myTrans.WhileNoIf
+                    whileTrans = Transformations.Trans.getTransValue("WhileNoIf")
             if dLine.deletedWhile:
                 whileTrans = self.checkForConstantToVariableInCondition(dLine.deletedWhileContents,whileCondition)
         return whileTrans
@@ -319,9 +317,9 @@ class PyFile(object):
                 (myIfCond == myWhileCond) and
                 (mysecondIfCond.isdigit()) and
                 (mysecondWhileCond.isalpha())):
-                self.transformations.append(self.myTrans.C2V)
-                return self.myTrans.I2W
-        return self.myTrans.WhileNoIf
+                self.transformations.append(Transformations.Trans.getTransValue("C2V"))
+                return Transformations.Trans.getTransValue("I2W")
+        return Transformations.Trans.getTransValue("WhileNoIf")
 
 
     def samePythonFile(self, line):

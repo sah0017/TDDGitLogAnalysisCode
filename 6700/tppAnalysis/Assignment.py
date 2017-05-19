@@ -89,6 +89,7 @@ class Assignment(object):
             myNewCommit = Commit.Commit(self.assignmentName, __commits, __commitType)
 
             self.addCommitToAssignment(myNewCommit.analyzeCommit(fileIOobject, line))
+            line = fileIOobject.readNextLine()
 
     def findCurrentAssignment(self, line):
         " a git file can contain multiple assignments.  This is looking for the current one for analysis."
