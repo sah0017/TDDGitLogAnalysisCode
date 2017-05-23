@@ -16,17 +16,10 @@ class SubmissionReport:
     __totalTransformationsInAnalysis = 0
     __totalAntiTransformationsInAnalysis = 0
     __totalLinesOfCodeInAnalysis = 0
-    
-    __transTotalsInAnalysis = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-    __antitransTotalsInAnalysis = [0,0,0,0,0,0,0,0,0,0,0,0]
-    
 
-        
     def __init__(self):
         pass
-        
-        
-    
+
     def analyzeGitLog(self, path, fileName):
         self.add_to_total_submissions_in_analysis(1)
         myGitFile = GitFile.GitFile()                       # instantiates a git log file object

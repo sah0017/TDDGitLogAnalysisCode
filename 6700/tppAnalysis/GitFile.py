@@ -5,11 +5,11 @@ Created on Jul 10, 2014
 '''
 
 # import subprocess
-import codecs
 import Assignment
 import jsonpickle
 import TATestCase
 import FileHandler
+import os
 
 
 
@@ -18,7 +18,6 @@ class GitFile(object):
     " Analyzes a single git log file"
 
 
-    line = ''
     Assignment.Assignment.loadAssignments()
     myTATestCase = TATestCase.TATestCase()
     TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
@@ -28,26 +27,26 @@ class GitFile(object):
         '''
         Constructor
         '''
-
+        self.myAssignmentFileName = ""
         self.myAssignmentsList = []         # a list of all the Assignment instances in this file
+        self.fileList = []                  # a list of pyFile objects in this file
 
     def analyzeGitLogFile(self, fileName):
         "Controls the looping through the git file"
         print fileName
+        self.myAssignmentFileName = fileName
 
         myFileIO = FileHandler.FileHandler()
         myFileIO.open_file(fileName)
-        __currAssignmentName = Assignment.Assignment.originalAssignment     # first assignment name
-        __myAssignment = Assignment.Assignment(__currAssignmentName)
+        __nextAssignmentName = Assignment.Assignment.originalAssignment     # first assignment name
 
-        #GitFile.readNextLine(self.gitFile)                                     # first line says commit
-        while myFileIO.readNextLine():
+        myFileIO.readNextLine()                                     # first line says commit
+        myFileIO.readNextLine()                                     # second line has commit date
+        while __nextAssignmentName != False:
+            __myAssignment = Assignment.Assignment(__nextAssignmentName)
             __nextAssignmentName = __myAssignment.analyzeAssignment(myFileIO)   # reads thru file until it hits a new assignment
             self.myAssignmentsList.append(__myAssignment)
-            __myAssignment = Assignment.Assignment(__nextAssignmentName)
 
-        # save last Assignment in the file to Assignments List
-        self.myAssignmentsList.append(__myAssignment)
         myFileIO.close_file()
 
     def GenerateInvididualReport(self, path, fileName):
@@ -61,7 +60,7 @@ class GitFile(object):
             myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
             myAssignment.addCommitTotalsToAssignment(myCommitStats)
             # myFiles = self.getFiles(myAssignment)
-        '''
+        '''     not storing data like this any more
         outFile.write("\r\n**********************************************\r\nFiles in logfile:  " +
                       str(len(myFiles)) + "\r\n")
         for myFile in myFiles:
@@ -86,8 +85,7 @@ class GitFile(object):
         self.myAssignmentsList = assignmentList
 
     def getFiles(self, myAssignment):
-        myFiles = myAssignment.getFiles()
-        return myFiles
+        return self.myFiles
     
     def addNewPyFile(self, newPyFile):
         self.myFiles.append(newPyFile)

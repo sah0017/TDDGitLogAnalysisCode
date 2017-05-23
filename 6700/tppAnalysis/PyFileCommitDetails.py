@@ -10,11 +10,10 @@ class PyFileCommitDetails(object):
     '''
 
 
-    def __init__(self, assignmentName, commitNbr, addedLines, deletedLines, taTestLines, methodNames):
+    def __init__(self, commitNbr, addedLines, deletedLines, taTestLines, methodNames):
         '''
         Constructor
         '''
-        self.assignmentName = assignmentName
         self.commitNbr = commitNbr
         self.addedLines = addedLines
         self.deletedLines = deletedLines
@@ -22,4 +21,4 @@ class PyFileCommitDetails(object):
         self.methodNames = methodNames
         
     def getCommitDetails(self):
-        return [self.assignmentName, self.commitNbr, self.addedLines, self.deletedLines, self.methodNames]
+        return [self.commitNbr, self.addedLines, self.deletedLines, self.methodNames]

@@ -20,7 +20,11 @@ class AnalysisReport(object):
         
         self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".csv", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name\tAssignment Name\tNbr of Commits\tRed Light\tGreen Light\tRefactor\tOther\tNbr Consec RL\tNbr Consec GL\tAvg Lines Per Commit\tAvg Trans Per Commit\tRatio-Prod to Test Code\tAdded Prod Lines\tAdded Test Lines\tDel/Mod Lines \tDel/Mod Test Lines\r")
+        self.outFile.write("Submission name, Assignment Name, Nbr of Commits, Red Light, Nbr Consec RL, "
+                           "Green Light, Nbr Consec GL, Refactor,"
+                           "Other, Avg Lines Per Commit, Avg Trans Per Commit,"
+                           "Ratio-Prod to Test Code, Added Prod Lines, Added Test Lines, Del/Mod Lines,"
+                           "Del/Mod Test Lines\r")
 
         self.printIndividualTotalsAndCountAssignmentTotals(myDir, analysisRoot, printToFile, myTransNames)
         
@@ -36,22 +40,25 @@ class AnalysisReport(object):
         ttlLOC = AssignmentTotals.AssignmentTotals.get_total_LOC()
         if printToFile:
             self.outFile.write( "\n\r\n\rAssignment report"+" \n\r")
-            self.outFile.write("Assignment:  \t" + str(assignment)+"\n\r")
-            self.outFile.write( "Total submissions analyzed:  \t" + str(ttlSub)+" \n\r")
-            self.outFile.write( "Total nbr of commits:  \t" + str(ttlComm)+" \r")
-            self.outFile.write( "Total nbr of transformations:  \t" + str(ttlTrans)+" \r")
+            self.outFile.write("Assignment:  ," + str(assignment)+"\n\r")
+            self.outFile.write( "Total submissions analyzed:  ," + str(ttlSub)+" \n\r")
+            self.outFile.write( "Total nbr of commits:  ," + str(ttlComm)+" \r")
+            self.outFile.write( "Total nbr of transformations:  ," + str(ttlTrans)+" \r")
             for i in range(0,13):
-                self.outFile.write("Nbr of trans type " + myTransNames.getTransformationName(i) + " is \t" + str(transTtlsList[i]) +"\r")
-            #outFile.write( "Total number of anti-transformations:  \t" + str(ttlAntiTrans)+" \r")
+                self.outFile.write("Nbr of trans type " + myTransNames.getTransformationName(i) +
+                                   " is ," + str(transTtlsList[i]) +"\r")
+            #outFile.write( "Total number of anti-transformations:  ," + str(ttlAntiTrans)+" \r")
             self.outFile.write("\n\r")
             for i in range(1,9):
                 if (myTransNames.getTransformationName(i) != ""):
-                    self.outFile.write( "Nbr of anti-trans type "+ myTransNames.getTransformationName(-i) + " is \t" + str(antiTransTtlsList[i]) +"\r")
+                    self.outFile.write( "Nbr of anti-trans type "+
+                                        myTransNames.getTransformationName(-i) + " is ," +
+                                        str(antiTransTtlsList[i]) +"\r")
             
-            self.outFile.write( "\n\r Total lines of code:  \t" + str(ttlLOC)+" \n\r")
+            self.outFile.write( "\n\r Total lines of code:  ," + str(ttlLOC)+" \n\r")
             if ttlComm > 0:
-                self.outFile.write( "Avg Trans per commit: \t "+ str(ttlTrans/ttlComm)+" \r")
-                self.outFile.write( "Avg loc per commit:  \t"+ str(ttlLOC/ttlComm)+" \n\r")
+                self.outFile.write( "Avg Trans per commit: , "+ str(ttlTrans/ttlComm)+" \r")
+                self.outFile.write( "Avg loc per commit:  ,"+ str(ttlLOC/ttlComm)+" \n\r")
         else:
             print "Final report"
             print "Assignment:  ",assignment
@@ -81,7 +88,7 @@ class AnalysisReport(object):
             if os.path.isfile(os.path.join(analysisRoot, item)):
                 fileName, ext = os.path.splitext(item)
                 studentName = fileName.split("_")
-                print 'Processing ' + studentName
+                print 'Processing ' + studentName[0]
                 if ext == ".gitdata":
                     currentGitFile = myGitFile.retrieveGitReportObject(analysisRoot + os.sep + fileName)
                     if (currentGitFile != None):
@@ -115,16 +122,22 @@ class AnalysisReport(object):
                                 studentSubmissionTotals.set_total_trans_by_type_in_assignment(myCommitStats.get_total_trans_by_type_in_assignment())
                                 studentSubmissionTotals.set_total_anti_trans_by_type_in_assignment(myCommitStats.get_total_anti_trans_by_type_in_assignment())
                                 
-                                if printToFile:
-                                    self.outFile.write(fileName + ext + "\t" + str(myAssignment.assignmentName) + "\t" + str(myCommitStats.nbrCommits) + "\t" + str(myCommitStats.RLCommit) + "\t" + str(myCommitStats.GLCommit) + 
-                                                       "\t" + str(myCommitStats.refCommit) + "\t" + str(myCommitStats.otherCommit) + "\t" + str(myAssignment.getConsecutiveRedLights()) + "\t" +
-                                                        str(myAssignment.getConsecutiveGreenLights()) + "\t" + format(myCommitStats.get_avg_lines_per_commit(), '.2f') +
-                                                       "\t" + format(myCommitStats.get_avg_trans_per_commit(), '.2f') + " \t" + format(myCommitStats.get_ratio_prod_to_test(), '.2f') + "\t" + 
-                                                       str(myCommitStats.addedLinesInAssignment) + "\t" + str(myCommitStats.addedTestLOCInAssignment) + "\t" + 
-                                                       str(myCommitStats.deletedLinesInAssignment) + "\t" + str(myCommitStats.deletedTestLOCInAssignment)+ "\r")
-                                else:
-                                    print fileName, ext, myCommitStats.get_nbr_commits, myCommitStats.get_avg_lines_per_commit(), myCommitStats.get_avg_trans_per_commit()
-                            
+                                self.outFile.write(fileName + ext + "," + str(myAssignment.assignmentName) + ","
+                                                   + str(myCommitStats.nbrCommits) + "," +
+                                                   str(myCommitStats.RLCommit) + "," +
+                                                   str(myAssignment.getConsecutiveRedLights()) + "," +
+                                                   str(myCommitStats.GLCommit) + "," +
+                                                    str(myAssignment.getConsecutiveGreenLights()) + "," +
+                                                   str(myCommitStats.refCommit) + "," +
+                                                   str(myCommitStats.otherCommit) + "," +
+                                                   format(myCommitStats.get_avg_lines_per_commit(), '.2f') +
+                                                   "," + format(myCommitStats.get_avg_trans_per_commit(), '.2f') +
+                                                   " ," + format(myCommitStats.get_ratio_prod_to_test(), '.2f') +
+                                                   "," + str(myCommitStats.addedLinesInAssignment) + "," +
+                                                   str(myCommitStats.addedTestLOCInAssignment) + "," +
+                                                   str(myCommitStats.deletedLinesInAssignment) + "," +
+                                                   str(myCommitStats.deletedTestLOCInAssignment)+ "\r")
+
                             for myCommit in myCommitList:
                                 AssignmentTotals.AssignmentTotals.set_total_nbr_transformations(myCommit.get_number_of_transformations())
                                 AssignmentTotals.AssignmentTotals.set_total_prod_files(myCommit.get_nbr_prod_files())
@@ -132,21 +145,28 @@ class AnalysisReport(object):
                                 AssignmentTotals.AssignmentTotals.set_total_LOC(myCommit.get_added_lines_in_commit()+myCommit.get_added_test_loc())
                                 AssignmentTotals.AssignmentTotals.set_total_prod_LOC(myCommit.get_added_lines_in_commit()-myCommit.get_deleted_lines_in_commit())
                                 AssignmentTotals.AssignmentTotals.set_total_test_LOC(myCommit.get_added_test_loc()-myCommit.get_deleted_test_loc())
-                                myTrans = myCommit.get_transformations()
-                                for myTran in myTrans:
-                                    if myTran >= 0:
-                                        AssignmentTotals.AssignmentTotals.set_total_trans_by_type(1 ,myTran)
-                                        
-                                    else:
-                                        AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(myTran))
-                        if printToFile:
-                            self.outFile.write("Totals for " + studentName[0] + "\t" + str(len(myAssignments)) + "\t" + str(studentSubmissionTotals.nbrCommits) + "\t" + str(studentSubmissionTotals.RLCommit) + "\t" + str(studentSubmissionTotals.GLCommit) + 
-                                                       "\t" + str(studentSubmissionTotals.refCommit) + "\t" + str(studentSubmissionTotals.otherCommit) + "\t" + format(studentSubmissionTotals.get_avg_lines_per_commit(), '.2f') + 
-                                                       "\t" + format(studentSubmissionTotals.get_avg_trans_per_commit(), '.2f') + " \t" + format(studentSubmissionTotals.get_ratio_prod_to_test(), '.2f') + "\t" + 
-                                                       str(studentSubmissionTotals.addedLinesInAssignment) + "\t" + str(studentSubmissionTotals.addedTestLOCInAssignment) + "\t" + 
-                                                       str(studentSubmissionTotals.deletedLinesInAssignment) + "\t" + str(studentSubmissionTotals.deletedTestLOCInAssignment)+ "\r\r")
-                        else:
-                            print studentName[0], len(myAssignments)
+                                myFiles = myCommit.get_file_list()
+                                for myFile in myFiles:
+                                    myTrans = myFile.get_transformations()
+                                    for myTran in myTrans:
+                                        if myTran >= 0:
+                                            AssignmentTotals.AssignmentTotals.set_total_trans_by_type(1 ,myTran)
+
+                                        else:
+                                            AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(myTran))
+                        self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + "," +
+                                           str(studentSubmissionTotals.nbrCommits) + "," +
+                                           str(studentSubmissionTotals.RLCommit) + ",," +
+                                           str(studentSubmissionTotals.GLCommit) +
+                                            ",," + str(studentSubmissionTotals.refCommit) + "," +
+                                           str(studentSubmissionTotals.otherCommit) + "," +
+                                           format(studentSubmissionTotals.get_avg_lines_per_commit(), '.2f') +
+                                            "," + format(studentSubmissionTotals.get_avg_trans_per_commit(), '.2f') +
+                                           "," + format(studentSubmissionTotals.get_ratio_prod_to_test(), '.2f') + "," +
+                                            str(studentSubmissionTotals.addedLinesInAssignment) + "," +
+                                            str(studentSubmissionTotals.addedTestLOCInAssignment) + "," +
+                                            str(studentSubmissionTotals.deletedLinesInAssignment) + "," +
+                                           str(studentSubmissionTotals.deletedTestLOCInAssignment)+ "\r\r")
 
         #return studentSubmissionTotals
        

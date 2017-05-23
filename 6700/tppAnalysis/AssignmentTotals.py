@@ -421,10 +421,6 @@ class AssignmentTotals(object):
     def del_total_anti_trans_by_type_in_assignment(self):
         del self.__totalAntiTransByTypeInAssignment
 
-    
-
-
-    assignment = property(get_assignment, set_assignment, del_assignment, "assignment's docstring")
     nbrCommits = property(get_nbr_commits, set_nbr_commits, del_nbr_commits, "nbrCommits's docstring")
     RLCommit = property(get_rlcommit, set_rlcommit, del_rlcommit, "RLCommit's docstring")
     GLCommit = property(get_glcommit, set_glcommit, del_glcommit, "GLCommit's docstring")

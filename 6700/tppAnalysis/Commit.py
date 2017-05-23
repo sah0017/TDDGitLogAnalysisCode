@@ -25,18 +25,10 @@ class Commit(object):
         else:
             return False
 
-    @classmethod
-    def readCommitType(cls, gitFileHandle):
-        line = gitFileHandle.readNextLine()             # advance to next line to get commit type
-        commitType = line.strip().rstrip("\"|")
-        gitFileHandle.readNextLine()         # advance to next line to get the first file name in the commit
-        return commitType
-
-    def __init__(self, assignmentName, commitNbr, commitType):
+    def __init__(self, commitNbr, commitType):
         '''
         Constructor
         '''
-        self.assignmentName = assignmentName
         self.commitNbr = commitNbr
         self.commitType = commitType
         self.addedLinesInCommit = 0
@@ -89,8 +81,7 @@ class Commit(object):
                     myPyFile, fileIndex = self.addNewFile(fileName, self.commitNbr, gitFileHandle)
 
 
-                myPyFileCommitDetails, line = myPyFile.analyzePyFile(path,self.assignmentName,
-                                                                    gitFileHandle)
+                myPyFileCommitDetails, line = myPyFile.analyzePyFile(path, fileName, gitFileHandle)
                 if myPyFile.isProdFile():
                     self.increment_nbr_prod_files()
                     self.add_added_lines_in_commit(myPyFileCommitDetails.addedLines)
@@ -158,6 +149,8 @@ class Commit(object):
             ct = "Other"
         return ct
 
+    def get_file_list(self):
+        return self.myFiles
 
     def get_added_lines_in_commit(self):
         return self.__addedLinesInCommit
@@ -265,7 +258,7 @@ class Commit(object):
     #    del self.__transformations
 
     commitNbr = property(get_commit_nbr, set_commit_nbr, del_commit_nbr, "commitNbr's docstring")
-    commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")
+    #commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")
     addedLinesInCommit = property(get_added_lines_in_commit, set_added_lines_in_commit, del_added_lines_in_commit, "addedLinesInCommit's docstring")
     deletedLinesInCommit = property(get_deleted_lines_in_commit, set_deleted_lines_in_commit, del_deleted_lines_in_commit, "deletedLinesInCommit's docstring")
     addedTestLOC = property(get_added_test_loc, set_added_test_loc, del_added_test_loc, "addedTestLOC's docstring")

@@ -51,10 +51,9 @@ class PyFile(object):
         self.methods = []         # a list of Method objects in this pyFile
         self.transformations = []
 
-    def analyzePyFile(self, path, assignmentName, gitFileHandle):
+    def analyzePyFile(self, path, fileName, gitFileHandle):
         "Analyzes the information of an individual file within a commit"
-        self.assignmentName = assignmentName
-        self.prodFile = self.isProdOrTest(path)
+        self.prodFile = self.isProdOrTest(path, fileName)
         line = gitFileHandle.readNextLine() ## either new file mode or index
 
         MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
@@ -111,7 +110,7 @@ class PyFile(object):
             taTestLinesInFile = taTestLinesInFile + method.getTATestLines()
             #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
             #        methodArray.remove(method)      # empty method
-        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.assignmentName, self.commitNbr,
+        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.commitNbr,
                                                                   addedLinesInFile, deletedLinesInFile,
                                                                   taTestLinesInFile, methodArray)
         return myPyFileDetails
@@ -362,15 +361,23 @@ class PyFile(object):
             rtnBoolean = False
         return rtnBoolean, rtnValue
 
-    def isProdOrTest(self, pathName):
+    def isProdOrTest(self, pathName, fileName):
         pathNameLower = pathName.lower()
+        fileNameLower = fileName.lower()
+        prod = False
         if (pathNameLower.startswith('prod')) or (pathNameLower.startswith('softwareprocess')):
-            if not (re.search("test",pathNameLower)):
-                return True
-        return False
+            if not (re.search("test",fileNameLower)):
+                prod = True
+        return prod
 
     def isProdFile(self):
         return self.prodFile
+
+    def getFileType(self):
+        if self.prodFile:
+            return "Prod"
+        else:
+            return "Test"
 
     def getFileName(self):
         return self.fileName
@@ -391,7 +398,7 @@ class PyFile(object):
     def addToTransformationList(self, new_trans):
         self.transformations.append(new_trans)
 
-    def getTransformations(self):
+    def get_transformations(self):
         return self.transformations
 
     '''
