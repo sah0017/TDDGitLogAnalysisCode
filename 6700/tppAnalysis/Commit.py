@@ -48,7 +48,7 @@ class Commit(object):
         validCommit = True
 
         if self.get_commit_type() == "Green Light":
-            if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0):
+            if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0) or self.nbrTestFiles > 0:
                 validCommit = False
 
         return validCommit
@@ -56,7 +56,7 @@ class Commit(object):
     def is_valid_rl_commit(self):
         validCommit = True
         if self.get_commit_type() == "Red Light":
-            if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0):
+            if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0) or self.nbrProdFiles > 0:
                 validCommit = False
 
         return validCommit

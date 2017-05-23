@@ -127,20 +127,39 @@ class Assignment(object):
         nbrTransformations = 0
         nbrAntiTransformations = 0
         ratio = 0
-        outFile.write("\r\n*********************************\r\nAssignment Name:" + str(self.assignmentName)+"\r\n*********************************")
-        outFile.write("\r\nConsecutive Green Lights:  " + str(self.getConsecutiveGreenLights()) + "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()))
+        outFile.write("\r\n*********************************\r\nAssignment Name:" + str(self.assignmentName)+
+                      "\r\n*********************************")
+        outFile.write("\r\nConsecutive Green Lights:  " + str(self.getConsecutiveGreenLights()) +
+                      "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()))
         nbrCommits = nbrCommits + len(self.myCommits)
         for myCommit in self.myCommits:
-            outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) + "\tCommit type: " + myCommit.commitType + "\tAdded lines:" + str(myCommit.addedLinesInCommit) + ".  Deleted lines:" + str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" + str(myCommit.addedTestLOC) + "  Deleted test lines:" + str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) + ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " + str(myCommit.numberOfTransformations) + ". \n\r")
+            outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) +
+                          "\tCommit type: " + myCommit.commitType + "\tAdded lines:" +
+                          str(myCommit.addedLinesInCommit) + ".  Deleted lines:" +
+                          str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" +
+                          str(myCommit.addedTestLOC) + "  Deleted test lines:" +
+                          str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) +
+                          ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " +
+                          str(myCommit.numberOfTransformations) + ". \n\r")
             ctype = myCommit.get_commit_type()
             if ctype=="Red Light":
                 nbrRedLight = nbrRedLight + 1
+                if myCommit.is_valid_rl_commit():
+                    outFile.write("!!!!!  Valid Red Light Commit  !!!!!\n\r")
+                else:
+                    outFile.write("?????  INVALID Red Light Commit  ?????\n\r")
+
             elif ctype=="Green Light":
                 nbrGreenLight = nbrGreenLight + 1
+                if myCommit.is_valid_gl_commit():
+                    outFile.write("!!!!!  Valid Green Light Commit  !!!!!\n\r")
+                else:
+                    outFile.write("?????  INVALID Green Light Commit  ?????\n\r")
             elif ctype=="Refactor":
                 nbrRefactor = nbrRefactor + 1
             else:
                 nbrUnknownCommit = nbrUnknownCommit + 1
+
             addedLines = addedLines + myCommit.addedLinesInCommit
             addedTestLines = addedTestLines + myCommit.addedTestLOC
             deletedLines = deletedLines + myCommit.deletedLinesInCommit
@@ -148,7 +167,7 @@ class Assignment(object):
             myFiles = myCommit.get_file_list()
             for myFile in myFiles:
                 myTrans = myFile.get_transformations()
-                outFile.write("\tTransformations to file:  " + myFile.getFileName() + "  (" + myFile.getFileType() + ")")
+                outFile.write("\n\r\tTransformations to file:  " + myFile.getFileName() + "  (" + myFile.getFileType() + ")")
                 for myTran in myTrans:
                     outFile.write("\r\t" + myTransNames.getTransformationName(myTran))
 
