@@ -43,21 +43,21 @@ class Commit(object):
         self.validCommit = True
         self.myFiles = []       # a list of pyFile objects for this commit
 
-    def is_valid_gl_commit(self):
+    def try_valid_gl_commit(self):
         # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
-        validCommit = True
+        validCommit = 'Valid'
 
         if self.get_commit_type() == "Green Light":
             if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0) or self.nbrTestFiles > 0:
-                validCommit = False
+                validCommit = 'INVALID'
 
         return validCommit
 
-    def is_valid_rl_commit(self):
-        validCommit = True
+    def try_valid_rl_commit(self):
+        validCommit = 'Valid'
         if self.get_commit_type() == "Red Light":
             if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0) or self.nbrProdFiles > 0:
-                validCommit = False
+                validCommit = 'INVALID'
 
         return validCommit
 
