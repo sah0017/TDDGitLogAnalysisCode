@@ -40,27 +40,26 @@ class PyFile(object):
         fileName = splLine[len(splLine) - 1]
         return path, fileName
 
-    def __init__(self, fileName, commitNbr):
+    def __init__(self, path, fileName, commitNbr):
         '''
         Constructor
         '''
         self.fileName = fileName
         self.commitNbr = commitNbr  # this is the commit when it was created
-        self.prodFile = True
+        self.prodFile = self.isProdOrTest(path, fileName)
         self.commitDetails = []   # a list of pyFileCommitDetail objects on this file in this commit
         self.methods = []         # a list of Method objects in this pyFile
         self.transformations = []
 
-    def analyzePyFile(self, path, fileName, gitFileHandle):
+    def analyzePyFile(self, gitFileHandle):
         "Analyzes the information of an individual file within a commit"
-        self.prodFile = self.isProdOrTest(path, fileName)
-        line = gitFileHandle.readNextLine() ## either new file mode or index
+        gitFileHandle.readNextLine() ## either new file mode or index
 
-        MypyFileCommitDetails = self.evaluateTransformationsInAFile(line, gitFileHandle)
+        MypyFileCommitDetails = self.evaluateTransformationsInAFile(gitFileHandle)
         self.setCommitDetails(MypyFileCommitDetails)
-        return MypyFileCommitDetails, line
+        return MypyFileCommitDetails
 
-    def evaluateTransformationsInAFile(self, line, gitFileHandle):
+    def evaluateTransformationsInAFile(self, gitFileHandle):
         "Checks the line to see if it is a part of a transformation"
         addedLinesInFile = 0
         deletedLinesInFile = 0
@@ -77,7 +76,7 @@ class PyFile(object):
 
         while self.samePythonFile(line):             ## have we found a new python file within the same commit?
             prevLine = lineWithNoComments
-            lineWithNoComments = self.removeComments(line, gitFileHandle)
+            lineWithNoComments = self.removeComments(gitFileHandle)
             noLeadingPlus = lineWithNoComments[1:]
             noLeadingSpaces = noLeadingPlus.strip()
             currentIndent = len(noLeadingPlus) - len(noLeadingSpaces)
@@ -167,32 +166,32 @@ class PyFile(object):
 
     def processAddedLine(self, currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine):
         if re.search(r"\bpass\b", lineWithNoComments):      # Transformation 1
-            self.transformations.append(Transformations.Trans.getTransValue("NULL"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("NULL"))
         if currentMethod.methodName != "Unknown" and not methodLine:             # Transformation 9
             myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(currentMethod.methodName)
-            #try:
-            if re.search(myRecurseSearchString, lineWithNoComments):
-                if not re.search("if __name__", prevLine):
-                    methodLineNoLeadingSpaces = noLeadingPlus.strip()
-                    methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
-                    if methodLineIndent > methodIndent:
-                        self.transformations.append(Transformations.Trans.getTransValue("REC"))
-            #except Exception as inst:
-            #    print self.fileName, type(inst)
+            try:
+                if re.search(myRecurseSearchString, lineWithNoComments):
+                    if not re.search("if __name__", prevLine):
+                        methodLineNoLeadingSpaces = noLeadingPlus.strip()
+                        methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
+                        if methodLineIndent > methodIndent:
+                            self.addToTransformationList(Transformations.Trans.getTransValue("REC"))
+            except Exception as inst:
+                print self.fileName, myRecurseSearchString, lineWithNoComments, type(inst)
         if re.search(r"\breturn\b", lineWithNoComments):
             self.processLineWithReturn(currentMethod, lineWithNoComments, noLeadingPlus)
         elif re.search(r"\bif.(?!_name__ == \"__main)", lineWithNoComments):
-            self.transformations.append(Transformations.Trans.getTransValue("SF"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("SF"))
         elif re.search(r"\bwhile\b", lineWithNoComments):
             whileTrans = self.checkWhileForMatchingIfOrWhile(currentMethod, lineWithNoComments)
-            self.transformations.append(whileTrans)
+            self.addToTransformationList(whileTrans)
         elif re.search(r"\bfor\b", noLeadingPlus):
-            self.transformations.append(Transformations.Trans.getTransValue("IT"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("IT"))
         elif re.search(r"\belif\b|\belse\b", noLeadingPlus):
-            self.transformations.append(Transformations.Trans.getTransValue("ACase"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("ACase"))
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):
             #elif (re.search(r"=",noLeadingPlus)):
-            self.transformations.append(Transformations.Trans.getTransValue("AComp"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("AComp"))
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
         assignmentVars = noLeadingPlus.split("=")               # Check to see if we are assigning a new value to an input parameter
@@ -206,21 +205,21 @@ class PyFile(object):
         rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)
         deletedLine = self.checkDeletedLinesForReturn(currentMethod)
         if rtnBoolean == True: # Transformation 1
-            self.transformations.append(Transformations.Trans.getTransValue("NULL")) ## this is either a 'return' or a 'return None'
+            self.addToTransformationList(Transformations.Trans.getTransValue("NULL")) ## this is either a 'return' or a 'return None'
         elif self.checkForConstantOnReturn(rtnValue): ## if there are constants and
             if deletedLine.deletedNullValue == True: ## if there was a Null expression before, they probably did Transformation 2 Null to Constant
-                self.transformations.append(Transformations.Trans.getTransValue("N2C"))
+                self.addToTransformationList(Transformations.Trans.getTransValue("N2C"))
             else:
-                self.transformations.append(Transformations.Trans.getTransValue("ConstOnly")) ## if constants but no previous Null, they probably just went straight to constant
+                self.addToTransformationList(Transformations.Trans.getTransValue("ConstOnly")) ## if constants but no previous Null, they probably just went straight to constant
         elif deletedLine.deletedLiteral: ## and the delete section removed a 'return' with a constant
-            self.transformations.append(Transformations.Trans.getTransValue("C2V")) ## then it is probably a Transformation 3 constant to variable
+            self.addToTransformationList(Transformations.Trans.getTransValue("C2V")) ## then it is probably a Transformation 3 constant to variable
         elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
-            self.transformations.append(Transformations.Trans.getTransValue("AComp"))
+            self.addToTransformationList(Transformations.Trans.getTransValue("AComp"))
         else:
-            self.transformations.append(Transformations.Trans.getTransValue("VarOnly")) ##  if we got to this point, they went straight to a variable.
+            self.addToTransformationList(Transformations.Trans.getTransValue("VarOnly")) ##  if we got to this point, they went straight to a variable.
         for parm in currentMethod.parameters:
             if rtnValue == parm: ## if the return value is a parameter, then it is a Transformation 11 assign.
-                self.transformations.append(Transformations.Trans.getTransValue("AS"))
+                self.addToTransformationList(Transformations.Trans.getTransValue("AS"))
 
         ## if it wasn't constants on the return
         ## this looks for constants after 'return'
@@ -235,7 +234,8 @@ class PyFile(object):
         noPlus = noPlus.strip()
         return noPlus
 
-    def removeComments(self, line, gitFileHandle):
+    def removeComments(self, gitFileHandle):
+        line = gitFileHandle.getCurrentLine()
         foundQuotedComment = True
         while foundQuotedComment:
             action = line[0]       # either blank space, + or -
@@ -316,7 +316,7 @@ class PyFile(object):
                 (myIfCond == myWhileCond) and
                 (mysecondIfCond.isdigit()) and
                 (mysecondWhileCond.isalpha())):
-                self.transformations.append(Transformations.Trans.getTransValue("C2V"))
+                self.addToTransformationList(Transformations.Trans.getTransValue("C2V"))
                 return Transformations.Trans.getTransValue("I2W")
         return Transformations.Trans.getTransValue("WhileNoIf")
 
@@ -326,10 +326,10 @@ class PyFile(object):
         if line == False:              ## EOF
             line = ''
             return False
+        if Commit.Commit.foundNewCommit(line) == True:
+            return False
         evalLine = line.rstrip()
         if (evalLine.startswith("diff")):
-            return False
-        elif Commit.Commit.foundNewCommit(evalLine) == True:
             return False
         elif (re.search("if __name__", evalLine)):
             return False
