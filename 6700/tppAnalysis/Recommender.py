@@ -21,5 +21,8 @@ class Recommender(object):
         for key, val in myConfig.items("Recommendations"):
             self.RecommendDict[key] = time.strptime(val,"%Y, %m, %d")
 
+    def provideRecommendations(self):
+        pass
+
 
 

@@ -21,6 +21,27 @@ class GitFile(object):
     Assignment.Assignment.loadAssignments()
     myTATestCase = TATestCase.TATestCase()
     TATestCaseDict = myTATestCase.retrieveTATestCaseObject()
+    myFiles = {}                  # a dictionary of pyFile names and their prod/test designation in this git file
+
+
+    @classmethod
+    def getFiles(cls, myAssignment):
+        return cls.myFiles
+
+    @classmethod
+    def addNewPyFile(cls, newPyFile):
+        cls.myFiles.update({newPyFile.getFileName(): newPyFile.getFileType()})
+
+    @classmethod
+    def newPyFile(cls, pyFileName):
+        if cls.myFiles.has_key(pyFileName):
+            return False
+        else:
+            return True
+
+    @classmethod
+    def getFileType(cls, pyFileName):
+        return cls.myFiles.get(pyFileName)    # the value for this key is prod or test
 
 
     def __init__(self):
@@ -29,7 +50,6 @@ class GitFile(object):
         '''
         self.myAssignmentFileName = ""
         self.myAssignmentsList = []         # a list of all the Assignment instances in this file
-        self.fileList = []                  # a list of pyFile objects in this file
 
     def analyzeGitLogFile(self, fileName):
         "Controls the looping through the git file"
@@ -83,12 +103,6 @@ class GitFile(object):
 
     def setAssignments(self,assignmentList):
         self.myAssignmentsList = assignmentList
-
-    def getFiles(self, myAssignment):
-        return self.myFiles
-    
-    def addNewPyFile(self, newPyFile):
-        self.myFiles.append(newPyFile)
 
     def storeGitReportObject(self, fileName):
         out_s = open(fileName+'.json', 'w')

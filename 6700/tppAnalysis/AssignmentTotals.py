@@ -36,9 +36,9 @@ class AssignmentTotals(object):
         #self.assignment = assignment
         self.__nbrCommits = 0
         self.__RLCommit = 0
-        self.__nbrValidRLCommits=0
+        self.__InvalidRLCommits=0
         self.__GLCommit = 0
-        self.__nbrValidGLCommits = 0
+        self.__InvalidGLCommits = 0
         self.__refCommit = 0
         self.__otherCommit = 0
         self.__addedLinesInAssignment = 0
@@ -212,11 +212,17 @@ class AssignmentTotals(object):
     def get_other_commit(self):
         return self.__otherCommit
 
-    def increment_valid_rl_commits(self):
-        self.__nbrValidRLCommits =+ 1
+    def add_invalid_rl_commits(self, value):
+        self.__InvalidRLCommits = self.__InvalidRLCommits + value
 
-    def increment_valid_gl_commits(self):
-        self.__nbrValidGLCommits =+ 1
+    def add_invalid_gl_commits(self, value):
+        self.__InvalidGLCommits = self.__InvalidGLCommits + value
+
+    def get_invalid_rl_commits(self):
+        return self.__InvalidRLCommits
+
+    def get_invalid_gl_commits(self):
+        return self.__InvalidGLCommits
 
     def get_avg_lines_per_commit(self):
         nbrCommits = self.get_nbr_commits()

@@ -13,16 +13,17 @@ import AssignmentTotals
 class AnalysisReport(object):
     pass
 
-    def createAnalysisReport(self, reportRoot,analysisRoot, pToF, myAssignment):
+    def createAnalysisReport(self, reportRoot, analysisRoot, pToF, myAssignment):
         printToFile = pToF
         myDir = os.listdir(analysisRoot)
         myAssignmentTotals = []
         
         self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".csv", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name, Assignment Name, TDD Grade, Nbr of Commits, Red Light, Nbr Consec RL, "
-                           "Green Light, Nbr Consec GL, Refactor,"
-                           "Other, Avg Lines Per Commit, Avg Trans Per Commit,"
+        self.outFile.write("Submission name, Assignment Name, Nbr TDD Cycles, Nbr of Commits, Red Light, Invalid RL, "
+                           "Nbr Consec RL, Reasons-Undetermined, Same test file, Same prod file, Multiple files, "
+                           "Green Light, Invalid GL, Nbr Consec GL, Reasons-Undetermined, Same test file, Same prod file, "
+                           "Multiple files, Refactor, Other, Avg Lines Per Commit, Avg Trans Per Commit,"
                            "Ratio-Prod to Test Code, Added Prod Lines, Added Test Lines, Del/Mod Lines,"
                            "Del/Mod Test Lines\r")
 
@@ -109,7 +110,6 @@ class AnalysisReport(object):
                                 
                                 studentSubmissionTotals.set_rlcommit(myCommitStats.get_rlcommit())
                                 #if myCommitStats.
-                                studentSubmissionTotals.increment_valid_rl_commits()
                                 studentSubmissionTotals.set_glcommit(myCommitStats.get_glcommit())
                                 studentSubmissionTotals.set_nbr_commits(myCommitStats.get_nbr_commits())
                                 studentSubmissionTotals.set_other_commit(myCommitStats.get_other_commit())
@@ -123,12 +123,17 @@ class AnalysisReport(object):
                                 studentSubmissionTotals.set_total_anti_trans_by_type_in_assignment(myCommitStats.get_total_anti_trans_by_type_in_assignment())
                                 
                                 self.outFile.write(fileName + ext + "," + str(myAssignment.assignmentName) + "," +
-                                                    format(myAssignment.TDDGrade, '.2f') + "," +
+                                                    # format(myAssignment.TDDGrade, '.2f') + "," +
+                                                    str(myAssignment.getTDDCycleCount()) + "," +
                                                     str(myCommitStats.nbrCommits) + "," +
                                                     str(myCommitStats.RLCommit) + "," +
+                                                    str(myCommitStats.get_invalid_rl_commits()) + "," +
                                                     str(myAssignment.getConsecutiveRedLights()) + "," +
+                                                    str(myAssignment.getReasonsForConsecutiveCommits("Red Light")) + "," +
                                                     str(myCommitStats.GLCommit) + "," +
+                                                    str(myCommitStats.get_invalid_gl_commits()) + "," +
                                                     str(myAssignment.getConsecutiveGreenLights()) + "," +
+                                                    str(myAssignment.getReasonsForConsecutiveCommits("Green Light")) + "," +
                                                     str(myCommitStats.refCommit) + "," +
                                                     str(myCommitStats.otherCommit) + "," +
                                                     format(myCommitStats.get_avg_lines_per_commit(), '.2f') + "," +
@@ -157,8 +162,8 @@ class AnalysisReport(object):
                                             AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(myTran))
                         self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + ",," +
                                             str(studentSubmissionTotals.nbrCommits) + "," +
-                                            str(studentSubmissionTotals.RLCommit) + ",," +
-                                            str(studentSubmissionTotals.GLCommit) + ",," +
+                                            str(studentSubmissionTotals.RLCommit) + ",,,,,," +
+                                            str(studentSubmissionTotals.GLCommit) + ",,,,,," +
                                             str(studentSubmissionTotals.refCommit) + "," +
                                             str(studentSubmissionTotals.otherCommit) + "," +
                                             format(studentSubmissionTotals.get_avg_lines_per_commit(), '.2f') + "," +

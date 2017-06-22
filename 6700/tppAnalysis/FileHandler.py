@@ -19,6 +19,7 @@ class FileHandler(object):
             self.line = self.file.next()
             return self.line
         except StopIteration as e:
+            self.line = ""
             return False
 
     def getCurrentLine(self):

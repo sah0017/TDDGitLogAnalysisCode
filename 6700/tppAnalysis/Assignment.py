@@ -10,12 +10,15 @@ import AssignmentTotals
 import Commit
 import FileHandler
 from time import strptime
+import ConsecutiveCommitsOfSameType
+import TDDCycle
 
 
 class Assignment(object):
     '''
     classdocs
     '''
+    ''' **********************  class variables and methods  **********************   '''
     assignmentNameDict = {}
     keyIndexList = []
     originalAssignment = None
@@ -55,6 +58,7 @@ class Assignment(object):
     @classmethod
     def get_assignment_name_dict(cls):
         return cls.assignmentNameDict
+    ''' **********************  end class variables and methods  **********************   '''
 
     def __init__(self,assnName):
         '''
@@ -63,15 +67,19 @@ class Assignment(object):
         self.assignmentName = assnName
         self.myCommits = []
         self.myCommitTotals = []
+        self.consecutiveCommitsOfSameTypeList = []
         self.consecutiveRedLights = 0
         self.consecutiveGreenLights = 0
         self.TDDPoints = 0.0
         self.TDDGrade = 0.0
+        self.TDDCycles = []
 
     def analyzeAssignment(self, fileIOobject):
         __commits = 0
         prevCommit = None
         line = fileIOobject.getCurrentLine()
+        tddCycleContainsGreenLight = True
+        myTddCycle = None
 
         # line = fileIOobject.readNextLine()          # commit date
         while line != False:
@@ -79,20 +87,49 @@ class Assignment(object):
             if self.assignmentName != __assignmentName:
                 return  __assignmentName                    # we've moved to a new assignment, done with this one
 
-            __commitType = self.readCommitType(fileIOobject)  # advances to next line to get commit type
-            if prevCommit == __commitType:            # looking for consecutive Red or Green Lights
-                if __commitType.startswith("Red Light"):
-                    self.incrementConsecutiveRedLights()
-                elif __commitType.startswith("Green Light"):
-                    self.incrementConsecutiveGreenLights()
-            prevCommit = __commitType
             __commits = __commits + 1
-            myNewCommit = Commit.Commit(__commits, __commitType)
-
+            myNewCommit = Commit.Commit(__commits, fileIOobject)
             self.addCommitToAssignment(myNewCommit.analyzeCommit(fileIOobject, line))
+            newCommitType = myNewCommit.get_commit_type()
+            if prevCommit == newCommitType:            # looking for consecutive Red or Green Lights
+                if newCommitType=="Red Light":
+                    self.incrementConsecutiveRedLights()
+                elif newCommitType=="Green Light":
+                    self.incrementConsecutiveGreenLights()
+
+                myConsCommit = ConsecutiveCommitsOfSameType.ConsecutiveCommitsOfSameType(newCommitType,
+                                                                                         __commits-1,__commits)
+                fileList = self.myCommits[__commits-2].get_file_names_list()
+                myConsCommit.setFirstCommitList(fileList)
+                fileList = self.myCommits[__commits-1].get_file_names_list()
+                myConsCommit.setSecondCommitList(fileList)
+                self.consecutiveCommitsOfSameTypeList.append(myConsCommit)
+            elif newCommitType == "Green Light":
+                tddCycleContainsGreenLight = True
+            elif prevCommit is None and newCommitType != "Red Light":
+                myTddCycle = self.addNewTDDCycle(False)
+            else:
+                if newCommitType == "Red Light" and tddCycleContainsGreenLight:
+                    self.addTddCycleToAssignment(myTddCycle)
+                    myTddCycle = self.addNewTDDCycle(True)
+                    tddCycleContainsGreenLight = False
+            myTddCycle = self.addCommitToTDDCycle(myTddCycle, myNewCommit)
+            prevCommit = newCommitType
             line = fileIOobject.readNextLine()
+        self.addTddCycleToAssignment(myTddCycle)
         return False
 
+    def addNewTDDCycle(self, startsWithRL):
+        return TDDCycle.TDDCycle(startsWithRL)
+
+    def addCommitToTDDCycle(self, myTddCycle, commit):
+        if myTddCycle is None:
+            myTddCycle = self.addNewTDDCycle(False)
+        myTddCycle.addCommit(commit)
+        return myTddCycle
+
+    def addTddCycleToAssignment(self, tddCycle):
+        self.TDDCycles.append(tddCycle)
 
     def findCurrentAssignment(self, line):
         " a git file can contain multiple assignments.  This is looking for the current one for analysis."
@@ -106,11 +143,6 @@ class Assignment(object):
             currAssignmentName = Assignment.get_curr_assignmentName(commitDate)
         return currAssignmentName
 
-    def readCommitType(self, gitFileHandle):
-        line = gitFileHandle.readNextLine()             # advance to next line to get commit type
-        commitType = line.strip().rstrip("\"|")
-        gitFileHandle.readNextLine()         # advance to next line to get the first file name in the commit
-        return commitType
 
     def CalculateMyCommitStats(self, outFile):
         myTransNames = Transformations.Trans()
@@ -122,7 +154,9 @@ class Assignment(object):
         deletedTestLines = 0
         nbrCommits = 0
         nbrRedLight = 0
+        nbrInvalidRL = 0
         nbrGreenLight = 0
+        nbrInvalidGL = 0
         nbrRefactor = 0
         nbrUnknownCommit = 0
         nbrTransformations = 0
@@ -130,8 +164,20 @@ class Assignment(object):
         ratio = 0
         outFile.write("\r\n*********************************\r\nAssignment Name:" + str(self.assignmentName)+
                       "\r\n*********************************")
-        outFile.write("\r\nConsecutive Green Lights:  " + str(self.getConsecutiveGreenLights()) +
-                      "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()))
+        outFile.write("\r\nNumber of TDD Cycles:  " + str(len(self.TDDCycles)) +
+                      "\tConsecutive Green Lights:  " + str(self.getConsecutiveGreenLights()) +
+                      "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()) +
+                      "\r\nConsecutive Commits of Same Type:  " + str(len(self.consecutiveCommitsOfSameTypeList)))
+        for ConsCommits in self.consecutiveCommitsOfSameTypeList:
+            outFile.write("\n\r\tCommit Type:  " + ConsCommits.consCommitType +
+                          "\n\r\t\tFirst Commit:  " + str(ConsCommits.firstCommitNbr) +
+                          "\tFirst Commit File List:  ")
+            for f in ConsCommits.firstCommitFileList:
+                outFile.write(f + "\t")
+            outFile.write("\n\r\t\tSecond Commit:  " + str(ConsCommits.secondCommitNbr) +
+                          "\tSecond Commit File List:  ")
+            for f in ConsCommits.secondCommitFileList:
+                outFile.write(f + "\t")
         nbrCommits = nbrCommits + len(self.myCommits)
         for myCommit in self.myCommits:
             ctype = myCommit.get_commit_type()
@@ -139,17 +185,21 @@ class Assignment(object):
             if ctype=="Red Light":
                 nbrRedLight = nbrRedLight + 1
                 commit_validity =  myCommit.try_valid_rl_commit()
+                if commit_validity == "INVALID":
+                    nbrInvalidRL += 1
 
             elif ctype=="Green Light":
                 nbrGreenLight = nbrGreenLight + 1
                 commit_validity = myCommit.try_valid_gl_commit()
+                if commit_validity == "INVALID":
+                    nbrInvalidGL += 1
             elif ctype=="Refactor":
                 nbrRefactor = nbrRefactor + 1
             else:
                 nbrUnknownCommit = nbrUnknownCommit + 1
             outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) +
                           "\tCommit type: " + myCommit.commitType + ". Validity value -- " + commit_validity +
-                          "\n\rAdded lines:" +
+                          "\n\r\tAdded lines:" +
                           str(myCommit.addedLinesInCommit) + ".  Deleted lines:" +
                           str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" +
                           str(myCommit.addedTestLOC) + "  Deleted test lines:" +
@@ -164,9 +214,13 @@ class Assignment(object):
             self.assignTDDPoints(commit_type=ctype, commit_validity=commit_validity,
                                  commitLOC=addedLines+addedTestLines, nbrTrans=myCommit.numberOfTransformations)
             myFiles = myCommit.get_file_list()
+            outFile.write("\n\r#################################################### " +
+                              "Summary of file transformations in this Assignment ##########################\n\r")
+
             for myFile in myFiles:
                 myTrans = myFile.get_transformations()
-                outFile.write("\n\r\tTransformations to file:  " + myFile.getFileName() + "  (" + myFile.getFileType() + ")")
+                outFile.write("\n\r\tTransformations to file:  " + myFile.getFileName() +
+                              "  (" + myFile.getFileType() + ")")
                 for myTran in myTrans:
                     outFile.write("\r\t" + myTransNames.getTransformationName(myTran))
 
@@ -181,7 +235,9 @@ class Assignment(object):
             myCommitStats = AssignmentTotals.AssignmentTotals()
             myCommitStats.nbrCommits = nbrCommits
             myCommitStats.RLCommit = nbrRedLight
+            myCommitStats.add_invalid_rl_commits(nbrInvalidRL)
             myCommitStats.GLCommit = nbrGreenLight
+            myCommitStats.add_invalid_gl_commits(nbrInvalidGL)
             myCommitStats.refCommit = nbrRefactor
             myCommitStats.otherCommit = nbrUnknownCommit
             myCommitStats.addedLinesInAssignment = addedLines
@@ -192,7 +248,6 @@ class Assignment(object):
             myCommitStats.totalDelLines = overallDeletedLines
             myCommitStats.totalTransByTypeInAssignment = transTotalsInAssignment
             myCommitStats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment
-            #self.addCommitTotalsToAssignment(myCommitStats)
 
         self.TDDGrade = self.calculateTDDGrade() * 100.0
         outFile.write("\r\n============================================\r\nTotal test code lines added:" + str(addedTestLines))
@@ -214,17 +269,17 @@ class Assignment(object):
 
     def assignTDDPoints(self, commit_type=None, commit_validity=None, nbrTrans=None, commitLOC=None):
         if commit_validity == "Valid":
-            self.TDDPoints =+ 1.0
+            self.TDDPoints += 1.0
         elif commit_validity == "INVALID":
-            self.TDDPoints =- 1.0
+            self.TDDPoints -= 1.0
         if commit_type == "Other":
-            self.TDDPoints =- .5
+            self.TDDPoints -= .5
         if nbrTrans == 1:
-            self.TDDPoints =+ .5
+            self.TDDPoints += .5
         if commitLOC < 20:
-            self.TDDPoints =+ .5
+            self.TDDPoints += .5
         elif commitLOC > 100:
-            self.TDDPoints =- .5
+            self.TDDPoints -= .5
 
 
     def calculateTDDGrade(self):
@@ -236,11 +291,24 @@ class Assignment(object):
     def incrementConsecutiveGreenLights(self):
         self.consecutiveGreenLights += 1
 
+    def getTDDCycleCount(self):
+        return len(self.TDDCycles)
+
     def getConsecutiveRedLights(self):
         return self.consecutiveRedLights
 
     def getConsecutiveGreenLights(self):
         return self.consecutiveGreenLights
+
+    def getReasonsForConsecutiveCommits(self, commitType):
+        reasonList = [0,0,0,0]
+        for r in self.consecutiveCommitsOfSameTypeList:
+            if r.consCommitType == commitType:
+                reason = r.reasonForDuplicateTypes()
+                reasonList[reason] += 1
+        return reasonList
+
+
 
     def addCommitToAssignment(self, commit):
         self.myCommits.append(commit)
@@ -253,6 +321,9 @@ class Assignment(object):
 
     def get_my_commits(self):
         return self.myCommits
+
+    def get_my_tddcycles(self):
+        return self.TDDCycles
 
     def set_my_commit_totals(self, value):
         self.myCommitTotals = value
