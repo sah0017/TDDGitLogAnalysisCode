@@ -17,27 +17,29 @@ class CodeCoverage(object):
         
 
     def analyzeCodeCoverage(self):
-        myDrive = "g:\\"
-    #printToFile = raw_input("Print output to file?  ")
-        mySemester = "6700Spring16"
-        myAssignment = "CA02"
+        myDrive = "/Users/shammond/Google Drive"
+        mySemester = "6700Spring17"
+        myAssignment = "Assignment5"
         includePath = ""
         #myCoverageAnalysis = CodeCoverage()
-        reportLocation = os.path.join(myDrive,"git\\",mySemester)
+        reportLocation = os.path.join(myDrive, mySemester)
         coverageResultsList = {}
-        resultoutFile = open(reportLocation + myAssignment + ".result", "w")
-        for root, myDir, files in os.walk(myDrive + "git\\" + mySemester + "\\" + myAssignment + "\\submissions"):
+        resultoutFile = open(reportLocation + os.sep + myAssignment + ".result", "w")
+        for root, myDir, files in os.walk(myDrive + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions"):
             if re.search("test", root):
                 includePath = ""
                 if not re.search("__MACOSX",root):
-                    nameSplit = root.split("\\")
+                    nameSplit = root.split(os.sep)
                     if nameSplit[len(nameSplit)-1] == "__pycache__":
                         nameSplit = nameSplit[:len(nameSplit)-1]
                     print nameSplit
                     for i in range(0,len(nameSplit)-1):
-                        includePath = includePath + nameSplit[i] + "\\"
+                        includePath = includePath + nameSplit[i] + os.sep
                     print includePath
-                    cov = coverage.Coverage(data_file="g:\\git\\6700Spring16\\CA02\\submissions\\CA02.cvg",include=root + "\\*.py", branch=True )
+                    cov = coverage.Coverage(data_file=myDrive + os.sep + mySemester + os.sep +
+                                            myAssignment + os.sep + "submissions" + os.sep +
+                                            myAssignment + ".cvg",include=root + os.sep +
+                                                                          "*.py", branch=True )
                     #testpath = root
                     #prodpath = root
                     #if not (re.search("test",self.root)):     
@@ -50,7 +52,7 @@ class CodeCoverage(object):
                     sys.path.insert(0,testpath)
                     print sys.path
                     testfiles = os.listdir(testpath)                               
-                    prodfiles = os.listdir(prodpath)                               
+                    #prodfiles = os.listdir(prodpath)
                     os.chdir(testpath)  
                     myTestLoader = unittest.TestLoader()  
                     test = re.compile(r"\b.py\b", re.IGNORECASE)          

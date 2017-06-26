@@ -91,6 +91,7 @@ class Assignment(object):
             myNewCommit = Commit.Commit(__commits, fileIOobject)
             self.addCommitToAssignment(myNewCommit.analyzeCommit(fileIOobject, line))
             newCommitType = myNewCommit.get_commit_type()
+            myNewCommit.set_commit_validity(newCommitType)
             if prevCommit == newCommitType:            # looking for consecutive Red or Green Lights
                 if newCommitType=="Red Light":
                     self.incrementConsecutiveRedLights()
@@ -181,16 +182,14 @@ class Assignment(object):
         nbrCommits = nbrCommits + len(self.myCommits)
         for myCommit in self.myCommits:
             ctype = myCommit.get_commit_type()
-            commit_validity = 'N/A'
+            commit_validity = myCommit.get_commit_validity()
             if ctype=="Red Light":
                 nbrRedLight = nbrRedLight + 1
-                commit_validity =  myCommit.try_valid_rl_commit()
                 if commit_validity == "INVALID":
                     nbrInvalidRL += 1
 
             elif ctype=="Green Light":
                 nbrGreenLight = nbrGreenLight + 1
-                commit_validity = myCommit.try_valid_gl_commit()
                 if commit_validity == "INVALID":
                     nbrInvalidGL += 1
             elif ctype=="Refactor":
@@ -214,9 +213,10 @@ class Assignment(object):
             self.assignTDDPoints(commit_type=ctype, commit_validity=commit_validity,
                                  commitLOC=addedLines+addedTestLines, nbrTrans=myCommit.numberOfTransformations)
             myFiles = myCommit.get_file_list()
+            '''
             outFile.write("\n\r#################################################### " +
                               "Summary of file transformations in this Assignment ##########################\n\r")
-
+            '''
             for myFile in myFiles:
                 myTrans = myFile.get_transformations()
                 outFile.write("\n\r\tTransformations to file:  " + myFile.getFileName() +
@@ -306,7 +306,9 @@ class Assignment(object):
             if r.consCommitType == commitType:
                 reason = r.reasonForDuplicateTypes()
                 reasonList[reason] += 1
-        return reasonList
+        reasonString = str(reasonList[0]) + ", " + str(reasonList[1]) + ", " + \
+                       str(reasonList[2]) + ", " + str(reasonList[3])
+        return reasonString
 
 
 
@@ -324,6 +326,15 @@ class Assignment(object):
 
     def get_my_tddcycles(self):
         return self.TDDCycles
+
+    def get_nbr_valid_cycles(self):
+        validCycles = 0
+        for myTDDCycle in self.TDDCycles:
+            if myTDDCycle != None:
+                if myTDDCycle.is_cycle_valid():
+                    validCycles += 1
+        return validCycles
+
 
     def set_my_commit_totals(self, value):
         self.myCommitTotals = value

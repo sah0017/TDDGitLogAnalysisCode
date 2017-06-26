@@ -24,20 +24,34 @@ class TDDCycle(object):
                                     # index in the commit type list
 
     def addCommit(self, commit):
-        self.CommitTypes.append(commit.commitType)
-        self.transformations.append(commit.transformations)
-        self.validCommit.append(commit.validCommit)
+        self.CommitTypes.append(commit.get_commit_type())
+        transList = commit.get_transformations()
+        for tr in transList:
+            self.transformations.append(tr)
+        self.validCommit.append(commit.get_commit_validity())
 
     def too_many_trans(self):
         nbrCommitsTooManyTrans = 0
         for tr in self.transformations:
             if len(tr) > 1:
                 nbrCommitsTooManyTrans += 1
-        return nbrCommitsTooManyTrans
+        if nbrCommitsTooManyTrans > 0:
+            return True
+        else:
+            return False
 
-    def get_cycle_validity(self):
-        nbrInvalidCycles = 0
+    def invalid_commits(self):
+        nbrInvalidCommits = 0
         for vc in self.validCommit:
-            if not vc:
-                nbrInvalidCycles += 1
-        return nbrInvalidCycles
+            if vc == "INVALID":
+                nbrInvalidCommits += 1
+        if nbrInvalidCommits > 0:
+            return True
+        else:
+            return False
+
+    def is_cycle_valid(self):
+        if self.too_many_trans() or self.invalid_commits():
+            return False
+        else:
+            return True

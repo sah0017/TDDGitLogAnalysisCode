@@ -42,31 +42,24 @@ class Commit(object):
         self.nbrTestFiles = 0
         self.nbrProdFiles = 0
         self.transformations = []
-        self.validCommit = True
+        self.commitValidity = 'Valid'
         self.myFiles = []       # a list of pyFile objects for this commit
 
-    def try_valid_gl_commit(self):
+    def set_commit_validity(self, commit_type):
         # if it's a Green Light, they worked on a prod file.  Red Light worked on a test file.
-        validCommit = 'Valid'
-
-        if self.get_commit_type() == "Green Light":
+        if commit_type == "Green Light":
             if (self.addedTestLOC > 0) or (self.deletedTestLOC > 0) or self.nbrTestFiles > 0:
-                validCommit = 'INVALID'
-        self.validCommit = validCommit
-        return validCommit
-
-    def try_valid_rl_commit(self):
-        validCommit = 'Valid'
-        if self.get_commit_type() == "Red Light":
+                self.commitValidity = 'INVALID'
+        elif commit_type == "Red Light":
             if (self.addedLinesInCommit > 0) or (self.deletedLinesInCommit > 0) or self.nbrProdFiles > 0:
-                validCommit = 'INVALID'
-        self.validCommit = validCommit
-        return validCommit
+                self.commitValidity = 'INVALID'
+        elif commit_type != "Refactor":
+            self.commitValidity = "INVALID"
+        return self.commitValidity
 
     def has_too_many_files_in_commit(self):
-        if self.commitType.startswith("Green Light") and self.nbrProdFiles > 1:
-            return True
-        if self.commitType.startswith("Red Light") and self.nbrTestFiles > 1:
+        nbrFiles = self.nbrTestFiles + self.nbrProdFiles
+        if nbrFiles > 1:
             return True
         return False
 
@@ -152,6 +145,9 @@ class Commit(object):
         if self.nbrTestFiles == 0 and self.nbrProdFiles == 0:
             ct = "No Python Code"
         return ct
+
+    def get_commit_validity(self):
+        return self.commitValidity
 
     def get_file_list(self):
         return self.myFiles

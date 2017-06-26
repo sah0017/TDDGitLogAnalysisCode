@@ -20,7 +20,8 @@ class AnalysisReport(object):
         
         self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".csv", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name, Assignment Name, Nbr TDD Cycles, Nbr of Commits, Red Light, Invalid RL, "
+        self.outFile.write("Submission name, Assignment Name, Nbr TDD Cycles, Nbr Valid TDD Cycles, Nbr of Commits, "
+                           "Red Light, Invalid RL, "
                            "Nbr Consec RL, Reasons-Undetermined, Same test file, Same prod file, Multiple files, "
                            "Green Light, Invalid GL, Nbr Consec GL, Reasons-Undetermined, Same test file, Same prod file, "
                            "Multiple files, Refactor, Other, Avg Lines Per Commit, Avg Trans Per Commit,"
@@ -125,6 +126,7 @@ class AnalysisReport(object):
                                 self.outFile.write(fileName + ext + "," + str(myAssignment.assignmentName) + "," +
                                                     # format(myAssignment.TDDGrade, '.2f') + "," +
                                                     str(myAssignment.getTDDCycleCount()) + "," +
+                                                    str(myAssignment.get_nbr_valid_cycles()) + ", " +
                                                     str(myCommitStats.nbrCommits) + "," +
                                                     str(myCommitStats.RLCommit) + "," +
                                                     str(myCommitStats.get_invalid_rl_commits()) + "," +
@@ -160,10 +162,10 @@ class AnalysisReport(object):
 
                                         else:
                                             AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(myTran))
-                        self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + ",," +
+                        self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + ",,," +
                                             str(studentSubmissionTotals.nbrCommits) + "," +
-                                            str(studentSubmissionTotals.RLCommit) + ",,,,,," +
-                                            str(studentSubmissionTotals.GLCommit) + ",,,,,," +
+                                            str(studentSubmissionTotals.RLCommit) + ",,,,,,," +
+                                            str(studentSubmissionTotals.GLCommit) + ",,,,,,," +
                                             str(studentSubmissionTotals.refCommit) + "," +
                                             str(studentSubmissionTotals.otherCommit) + "," +
                                             format(studentSubmissionTotals.get_avg_lines_per_commit(), '.2f') + "," +
