@@ -18,6 +18,7 @@ class AssignmentTotals(object):
     __totalDeletedProdLOC = 0
     __totalDeletedTestLOC = 0
     __totalNbrTransformations = 0
+    __totalNbrAntiTransformations = 0
     __totalProdFiles = 0
     __totalTestFiles = 0
     __totalProdLOC = 0
@@ -234,9 +235,11 @@ class AssignmentTotals(object):
 
     def get_avg_trans_per_commit(self):
         nbrCommits = self.get_nbr_commits()
+        totTrans = self.get_total_nbr_transformations_in_assignment()
+        totATrans = self.get_total_nbr_anti_transformations_in_assignment()
         if nbrCommits > 0:
-            avgTrans = self.get_total_nbr_transformations_in_assignment() / nbrCommits
-            return (self.get_total_nbr_transformations_in_assignment() * 1.0) / nbrCommits
+            # avgTrans = self.get_total_nbr_transformations_in_assignment() / nbrCommits
+            return (totTrans + totATrans) / float(nbrCommits)
         else:
             return 0
 
@@ -253,6 +256,19 @@ class AssignmentTotals(object):
         for i in range(0, len(self.__totalTransByTypeInAssignment)-1):
             __nbrTrans = __nbrTrans + self.__totalTransByTypeInAssignment[i]
         return __nbrTrans
+
+    def get_total_nbr_anti_transformations_in_assignment(self):
+        __nbrATrans = 0
+        for i in range(0, len(self.__totalAntiTransByTypeInAssignment)-1):
+            __nbrATrans = __nbrATrans + self.__totalAntiTransByTypeInAssignment[i]
+            if i == 2:          # penalty for skipping straight to variable
+                __nbrATrans = __nbrATrans + self.__totalAntiTransByTypeInAssignment[i]
+        return __nbrATrans
+
+    def get_ideal_number_of_cycles(self):
+        totTrans = self.get_total_nbr_transformations_in_assignment()
+        totATrans = self.get_total_nbr_anti_transformations_in_assignment()
+        return totATrans + totTrans
 
     def get_added_lines_in_assignment(self):
         return self.__addedLinesInAssignment

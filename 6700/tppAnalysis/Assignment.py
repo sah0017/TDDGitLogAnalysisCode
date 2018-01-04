@@ -170,12 +170,12 @@ class Assignment(object):
                       "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()) +
                       "\r\nConsecutive Commits of Same Type:  " + str(len(self.consecutiveCommitsOfSameTypeList)))
         for ConsCommits in self.consecutiveCommitsOfSameTypeList:
-            outFile.write("\n\r\tCommit Type:  " + ConsCommits.consCommitType +
-                          "\n\r\t\tFirst Commit:  " + str(ConsCommits.firstCommitNbr) +
+            outFile.write("\r\tCommit Type:  " + ConsCommits.consCommitType +
+                          "\r\t\tFirst Commit:  " + str(ConsCommits.firstCommitNbr) +
                           "\tFirst Commit File List:  ")
             for f in ConsCommits.firstCommitFileList:
                 outFile.write(f + "\t")
-            outFile.write("\n\r\t\tSecond Commit:  " + str(ConsCommits.secondCommitNbr) +
+            outFile.write("\r\t\tSecond Commit:  " + str(ConsCommits.secondCommitNbr) +
                           "\tSecond Commit File List:  ")
             for f in ConsCommits.secondCommitFileList:
                 outFile.write(f + "\t")
@@ -204,7 +204,7 @@ class Assignment(object):
                           str(myCommit.addedTestLOC) + "  Deleted test lines:" +
                           str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) +
                           ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " +
-                          str(myCommit.numberOfTransformations) + ". \n\r")
+                          str(myCommit.numberOfTransformations) + ".")
 
             addedLines = addedLines + myCommit.addedLinesInCommit
             addedTestLines = addedTestLines + myCommit.addedTestLOC
@@ -213,10 +213,7 @@ class Assignment(object):
             self.assignTDDPoints(commit_type=ctype, commit_validity=commit_validity,
                                  commitLOC=addedLines+addedTestLines, nbrTrans=myCommit.numberOfTransformations)
             myFiles = myCommit.get_file_list()
-            '''
-            outFile.write("\n\r#################################################### " +
-                              "Summary of file transformations in this Assignment ##########################\n\r")
-            '''
+
             for myFile in myFiles:
                 myTrans = myFile.get_transformations()
                 outFile.write("\n\r\tTransformations to file:  " + myFile.getFileName() +
@@ -256,9 +253,9 @@ class Assignment(object):
         outFile.write("\r\nTotal production code lines deleted:" + str(deletedLines))
         if addedLines > 0:
             ratio = addedTestLines / float(addedLines)
-            outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') + ":1\r\n")
-        outFile.write("TDD Grade:  " + format(self.TDDGrade, '.2f') +
-                      "\r\n============================================\r\n\r\n")
+            outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') + ":1")
+        #  outFile.write("TDD Grade:  " + format(self.TDDGrade, '.2f') +
+        outFile.write("\r\n============================================\r\n\r\n")
         '''
         self.add_to_total_commits_in_analysis(nbrCommits)
         self.__totalTransformationsInAnalysis = self.__totalTransformationsInAnalysis + nbrTransformations

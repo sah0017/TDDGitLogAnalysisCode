@@ -20,7 +20,7 @@ class FormattedGitLog(object):
     def formatGitLogOutput(self, root, currentDir, analysisRoot ,whichOne):
         os.chdir(os.path.join(root, currentDir))
         p = subprocess.Popen(["git", "whatchanged", "-p", "-m", "--reverse", "--pretty=format:\"commit %h%n%ad%n%s\""], stdout=subprocess.PIPE)
-        outFile = open(analysisRoot + os.sep + whichOne + "Log.gitdata", "w")
+        outFile = open(analysisRoot + os.sep + whichOne + ".gitdata", "w")
         for line in p.stdout.readlines():
             outFile.write(line)
         

@@ -22,3 +22,5 @@ class DeletedLine(object):
         self.deletedLiteral = False
         self.deletedIf = False
         self.deletedWhile = False
+        self.deletedVariable = False
+        self.deletedVariableName = ""

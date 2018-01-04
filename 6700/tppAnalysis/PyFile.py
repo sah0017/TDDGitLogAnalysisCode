@@ -199,7 +199,7 @@ class PyFile(object):
             assignmentVar = assignmentVars[0].strip()
             for x in currentMethod.parameters:
                 if x == assignmentVar:
-                    self.transformations.append(Transformations.Trans.getTransValue("AS"))
+                    self.addToTransformationList(Transformations.Trans.getTransValue("AS"))
 
     def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
         rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)

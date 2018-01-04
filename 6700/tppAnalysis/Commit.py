@@ -87,16 +87,12 @@ class Commit(object):
                     self.add_added_test_loc(myPyFileCommitDetails.addedLines)
                     self.add_deleted_test_loc(myPyFileCommitDetails.deletedLines)
                     self.set_added_tatest_loc(myPyFileCommitDetails.TATestLines)
+                self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
+
+                self.addTransformation(myPyFile.get_transformations())
 
             else:
                 line = gitFileHandle.readNextLine()
-
-        try:
-            self.add_number_of_transformations(myPyFile.numberOfTransformationsInPyFile())
-
-            self.addTransformation(myPyFile.get_transformations())
-        except:
-            pass
 
         return self
 

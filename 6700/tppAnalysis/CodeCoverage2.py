@@ -3,11 +3,14 @@ Created on Jul 1, 2016
 
 @author: susanha
 '''
+import ConfigParser
 import sys, os, re, unittest, coverage
-from unittest.runner import TextTestRunner
+from unittest import TextTestRunner
+import TextTestResultWithSuccesses
 import inspect
 import modulefinder
 from coverage.misc import CoverageException
+
 
 class CodeCoverage(object):
     def __init__(self):
@@ -16,16 +19,12 @@ class CodeCoverage(object):
         '''
         
 
-    def analyzeCodeCoverage(self):
-        myDrive = "/Users/shammond/Google Drive"
-        mySemester = "6700Spring17"
-        myAssignment = "Assignment5"
-        includePath = ""
+    def analyzeCodeCoverage(self, myDrive, myHome, mySemester, myAssignment):
         #myCoverageAnalysis = CodeCoverage()
-        reportLocation = os.path.join(myDrive, mySemester)
+        reportLocation = os.path.join(myDrive, myHome, mySemester)
         coverageResultsList = {}
         resultoutFile = open(reportLocation + os.sep + myAssignment + ".result", "w")
-        for root, myDir, files in os.walk(myDrive + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions"):
+        for root, myDir, files in os.walk(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions"):
             if re.search("test", root):
                 includePath = ""
                 if not re.search("__MACOSX",root):
@@ -36,46 +35,51 @@ class CodeCoverage(object):
                     for i in range(0,len(nameSplit)-1):
                         includePath = includePath + nameSplit[i] + os.sep
                     print includePath
-                    cov = coverage.Coverage(data_file=myDrive + os.sep + mySemester + os.sep +
-                                            myAssignment + os.sep + "submissions" + os.sep +
-                                            myAssignment + ".cvg",include=root + os.sep +
-                                                                          "*.py", branch=True )
+                    cov = coverage.Coverage(config_file=False, source=includePath, branch=True )
                     #testpath = root
-                    #prodpath = root
+                    prodpath = includePath
                     #if not (re.search("test",self.root)):     
                     testpath = includePath+"test" 
-                    #if not (re.search("prod",self.root)):  
-                    prodpath = includePath + "prod"   
+                    if (re.search("prod",root)):
+                        prodpath = includePath + "prod"
+                        sys.path.insert(0,prodpath)
                     #cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
                     sys.path.insert(0,includePath)
-                    sys.path.insert(0,prodpath)
                     sys.path.insert(0,testpath)
                     print sys.path
                     testfiles = os.listdir(testpath)                               
-                    #prodfiles = os.listdir(prodpath)
+                    prodfiles = os.listdir(prodpath)
                     os.chdir(testpath)  
-                    myTestLoader = unittest.TestLoader()  
+                    myTestLoader = unittest.TestLoader()
+                    suite = myTestLoader.discover(testpath, pattern="*Test.py")
+                    '''
                     test = re.compile(r"\b.py\b", re.IGNORECASE)          
                     testfiles = filter(test.search, testfiles)                     
                     prodfiles = filter(test.search, prodfiles)                     
                     filenameToModuleName = lambda f: os.path.splitext(f)[0]
                     moduleTestNames = map(filenameToModuleName, testfiles)   
-                    moduleProdNames = map(filenameToModuleName, prodfiles)   
+                    moduleProdNames = map(filenameToModuleName, prodfiles)
+                    '''
                     #try:      
-                    modules = map(__import__, moduleProdNames)
+                    #modules = map(__import__, moduleProdNames)
                     #except ImportError:
                     #    return -2   
                     #for mn in moduleTestNames:
                     cov.start()
+                    '''
                     from importlib import import_module
                     for mpn in moduleProdNames:
                         import_module(mpn, 'Assignment')
-                    
+
                     
                     load = myTestLoader.loadTestsFromNames(moduleTestNames)  
                     print load.countTestCases()
+                    '''
                     #cov.load()
-                    result = TextTestRunner().run(load)
+
+                    #testResult = TextTestResultWithSuccesses()
+                    testRunner = unittest.runner.TextTestRunner(verbosity=0)
+                    result = testRunner.run(suite)
                     resultoutFile.write(includePath + "\n\r")
                     resultoutFile.write(str(result.testsRun) + "\n\r")
                     for failedTestCase, failure in result.failures:
@@ -108,12 +112,13 @@ class CodeCoverage(object):
                             #return pctg
                         except CoverageException:
                             #return -1
-                            raw_input("Continue?")
+                            raw_input("Continue after Coverage Exception?")
                     else:
                         #return -1
-                        raw_input("Continue?")
+                        raw_input("Continue after test failure?")
                     sys.path.remove(includePath)
-                    sys.path.remove(prodpath)
+                    if (re.search("prod",root)):
+                        sys.path.remove(prodpath)
                     sys.path.remove(testpath)
                     print sys.path
 
@@ -156,9 +161,18 @@ class CodeCoverage(object):
 
 
 if __name__ == '__main__':
+    myConfig = ConfigParser.ConfigParser()
+    myConfig.read("TDDanalysis.cfg")
+    myDrive = myConfig.get("Location","Root")
+    myHome = myConfig.get("Location","Home")
+    printToFile = True
+    mySemester = myConfig.get("Location","Semester")
+    myAssignment = myConfig.get("Location","Assignment")
+    analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment)
+    reportRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester)
     myCoverageAnalysis = CodeCoverage()
 
-    myCoverageAnalysis.analyzeCodeCoverage()
+    myCoverageAnalysis.analyzeCodeCoverage(myDrive, myHome, mySemester, myAssignment)
     '''
     myCodeCoverage = CodeCoverage("g:\\git\\6700Spring16\\CA05\\submissions\\almohaimeedabdulaziz_3162651_74846339_asa0021CA05\\softwareProcess\\SoftwareProcess\\Assignment")
     myPct = myCodeCoverage.analyzeCodeCoverage()

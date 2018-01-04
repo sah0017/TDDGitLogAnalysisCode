@@ -8,7 +8,7 @@ from unittest.runner import TextTestRunner
 from coverage.misc import CoverageException
 import time, traceback
 from contextlib import contextmanager
-from py._iniconfig import SectionWrapper
+# from py._iniconfig import SectionWrapper
 import ConfigParser
 
 errorDict = {-1:"Coverage Exception",
@@ -33,53 +33,62 @@ class CodeCoverage(object):
         #self.root = myConfig.get("Location","Root")
         self.assignment = ""
         self.dataFile = ""
+        self.namePathDepth = 0
         
     
            
 
     def analyzeCodeCoverage(self, root, assignment, htmlReport):
+        print root
+        submissionPath = ""
+        nameSplit = root.split(os.sep)
+        fileName = nameSplit[self.namePathDepth]
+        submissionPath = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep)
+        studentName = fileName.split("_")
+        print studentName[0]
+        prodpath = os.path.join(root + os.sep + "softwareprocess")
+        if (os.path.exists(os.path.join(prodpath,"prod"))):  # there is a prod directory is under softwareprocess dir
+            prodpath = os.path.join(prodpath + os.sep + "prod")
+        testpath = os.path.join(root + os.sep + "test")
+        if (os.path.exists(testpath)):      # test directory is off of the student ID directory
+            testfiles = os.listdir(testpath)
+        else:
+            testpath = os.path.join(root + os.sep + "softwareprocess" + os.sep + "test")  # test directory is under softwareprocess dir
+            testfiles = os.listdir(testpath)
         try:
-            submissionPath = ""
-            cov = coverage.Coverage(data_file=root+".cvg",include=root + os.sep + "*.py", branch=True )
-            nameSplit = root.split(os.sep)
-            fileName = nameSplit[5]
-            submissionPath = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep)
+            cov = coverage.Coverage(source=[prodpath],include="*.py", omit=[testpath], branch=True, cover_pylib=False )
+            #cov = coverage.Coverage(source=[root])
             with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
                 CCreportoutFile.write("\n\rStudent submission and path:  " + root + "\n\r")
-            studentName = fileName.split("_")
-            testpath = os.path.join(root + os.sep + "test") 
-            prodpath = os.path.join(root + os.sep + "prod")  
+            prodfiles = os.listdir(prodpath)
             sys.path.insert(0,root)
             sys.path.insert(0,prodpath)
             sys.path.insert(0,testpath)
-            testfiles = os.listdir(testpath)                               
-            prodfiles = os.listdir(prodpath)  
-            os.chdir(testpath)  
-            myTestLoader = unittest.TestLoader()  
-            test = re.compile(r"\b.py\b", re.IGNORECASE)          
-            testfiles = filter(test.search, testfiles)                     
-            prodfiles = filter(test.search, prodfiles)                     
-            filenameToModuleName = lambda f: os.path.splitext(f)[0]
-            moduleTestNames = map(filenameToModuleName, testfiles)   
-            #moduleProdNames = map(filenameToModuleName, prodfiles)   
+            os.chdir(prodpath)
+
+            myTestLoader = unittest.TestLoader()
+            test = re.compile(r"\b.py\b", re.IGNORECASE)      # test is a compiled regular expression to search for python files
+            testfiles = filter(test.search, testfiles)        # this will filter out any files that aren't python files
+            prodfiles = filter(test.search, prodfiles)
+            filenameToModuleName = lambda f: os.path.splitext(f)[0]  # this removes the python extension from test files
+            moduleTestNames = map(filenameToModuleName, testfiles)
+            #moduleProdNames = map(filenameToModuleName, prodfiles)
+
             cov.start()
-            '''
-            from importlib import import_module
-            '''
-            with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
-                CCreportoutFile.write("Test File Names\n\r")
-            for mtn in moduleTestNames:
-                with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
-                    CCreportoutFile.write(mtn + "\r")
-            
-            
-            load = myTestLoader.loadTestsFromNames(moduleTestNames)  
+
         except Exception as e:
             with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_traceback,file=CCreportoutFile)
-            return -3, studentName[0]
-        
+            #return -3, studentName[0]
+
+        with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
+            CCreportoutFile.write("Test File Names\n\r")
+        for t in testfiles:
+            with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
+                    CCreportoutFile.write(t + "\r")
+
+        load = myTestLoader.loadTestsFromNames(moduleTestNames)
         CCreport = TextTestRunner().run(load)
         with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
             CCreportoutFile.write("Number of tests run:  " + str(CCreport.testsRun) + "\n\r")
@@ -87,73 +96,84 @@ class CodeCoverage(object):
                 CCreportoutFile.write("Content of TestRunner failures\r")
                 for failedTestCase, failure in CCreport.failures:
                     CCreportoutFile.write(str(failedTestCase) + failure + "\n\r")
+            CCreportoutFile.write("********************************************************************************")
+
         cov.stop()
         cov.save()
-            
-        if CCreport.wasSuccessful():
-            try:
-                #print root
-                if htmlReport:
-                    myHDrive = myConfig.get("Location","Root")
-                    myHHome = myConfig.get("Location","Home")
-                    myHSemester = myConfig.get("Location","Semester")
-                    myHAssignment = myConfig.get("Location","Assignment")
-                    HPath = os.path.join(myHDrive + os.sep + myHHome + os.sep + myHSemester + os.sep + myHAssignment + os.sep + studentName[0])
+
+        #if CCreport.wasSuccessful():
+        try:
+            #print root
+            if htmlReport:
+                myHDrive = myConfig.get("Location","Root")
+                myHHome = myConfig.get("Location","Home")
+                myHSemester = myConfig.get("Location","Semester")
+                myHAssignment = myConfig.get("Location","Assignment")
+                HPath = os.path.join(myHDrive + os.sep + myHHome + os.sep + myHSemester + os.sep + myHAssignment + os.sep + studentName[0])
+                if not (os.path.exists(HPath)):
                     os.mkdir(HPath)
-                    cov.html_report(directory=HPath)
-                with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as f, redirect_stdout(f):
-                    pctg = cov.report()
-                print pctg
-                #raw_input("Continue (success)?")
-                return pctg, studentName[0]
-            except CoverageException:
-                print "CoverageException testpath" + testpath 
-                with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
-                    CCreportoutFile.write("CoverageException \n\r")
-                #raw_input("Continue (CoverageException)?")
-                return -1, studentName[0]
+                pctg = cov.html_report(directory=HPath)
+            with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+"):
+
+                outfile = open(os.path.join(submissionPath + assignment + fileName + ".cvg"), "a+")
+                pctg = cov.report(file=outfile)
+                outfile.close()
+
+            pctg = cov.report(omit=[testpath])
+            #print pctg
+            #raw_input("Continue (success)?")
+            return pctg, studentName[0]
+        except CoverageException as ce:
+            print "CoverageException testpath:  " + testpath + "\t" + str(ce)
+            with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
+                CCreportoutFile.write("CoverageException " + str(ce) + "\n\r")
+                CCreportoutFile.write("********************************************************************************")
+            #raw_input("Continue (CoverageException)?")
+            return -1, studentName[0]
+
         else:
-            print "Test cases not successful at " + testpath 
+            print "Test cases not successful at " + testpath
             with open(os.path.join(submissionPath + assignment + ".CCreport"), "a+") as CCreportoutFile:
                 CCreportoutFile.write("Test cases not successful \n\r")
-            
+                CCreportoutFile.write("********************************************************************************")
+
             #raw_input("Continue (CCreport not successful)?")
             return -2, studentName[0]
-        
 
 if __name__ == '__main__':
     totalArgs = len(sys.argv)
     args = str(sys.argv)
     
-    print os.getcwd()
+    #print os.getcwd()
     myConfig = ConfigParser.ConfigParser() 
     myConfig.read("TDDanalysis.cfg")
     myDrive = myConfig.get("Location","Root")
     myHome = myConfig.get("Location","Home")
     mySemester = myConfig.get("Location","Semester")
     myAssignment = myConfig.get("Location","Assignment")
-    
+
     myCodeCoverage = CodeCoverage()
-    '''
-    with open("g:\\git\\6700Spring16\\"+myCodeCoverage.assignment+"\\"+myCodeCoverage.assignment+".cvgrpt", "w") as outFile :
+    myCodeCoverage.namePathDepth = myConfig.getint("Location","Name Path Depth")
+
+    with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment+os.sep+myCodeCoverage.assignment+".cvgrpt"), "a+") as outFile :
         outFile.write("Module Name\t\tCode Coverage percentage\n\r")
-    with open("g:\\git\\6700Spring16\\"+myCodeCoverage.assignment+"\\"+myCodeCoverage.assignment+".CCreport", "w") as CCreportoutFile:
+    with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myCodeCoverage.assignment+".CCreport"), "a+") as CCreportoutFile:
         CCreportoutFile.write("Run date/time:  " + time.strftime("%a, %d %b %Y %H:%M:%S")+"\n\r")
-    '''
+
     if totalArgs > 1:
         dataFile = str(sys.argv[1])
-        myCodeCoverage.assignment = str(sys.argv[2])
+        assignmentStr = str(sys.argv[2]).split(".")
+        myCodeCoverage.assignment = assignmentStr[0]
         if str(sys.argv[3]) == "yes":
             htmlReport = True
         else:
             htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = "g:\\git\\6700Spring16\\CA05\\submissions\\bakerthomas_late_1313011_74933289_thb0008CA05\\Software_Process03\\Software_Process03\\Assignment\\"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "xzw0059" +os.sep
         myCodeCoverage.assignment = myAssignment
-        htmlReport = True
-    print ("Datafile location is : %s" % dataFile)
-    
+        htmlReport = False
+
     myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile,myCodeCoverage.assignment, htmlReport)
     print myPct, sName
     with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment+os.sep+myCodeCoverage.assignment+".cvgrpt"), "a+") as outFile:
@@ -163,4 +183,3 @@ if __name__ == '__main__':
             outFile.write("\n\r" + sName + "\t\t" + format(myPct, ".2f"))
     
 
-    
