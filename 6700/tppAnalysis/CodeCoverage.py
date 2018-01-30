@@ -34,8 +34,36 @@ class CodeCoverage(object):
         self.assignment = ""
         self.dataFile = ""
         self.namePathDepth = 0
-        
-    
+        self.CCReport = {}
+
+    def retrieveCodeCoverageForSpecificStudentAndAssignment(self, studentName, assignmentName):
+
+        ccpct = "N/A"
+        aLC = assignmentName.lower()
+        try:
+            students = self.CCReport[aLC].split()
+            try:
+                index = students.index(studentName)
+                ccpct = students[index+1]
+                print ccpct
+            except:
+                ccpct = "CC Error"    # student not found
+        except:
+            pass    # assignment not in code coverage list
+        return ccpct
+
+    def loadCoverageReports(self, root, assignmentList):
+        for assignment in assignmentList:
+            aLC = assignment.lower()
+            ccFileName = root + os.sep + assignment + os.sep + assignment + ".cvgrpt"
+            try:
+                ccFile = open(ccFileName,"r")
+                self.CCReport[aLC] = ccFile.read()
+                ccFile.close()
+            except Exception as e:
+                pass    # report not found
+
+        return
            
 
     def analyzeCodeCoverage(self, root, assignment, htmlReport):

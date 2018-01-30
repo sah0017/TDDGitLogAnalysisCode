@@ -58,6 +58,11 @@ class Assignment(object):
     @classmethod
     def get_assignment_name_dict(cls):
         return cls.assignmentNameDict
+
+    @classmethod
+    def get_assignment_list(cls):
+        assignment_name_list = cls.assignmentNameDict.keys()
+        return assignment_name_list
     ''' **********************  end class variables and methods  **********************   '''
 
     def __init__(self,assnName):
