@@ -2,6 +2,7 @@
 Created on Sep 17, 2014
 
 @author: susanha
+Stub file to perform the analysis on one specific file
 '''
 import os
 import subprocess

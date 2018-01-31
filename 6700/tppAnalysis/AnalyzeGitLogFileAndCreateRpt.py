@@ -2,6 +2,11 @@
 Created on Jul 25, 2014
 
 @author: susanha
+
+Used by:  runGitFileAnalysis
+Uses:  GitFile
+Parameters:  a path to a student's submission and the git file to be analyzed
+Results:  analyzes a git file and stores the data in a .json file
 '''
 import GitFile
 import os

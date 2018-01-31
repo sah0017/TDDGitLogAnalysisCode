@@ -2,6 +2,13 @@
 Created on Apr 7, 2016
 
 @author: susanha
+Used by:  GitFile
+At a class level, contains the current assignments to be analyzed
+Parameters:  when instantiated, receives an assignment name.  Keeps track of commit data per assignment.
+
+Results:  analyzes a specific assignment within a git file and tracks data about it.
+Uses:  Commit
+
 '''
 import time
 import ConfigParser

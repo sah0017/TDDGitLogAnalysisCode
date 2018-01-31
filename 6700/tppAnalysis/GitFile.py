@@ -2,6 +2,13 @@
 Created on Jul 10, 2014
 
 @author: susanha
+Used by:  AnalyzeGitLogFileAndCreateRpt
+At a class level, contains Files and File Types found in the git log for this student
+Parameters:  Opens git log file and Keeps track of commit data per assignment.
+
+Results:  controls reading through a git file and tracks data about it.
+Uses:  Commit
+
 '''
 
 # import subprocess
@@ -80,22 +87,6 @@ class GitFile(object):
             myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
             myAssignment.addCommitTotalsToAssignment(myCommitStats)
             # myFiles = self.getFiles(myAssignment)
-        '''     not storing data like this any more
-        outFile.write("\r\n**********************************************\r\nFiles in logfile:  " +
-                      str(len(myFiles)) + "\r\n")
-        for myFile in myFiles:
-            outFile.write("\r\n----------------------------------------------\r\n" + myFile.fileName +
-                          " added in commit:" + str(myFile.nbrOfCommits) + ".  Is a prod file:" + str(myFile.isProdFile()))
-            for myCommitDetails in myFile.commitDetails:
-                outFile.write("\r\n\tAssignment " + str(myCommitDetails.assignmentName) + "\tCommit " +
-                              str(myCommitDetails.commitNbr) + ".  Added lines:" + str(myCommitDetails.addedLines) +
-                              ".  Deleted lines:" + str(myCommitDetails.deletedLines) + ".  Added TA Test Lines:" +
-                              str(myCommitDetails.taTestLines))
-                outFile.write("\r\n\t\tMethods added/modified:")
-                for myMethod in myCommitDetails.methodNames:
-        # for myMethodName in myMethod.methodName:
-                    outFile.write("\r\t\t" + myMethod.methodName)
-        '''
         outFile.close()
 
     def getAssignments(self):
