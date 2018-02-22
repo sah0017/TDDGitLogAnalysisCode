@@ -164,7 +164,7 @@ class CodeCoverage(object):
                 pctg = cov.html_report(directory=HPath)
             with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+"):
 
-                outfile = open(os.path.join(paths[SUBPATH] + assignment + paths[FILENAME] + ".cvg"), "a+")
+                outfile = open(os.path.join(paths[SUBPATH] + paths[FILENAME] + assignment + ".cvg"), "a+")
                 pctg = cov.report(file=outfile)
                 outfile.close()
 
@@ -188,27 +188,6 @@ class CodeCoverage(object):
 
             #raw_input("Continue (CCreport not successful)?")
             return -2, studentName[0]
-
-    def runTATests(self, TAPath, prodPath, assignment):
-        myTestLoader = unittest.TestLoader()
-        sys.path.insert(0,prodPath)
-
-        testSuite = myTestLoader.discover(TAPath,'*.py')
-        with open(os.path.join(TAPath + assignment + ".TAreport"), "a+") as TAreportoutFile:
-            try:
-                TAreport = TextTestRunner().run(testSuite)
-                TAreportoutFile.write("\n\rStudent submission path:  " + prodPath + "\n\r")
-                TAreportoutFile.write("Number of tests run:  " + str(TAreport.testsRun) + "\n\r")
-                if not TAreport.wasSuccessful():
-                    TAreportoutFile.write("Content of TestRunner failures\r")
-                    for failedTestCase, failure in TAreport.failures:
-                        TAreportoutFile.write(str(failedTestCase) + failure + "\n\r")
-                else:
-                    TAreportoutFile.write("All tests completed successfully!\n\r")
-            except Exception:
-                TAreportoutFile.write("Import Error:  " + prodPath + "\n\r")
-
-            TAreportoutFile.write("********************************************************************************\n\r")
 
 
 if __name__ == '__main__':
@@ -242,10 +221,10 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "xzw0059" +os.sep
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "SaurabhGupta"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
-    '''
+
     myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile,myCodeCoverage.assignment, htmlReport)
     print myPct, sName
     with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment+os.sep+myCodeCoverage.assignment+".cvgrpt"), "a+") as outFile:
@@ -253,6 +232,3 @@ if __name__ == '__main__':
             outFile.write("\n\r" + sName + "\t\t" + errorDict[myPct])
         else:
             outFile.write("\n\r" + sName + "\t\t" + format(myPct, ".2f"))
-    '''
-    myCodeCoverage.runTATests(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + TATestLocation),
-                              os.path.join(dataFile + os.sep + "softwareprocess"), myCodeCoverage.assignment)

@@ -2,6 +2,10 @@
 Created on May 24, 2016
 
 @author: susanha
+
+TATestCase reads in the TA Test Cases and creates a JSON file that contains the names
+of all the test cases, plus the number of lines of code in each test method.
+Run this every time new TA Test Cases are added for an assignment.
 '''
 # from py._iniconfig import SectionWrapper
 import ConfigParser
