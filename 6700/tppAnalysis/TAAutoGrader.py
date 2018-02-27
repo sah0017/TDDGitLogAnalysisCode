@@ -98,7 +98,7 @@ class TAAutoGrader(object):
 
             # Read from the stream
             JSonStringObject = in_s.read()
-            TAReportObject = ast.literal_eval(JSonStringObject)
+            TAReportObject = json.loads(JSonStringObject)
 
             '''
             try:

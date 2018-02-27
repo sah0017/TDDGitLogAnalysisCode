@@ -31,8 +31,8 @@ class TAStatReportGenerator(object):
 
         TAreportoutFile.write("\n\rTest Case Name \t Number of Errors " + "\n\r")
         if errorStats != None:
-            for key, val in errorStats:
-                TAreportoutFile.write(str(key) + "\t" + str(val) + "\n\r")
+            for key in sorted(errorStats.iterkeys()):
+                TAreportoutFile.write(str(key) + "\t" + str(errorStats[key]) + "\n\r")
         else:
             TAreportoutFile.write("No errors to report\n\r")
 
@@ -42,8 +42,8 @@ class TAStatReportGenerator(object):
 
         TAreportoutFile.write("\n\rTest Case Name \t Number of Failures " + "\n\r")
         if failStats != None:
-            for key, val in failStats:
-                TAreportoutFile.write(str(key) + "\t" + str(val) + "\n\r")
+            for key in sorted(failStats.iterkeys()):
+                TAreportoutFile.write(str(key) + "\t" + str(failStats[key]) + "\n\r")
         else:
             TAreportoutFile.write("No failures to report\n\r")
 
