@@ -64,22 +64,7 @@ class AnalysisReport(object):
             if ttlComm > 0:
                 self.outFile.write( "Avg Trans per commit: , "+ str(ttlTrans/ttlComm)+" \r")
                 self.outFile.write( "Avg loc per commit:  ,"+ str(ttlLOC/ttlComm)+" \n\r")
-        else:
-            print "Final report"
-            print "Assignment:  ",assignment
-            print "Total submissions analyzed:  ",ttlSub
-            print "Total number of commits:  ",ttlComm
-            print "Total number of transformations:  ", ttlTrans
-            for i in range(0,13):
-                print "Nbr of trans type",i,transTtlsList[i]
-            #print "Total number of anti-transformations:  ", ttlAntiTrans
-            for i in range(0,9):
-                print "Nbr of anti-trans type",i,antiTransTtlsList[i]
-            
-            print "Total lines of code:  ", ttlLOC
-            print "Avg Trans per commit:  ", format(ttlTrans/ttlComm, '.2f')
-            print "Avg loc per commit:  ",format(ttlLOC/ttlComm, '.2f')
-            
+
         assignment = assignment + 1
         self.outFile.close()
     

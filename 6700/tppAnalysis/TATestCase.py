@@ -94,17 +94,16 @@ class TATestCase(object):
             
     def retrieveTATestCaseObject(self):
         
-        in_s = open(self.analysisRoot+os.sep+'TATestCase.json', 'r')
-        
-        # Read from the stream
-        myJsonString = in_s.read()
         try:
-            TATestCaseDict = jsonpickle.decode(myJsonString)
+            with open(self.analysisRoot+os.sep+'TATestCase.json', 'r') as in_s:
+
+                # Read from the stream
+                myJsonString = in_s.read()
+                TATestCaseDict = jsonpickle.decode(myJsonString)
         except Exception as e:
             TATestCaseDict = None
         
-        in_s.close()
-        
+
         return TATestCaseDict
       
     

@@ -75,7 +75,7 @@ class CodeCoverage(object):
 
         return
 
-    def findStudentTestFiles(self, root):
+    def findStudentTestFiles(self, root, prod):
         paths = ["","","",""]
         paths[SUBPATH] = ""
         nameSplit = root.split(os.sep)
@@ -83,10 +83,13 @@ class CodeCoverage(object):
         paths[SUBPATH] = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep)
         studentName = fileName.split("_")
         print studentName[0]
-        prodpath = os.path.join(root + os.sep + "softwareprocess")
-        if (os.path.exists(os.path.join(prodpath,"prod"))):  # there is a prod directory is under softwareprocess dir
+        prodpath = os.path.join(root + os.sep + prod)
+        if (os.path.exists(os.path.join(prodpath,"prod"))):  # there is a prod directory under prod dir
             prodpath = os.path.join(prodpath + os.sep + "prod")
-        testpath = os.path.join(root + os.sep + "test")
+        if (os.path.exists(os.path.join(root,"test"))):  # test directory is under root dir
+            testpath = os.path.join(root + os.sep + "test")
+        else:                                            # test directory is under prod directory
+            testpath = os.path.join(prodpath + os.sep + "test")
         paths[SUBPATH] = paths[SUBPATH]
         paths[PRODPATH] = prodpath
         paths[TESTPATH] = testpath
@@ -94,14 +97,14 @@ class CodeCoverage(object):
         if (os.path.exists(testpath)):      # test directory is off of the student ID directory
             testfiles = os.listdir(testpath)
         else:
-            testpath = os.path.join(root + os.sep + "softwareprocess" + os.sep + "test")  # test directory is under softwareprocess dir
+            testpath = os.path.join(root + os.sep + prod + os.sep + "test")  # test directory is under softwareprocess dir
             testfiles = os.listdir(testpath)
         return testfiles, paths, studentName[0]
 
-    def analyzeCodeCoverage(self, root, assignment, htmlReport):
+    def analyzeCodeCoverage(self, root, prodpath, assignment, htmlReport):
         print root
         paths = []
-        testfiles, paths, stuName = self.findStudentTestFiles(root)
+        testfiles, paths, stuName = self.findStudentTestFiles(root, prodpath)
         try:
             cov = coverage.Coverage(source=[paths[PRODPATH]],include="*.py", omit=[paths[TESTPATH]], branch=True, cover_pylib=False )
             #cov = coverage.Coverage(source=[root])
@@ -200,6 +203,7 @@ if __name__ == '__main__':
     myDrive = myConfig.get("Location","Root")
     myHome = myConfig.get("Location","Home")
     mySemester = myConfig.get("Location","Semester")
+    myProdPath = myConfig.get("Location", "ProdPath")
     myAssignment = myConfig.get("Location","Assignment")
     TATestLocation = myConfig.get("TA Test Case Location", "Test Directory")
 
@@ -221,11 +225,11 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "SaurabhGupta"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-aht0006"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
 
-    myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile,myCodeCoverage.assignment, htmlReport)
+    myPct, sName = myCodeCoverage.analyzeCodeCoverage(dataFile, myProdPath, myCodeCoverage.assignment, htmlReport)
     print myPct, sName
     with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment+os.sep+myCodeCoverage.assignment+".cvgrpt"), "a+") as outFile:
         if myPct < 0:

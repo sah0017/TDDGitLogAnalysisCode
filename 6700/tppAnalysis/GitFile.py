@@ -7,7 +7,7 @@ At a class level, contains Files and File Types found in the git log for this st
 Parameters:  Opens git log file and Keeps track of commit data per assignment.
 
 Results:  controls reading through a git file and tracks data about it.
-Uses:  Commit
+Uses:  Assignment, Commit
 
 '''
 
@@ -76,17 +76,17 @@ class GitFile(object):
 
         myFileIO.close_file()
 
-    def GenerateInvididualReport(self, path, fileName):
-        # list containing PyFile objects with file name and relevant data
-        # myFiles = []
+    def GenerateInvididualReport(self, path, fileName, whichAssignment):
+
         # list containing all the assignments, which contains a list of all the commits in that assignment
         myAssignments = self.getAssignments()
         outFile = open(path + os.sep + fileName + ".gitout", "w")
         outFile.write("Assignments in log file:  " + str(len(myAssignments)))
         for myAssignment in myAssignments:
-            myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
-            myAssignment.addCommitTotalsToAssignment(myCommitStats)
-            # myFiles = self.getFiles(myAssignment)
+            if whichAssignment == "all" or whichAssignment.lower() == myAssignment.assignmentName.lower():
+                myCommitStats = myAssignment.CalculateMyCommitStats(outFile)
+                myAssignment.addCommitTotalsToAssignment(myCommitStats)
+                # myFiles = self.getFiles(myAssignment)
         outFile.close()
 
     def getAssignments(self):

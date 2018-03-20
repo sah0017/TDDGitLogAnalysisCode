@@ -25,13 +25,13 @@ class SubmissionReport:
     def __init__(self):
         pass
 
-    def analyzeGitLog(self, path, fileName):
+    def analyzeGitLog(self, path, fileName, whichAssignment):
         self.add_to_total_submissions_in_analysis(1)
         myGitFile = GitFile.GitFile()                       # instantiates a git log file object
 
         myGitFile.analyzeGitLogFile(path+os.sep+fileName)        # reads through entire git log file and performs TDD/TPP analyzes
         fileParts = os.path.splitext((fileName))
-        myAssignments = myGitFile.GenerateInvididualReport(path, fileParts[0])
+        myAssignments = myGitFile.GenerateInvididualReport(path, fileParts[0], whichAssignment)
                 
         #myGitFile.setAssignments(myAssignments)    # Add commit stats to git file object
         myGitFile.storeGitReportObject(path+os.sep+fileParts[0])

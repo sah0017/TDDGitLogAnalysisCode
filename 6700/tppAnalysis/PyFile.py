@@ -2,6 +2,14 @@
 Created on Jul 24, 2014
 
 @author: susanha
+
+Used by:
+At a class level, determines if a new python file has been found in the git log, and also extracts the python
+file name.
+Parameters:  when instantiated, receives a path, a file name, and a commit number.
+Results:  Contain the code that analyzes the TPP transformations in the commit.
+Uses:  Commit
+
 '''
 import PyFileCommitDetails
 import Method
@@ -9,7 +17,6 @@ import re
 import Commit
 import GitFile
 import DeletedLine
-import TATestCase
 import Transformations
 
 
@@ -23,8 +30,9 @@ class PyFile(object):
     @classmethod
     def pythonFileFound(self, line):
         evalLine = line.rstrip().lower()
-        if ((evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine))):
-            if (re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine) or re.search(r"\bsoftwareprocess\b",evalLine)):
+        if (evalLine.startswith("diff")) and (re.search(r"\b\py\b",evalLine)):
+            if (re.search(r"\bprod\b", evalLine) or re.search(r"\btest\b",evalLine)
+                    or re.search(r"\bsoftwareprocess\b",evalLine) or re.search(r"\brcube\b",evalLine)):
                 if not (re.search(r"\b\__init__\b",evalLine)):
                     if not (re.search(r"\bmetadata\b",evalLine)):
                         return True
@@ -365,7 +373,8 @@ class PyFile(object):
         pathNameLower = pathName.lower()
         fileNameLower = fileName.lower()
         prod = False
-        if (pathNameLower.startswith('prod')) or (pathNameLower.startswith('softwareprocess')):
+        if (pathNameLower.startswith('prod') or pathNameLower.startswith('softwareprocess') or
+            pathNameLower.startswith('rcube')):
             if not (re.search("test",fileNameLower)):
                 prod = True
         return prod

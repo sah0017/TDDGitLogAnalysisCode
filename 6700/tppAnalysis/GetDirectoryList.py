@@ -2,6 +2,9 @@
 Created on Jul 15, 2016
 
 @author: susanha
+
+This file creates a directory list of the submissions.  The list is used by the CodeCoverage shell/batch
+script to loop through the directories and assess their Code Coverage by calling CodeCoverage.py.
 '''
 
 import re, os, ConfigParser 

@@ -6,7 +6,8 @@ Used by:  GitFile
 At a class level, contains the current assignments to be analyzed
 Parameters:  when instantiated, receives an assignment name.  Keeps track of commit data per assignment.
 
-Results:  analyzes a specific assignment within a git file and tracks data about it.
+Results:  analyzes a specific assignment within a git file and tracks data about it.  Contains a list
+of commit objects within the assignment.
 Uses:  Commit
 
 '''
@@ -51,7 +52,7 @@ class Assignment(object):
     def loadAssignments(cls):
         myConfig = ConfigParser.SafeConfigParser() 
         myConfig.read("TDDanalysis.cfg")
-        cls.originalAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstTDDAssignment")
+        cls.originalAssignment = myConfig.get("Assignments","BaseName") + myConfig.get("Assignments","FirstAssignment")
 
         for key, val in myConfig.items("Due Dates"):
             cls.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
@@ -209,7 +210,7 @@ class Assignment(object):
             else:
                 nbrUnknownCommit = nbrUnknownCommit + 1
             outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) +
-                          "\tCommit type: " + myCommit.commitType + ". Validity value -- " + commit_validity +
+                          "\tCommit type: " + myCommit.commitType + "    Validity value -- " + commit_validity +
                           "\n\r\tAdded lines:" +
                           str(myCommit.addedLinesInCommit) + ".  Deleted lines:" +
                           str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" +

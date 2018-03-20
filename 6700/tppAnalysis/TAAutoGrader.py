@@ -27,6 +27,7 @@ class TAAutoGrader(object):
         self.myHome = self.myConfig.get("Location","Home")
         self.mySemester = self.myConfig.get("Location","Semester")
         self.myAssignment = self.myConfig.get("Location","Assignment")
+        self.myProdPath = self.myConfig.get("Location","ProdPath")
         self.TATestLocation = self.myConfig.get("TA Test Case Location", "Test Directory")
         self.TATestPath = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + self.TATestLocation
         self.namePathDepth = self.myConfig.getint("Location","Name Path Depth")
@@ -123,7 +124,7 @@ class TAAutoGrader(object):
             myAutoGrader.assignment = self.myAssignment
 
         myAutoGrader.runTATests(os.path.join(self.TATestPath),
-                                  os.path.join(dataFile + os.sep + "softwareprocess"), myAutoGrader.assignment)
+                                  os.path.join(dataFile + os.sep + self.myProdPath), myAutoGrader.assignment)
 
 if __name__ == '__main__':
     totalArgs = len(sys.argv)

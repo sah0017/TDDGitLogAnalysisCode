@@ -48,10 +48,11 @@ if __name__ == '__main__':
     gitfileAnalysis = raw_input("Have you analyzed the formatted git files? (y/n)  ")
 
     if gitfileAnalysis.strip() == "n":                  # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
+        whichAssignment = raw_input("Report on all assignments or just 1 (type 'all' or assignment Name)  ")
         myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
         for gitDataFile in os.listdir(analysisRoot):
             if gitDataFile.endswith(".gitdata"):
-                myAnalysis.analyzeGitLog(analysisRoot, gitDataFile)
+                myAnalysis.analyzeGitLog(analysisRoot, gitDataFile, whichAssignment)
          
     myReport = CreateGitfileAnalysisReport.AnalysisReport()
     myReport.createAnalysisReport(reportRoot, analysisRoot, printToFile, myAssignment)

@@ -2,6 +2,17 @@
 Created on Jul 24, 2014
 
 @author: susanha
+
+Used by:  Assignment
+At a class level, contains the total statistics for a particular commit.
+Parameters:  None
+
+Results:  analyzes a specific commit within an assignment within a git file and tracks data about it.
+Also evaluates whether the commit is valid or invalid.
+A commit may contain references to multiple python files.  The commit contains a list of PyFile objects.
+Uses:  PyFile
+
+
 '''
 
 import PyFile
