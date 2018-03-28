@@ -21,7 +21,9 @@ class Method(object):
         self.addedLines = 0
         self.TATestLines = 0
         self.TATestCase = False
-        
+
+    def setMethodName(self,method_name):
+        self.methodName = method_name
         
     def setDeletedReturnValue(self, RtnValue):
         self.deletedReturnValue = RtnValue

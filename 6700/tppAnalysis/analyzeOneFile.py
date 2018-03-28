@@ -18,18 +18,20 @@ if __name__ == '__main__':
     #  romanowski--brenden_481945_45480789_btr0005Log
     #  bryant--james_2270195_45451066_jab0091Log
     root = "/Users"
-    myDrive = "shammond/Google Drive"
-    mySemester = "6700Spring17"
-    myAssignment = "Assignment5"
-    currentDir = "/Users/shammond/Google Drive/6700Spring17/Assignment5/submissions/Andrew Peters/softwareprocess"
-    fileName = "Andrew Peters"
+    myDrive = "shammond/GoogleDrive"
+    mySemester = "6700Spring18"
+    myAssignment = "spring2018-rcube"
+    currentDir = "shammond/GoogleDrive/6700Spring18/spring2018-rcube/submissions/spring2018-rcube-aht0006/"
+    fileName = "aht0006"
+    analysisRoot = os.path.join(root, myDrive, mySemester, myAssignment)
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
-    myFormattedGitLog.formatGitLogOutput(root, currentDir, myDrive, mySemester, myAssignment,fileName)
+    myFormattedGitLog.formatGitLogOutput(root, currentDir, analysisRoot,fileName)
 
-    myAssignment = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
+    #myAssignment = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
     myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    myAnalysis.analyzeGitLog(root + os.sep + myDrive + os.sep + mySemester + os.sep + myAssignment, fileName+"log.gitdata")
+    filename_extension = fileName + ".gitdata"
+    myAnalysis.analyzeGitLog(os.path.join(root, myDrive, mySemester, myAssignment), filename_extension, "all")
     
     '''
          

@@ -97,6 +97,12 @@ class PyFile(object):
                     methodIndent = len(noLeadingPlus) - len(noLeadingSpaces)
                     currentMethod = self.getMethodNameAndParameters(noLeadingSpaces)
                     methodArray.append(currentMethod)
+                elif lineWithNoComments[0] == "@":   # tells us what class/method the changes are from
+                    if re.search("def ", noLeadingSpaces):
+                        method_name_parts = noLeadingSpaces.split("def ")
+                        method_name = method_name_parts[1].split("(")
+                        currentMethod.setMethodName(method_name[0])
+                        methodArray.append(currentMethod)
                 else:
                     methodLine = False
                 if (lineWithNoComments[0] == '-' and lineWithNoComments[1] != '-' and currentMethod.isATATestCase() == False):

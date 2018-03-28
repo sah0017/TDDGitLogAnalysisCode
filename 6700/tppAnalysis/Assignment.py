@@ -1,4 +1,4 @@
-'''
+"""
 Created on Apr 7, 2016
 
 @author: susanha
@@ -10,7 +10,7 @@ Results:  analyzes a specific assignment within a git file and tracks data about
 of commit objects within the assignment.
 Uses:  Commit
 
-'''
+"""
 import time
 import ConfigParser
 import Transformations
@@ -23,11 +23,12 @@ import TDDCycle
 
 
 class Assignment(object):
-    '''
+    """
     classdocs
-    '''
-    ''' **********************  class variables and methods  **********************   '''
+    """
+    """ **********************  class variables and methods  **********************   """
     assignmentNameDict = {}
+    recommendations_dict = {}
     keyIndexList = []
     originalAssignment = None
 
@@ -38,9 +39,9 @@ class Assignment(object):
         else:
             return False
 
-    '''
+    """
     This method uses the date on the commit to determine which assignment the commit goes with
-    '''
+    """
     @classmethod
     def get_curr_assignmentName(cls, commitDate):
         for k in range(0, len(cls.keyIndexList)-1):
@@ -58,6 +59,8 @@ class Assignment(object):
             cls.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
         cls.keyIndexList = cls.assignmentNameDict.keys()
         cls.keyIndexList.sort()
+        for key, val in myConfig.items("Recommendations"):
+            cls.recommendations_dict[key] = val
 
     @classmethod
     def getMyFirstAssignment(cls):
@@ -71,12 +74,12 @@ class Assignment(object):
     def get_assignment_list(cls):
         assignment_name_list = cls.assignmentNameDict.keys()
         return assignment_name_list
-    ''' **********************  end class variables and methods  **********************   '''
+    """ **********************  end class variables and methods  **********************   """
 
     def __init__(self,assnName):
-        '''
+        """
         Constructor
-        '''
+        """
         self.assignmentName = assnName
         self.myCommits = []
         self.myCommitTotals = []
@@ -146,7 +149,7 @@ class Assignment(object):
         self.TDDCycles.append(tddCycle)
 
     def findCurrentAssignment(self, line):
-        " a git file can contain multiple assignments.  This is looking for the current one for analysis."
+        """ a git file can contain multiple assignments.  This is looking for the current one for analysis."""
         # line after commit contains the commit date.  Use this date to determine which assignment commit belongs in
         dateLine = line.split("-")
         commitDate = strptime(dateLine[0].strip(), '%a %b %d %X %Y')
@@ -159,7 +162,13 @@ class Assignment(object):
 
 
     def CalculateMyCommitStats(self, outFile):
+        """
+        This method calculates the commit stats for an assignment and creates the individual report file (.gitout)
+        :param outFile: the file handle for the report file
+        :return: myCommitStats - the total of all the different statistics we're tracking
+        """
         myTransNames = Transformations.Trans()
+        #RecDict = self.loadRecommendations()
         transTotalsInAssignment = [0,0,0,0,0,0,0,0,0,0,0,0,0]
         antitransTotalsInAssignment = [0,0,0,0,0,0,0,0,0,0,0,0]
         addedLines = 0
@@ -178,10 +187,25 @@ class Assignment(object):
         ratio = 0
         outFile.write("\r\n*********************************\r\nAssignment Name:" + str(self.assignmentName)+
                       "\r\n*********************************")
-        outFile.write("\r\nNumber of TDD Cycles:  " + str(len(self.TDDCycles)) +
-                      "\tConsecutive Green Lights:  " + str(self.getConsecutiveGreenLights()) +
-                      "\tConsecutive Red Lights:  " + str(self.getConsecutiveRedLights()) +
-                      "\r\nConsecutive Commits of Same Type:  " + str(len(self.consecutiveCommitsOfSameTypeList)))
+        """
+        if self.getConsecutiveRedLights() > 1:
+            outFile.write("\r\n TDD Recommendation:  " + Assignment.recommendations_dict["consredlight"])
+        if self.getConsecutiveGreenLights() > 1:
+            outFile.write("\r\n TDD Recommendation:  " + Assignment.recommendations_dict["consgreenlight"])
+        """
+        gl_longest_consec, gl_avg_length = \
+            self.longest_string_and_avg_of_consecutive_types(self.consecutiveCommitsOfSameTypeList, "Green Light")
+        rl_longest_consec, rl_avg_length = \
+            self.longest_string_and_avg_of_consecutive_types(self.consecutiveCommitsOfSameTypeList, "Red Light")
+        outFile.write("\r\nNumber of TDD Cycles:  " + str(len(self.TDDCycles)))
+        if gl_avg_length > 0 or gl_longest_consec > 0:
+            outFile.write("\r\nLongest Streak of Consecutive Green Lights:  " + str(gl_longest_consec) +
+                      "\tAverage Length of Consecutive Green Light Streaks:  " + str(gl_avg_length))
+        if rl_avg_length > 0 or rl_longest_consec > 0:
+            outFile.write("\r\nLongest Streak of Consecutive Red Lights:  " + str(rl_longest_consec) +
+                      "\tAverage Length of Consecutive Red Light Streaks:  " + str(rl_avg_length))
+                      #"\r\nConsecutive Commits of Same Type:  " + str(len(self.consecutiveCommitsOfSameTypeList)))
+        """
         for ConsCommits in self.consecutiveCommitsOfSameTypeList:
             outFile.write("\r\tCommit Type:  " + ConsCommits.consCommitType +
                           "\r\t\tFirst Commit:  " + str(ConsCommits.firstCommitNbr) +
@@ -192,6 +216,7 @@ class Assignment(object):
                           "\tSecond Commit File List:  ")
             for f in ConsCommits.secondCommitFileList:
                 outFile.write(f + "\t")
+        """
         nbrCommits = nbrCommits + len(self.myCommits)
         for myCommit in self.myCommits:
             ctype = myCommit.get_commit_type()
@@ -209,22 +234,27 @@ class Assignment(object):
                 nbrRefactor = nbrRefactor + 1
             else:
                 nbrUnknownCommit = nbrUnknownCommit + 1
-            outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commitNbr) +
-                          "\tCommit type: " + myCommit.commitType + "    Validity value -- " + commit_validity +
-                          "\n\r\tAdded lines:" +
-                          str(myCommit.addedLinesInCommit) + ".  Deleted lines:" +
-                          str(myCommit.deletedLinesInCommit) + ".\r\n\t  Added test lines:" +
-                          str(myCommit.addedTestLOC) + "  Deleted test lines:" +
-                          str(myCommit.deletedTestLOC) + ".\r\n\t  Test files:" + str(myCommit.nbrTestFiles) +
-                          ".  Production files:" + str(myCommit.nbrProdFiles) + ".  Number of Transformations:  " +
-                          str(myCommit.numberOfTransformations) + ".")
+            outFile.write("\r\n------------------------------\r\n\tCommit Number:" + str(myCommit.commit_nbr) +
+                          "\tCommit type: " + myCommit.commitType)  # + "    Validity value -- " + commit_validity)  SAH temporarily removed
+            if commit_validity == "INVALID":
+                outFile.write("\r\nCommit Feedback")
+                invalid_reason = myCommit.get_invalid_reason()
+                for r in invalid_reason:
+                    outFile.write("\r\n"+Assignment.recommendations_dict[r])
+            outFile.write("\n\r\tAdded lines:" +
+                          str(myCommit.added_lines_in_commit) + ".  Deleted lines:" +
+                          str(myCommit.deleted_lines_in_commit) + ".\r\n\t  Added test lines:" +
+                          str(myCommit.added_test_loc) + "  Deleted test lines:" +
+                          str(myCommit.deleted_test_loc) + ".\r\n\t  Test files:" + str(myCommit.nbr_test_files) +
+                          ".  Production files:" + str(myCommit.nbr_prod_files) + ".  Number of Transformations:  " +
+                          str(myCommit.number_of_transformations) + ".")
 
-            addedLines = addedLines + myCommit.addedLinesInCommit
-            addedTestLines = addedTestLines + myCommit.addedTestLOC
-            deletedLines = deletedLines + myCommit.deletedLinesInCommit
-            deletedTestLines = deletedTestLines + myCommit.deletedTestLOC
+            addedLines = addedLines + myCommit.added_lines_in_commit
+            addedTestLines = addedTestLines + myCommit.added_test_loc
+            deletedLines = deletedLines + myCommit.deleted_lines_in_commit
+            deletedTestLines = deletedTestLines + myCommit.deleted_test_loc
             self.assignTDDPoints(commit_type=ctype, commit_validity=commit_validity,
-                                 commitLOC=addedLines+addedTestLines, nbrTrans=myCommit.numberOfTransformations)
+                                 commitLOC=addedLines+addedTestLines, nbrTrans=myCommit.number_of_transformations)
             myFiles = myCommit.get_file_list()
 
             for myFile in myFiles:
@@ -269,13 +299,40 @@ class Assignment(object):
             outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') + ":1")
         #  outFile.write("TDD Grade:  " + format(self.TDDGrade, '.2f') +
         outFile.write("\r\n============================================\r\n\r\n")
-        '''
+        """
         self.add_to_total_commits_in_analysis(nbrCommits)
         self.__totalTransformationsInAnalysis = self.__totalTransformationsInAnalysis + nbrTransformations
         self.__totalAntiTransformationsInAnalysis = self.__totalAntiTransformationsInAnalysis + nbrAntiTransformations
         self.__totalLinesOfCodeInAnalysis = self.__totalLinesOfCodeInAnalysis + addedLines
-        '''
+        """
         return myCommitStats
+
+    def longest_string_and_avg_of_consecutive_types(self, con_commits_list, cm_type):
+        prev_cm_type = "None"
+        consecutive_streaks = []
+        streak_count = 0
+        second_commit_nbr = 0
+        for cons_commit in con_commits_list:
+            curr_cm_type = cons_commit.get_commit_type()
+            if cons_commit.get_first_commit_nbr() == second_commit_nbr and curr_cm_type == prev_cm_type:
+                if curr_cm_type == cm_type:
+                    streak_count += 1
+            else:
+                if streak_count > 0:
+                    consecutive_streaks.append(streak_count)
+                    streak_count = 0
+            prev_cm_type = curr_cm_type
+            second_commit_nbr = cons_commit.get_second_commit_nbr()
+        if consecutive_streaks:
+            tot_of_streaks = 0
+            for i in consecutive_streaks:
+                tot_of_streaks += i
+            avg_streak_lgth = tot_of_streaks / len(consecutive_streaks)
+            lrgst_cons_strk_lgth = max(consecutive_streaks)
+        else:
+            avg_streak_lgth = 0
+            lrgst_cons_strk_lgth = 0
+        return lrgst_cons_strk_lgth, avg_streak_lgth
 
     def assignTDDPoints(self, commit_type=None, commit_validity=None, nbrTrans=None, commitLOC=None):
         if commit_validity == "Valid":
@@ -312,15 +369,14 @@ class Assignment(object):
 
     def getReasonsForConsecutiveCommits(self, commitType):
         reasonList = [0,0,0,0]
+        reasonString = ""
         for r in self.consecutiveCommitsOfSameTypeList:
             if r.consCommitType == commitType:
                 reason = r.reasonForDuplicateTypes()
                 reasonList[reason] += 1
-        reasonString = str(reasonList[0]) + ", " + str(reasonList[1]) + ", " + \
-                       str(reasonList[2]) + ", " + str(reasonList[3])
+        for s in reasonList:
+            reasonString = reasonString + ", " + str(reasonList[s])
         return reasonString
-
-
 
     def addCommitToAssignment(self, commit):
         self.myCommits.append(commit)
@@ -338,16 +394,26 @@ class Assignment(object):
         return self.TDDCycles
 
     def get_nbr_valid_cycles(self):
-        validCycles = 0
+        valid_cycles = 0
         for myTDDCycle in self.TDDCycles:
             if myTDDCycle != None:
                 if myTDDCycle.is_cycle_valid():
-                    validCycles += 1
-        return validCycles
+                    valid_cycles += 1
+        return valid_cycles
 
 
     def set_my_commit_totals(self, value):
         self.myCommitTotals = value
+    """
+    def loadRecommendations(self):
+        my_config = ConfigParser.ConfigParser()
+        my_config.read("TDDanalysis.cfg")
+        recommendations_dict = {}
 
+        for key, val in my_config.items("Recommendations"):
+            recommendations_dict[key] = val
+
+        return recommendations_dict
+    """
 if __name__ == "__main__":
     Assignment.loadAssignments()

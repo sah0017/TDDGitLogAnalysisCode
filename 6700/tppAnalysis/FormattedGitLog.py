@@ -25,7 +25,7 @@ class FormattedGitLog(object):
             outFile.write(line)
         
         outFile.close()
-
+    """
     def createFormattedGitLogOutput(self,analysisRoot,whichOne):
         if whichOne == "all":
             for root, myDir, files in os.walk(analysisRoot + os.sep + "submissionsLate"):
@@ -41,3 +41,4 @@ class FormattedGitLog(object):
             #else:
             #    print "No git folder in " + root
             #print files   
+    """

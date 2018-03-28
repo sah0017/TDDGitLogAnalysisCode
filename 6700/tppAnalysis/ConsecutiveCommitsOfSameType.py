@@ -43,3 +43,12 @@ class ConsecutiveCommitsOfSameType(object):
             else:
                 self.reason = self.getReasonValue("Same test file")
         return self.reason
+
+    def get_commit_type(self):
+        return self.consCommitType
+
+    def get_first_commit_nbr(self):
+        return self.firstCommitNbr
+
+    def get_second_commit_nbr(self):
+        return self.secondCommitNbr
