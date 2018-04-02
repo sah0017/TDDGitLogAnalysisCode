@@ -375,7 +375,7 @@ class Assignment(object):
                 reason = r.reasonForDuplicateTypes()
                 reasonList[reason] += 1
         for s in reasonList:
-            reasonString = reasonString + ", " + str(reasonList[s])
+            reasonString = reasonString + ", " + str(s)
         return reasonString
 
     def addCommitToAssignment(self, commit):
