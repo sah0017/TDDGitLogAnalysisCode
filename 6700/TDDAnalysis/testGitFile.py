@@ -8,7 +8,7 @@ import GitFile
 import Transformations
 import Commit
 import PyFile
-import PyFileCommitDetails
+
 
 class Test(unittest.TestCase):
 
@@ -48,12 +48,12 @@ class Test(unittest.TestCase):
         self.assertEqual(myFiles[0].extractFileName(),'testPrimeFactor.py')
 
     def testFileObject(self):
-        myFile = PyFile.PyFile("testname.py",True,1)
+        myFile = PyFile.PyFile("testname.py", True, 1)
         self.assertEqual(myFile.fileName, "testname.py")
         
     def testFileObjectLinesPerCommit(self):
         myCommitList = []
-        myFile = PyFile.PyFile("testname2.py",True,2)
+        myFile = PyFile.PyFile("testname2.py", True, 2)
         myFile.setCommitDetails(1,16,0)
         myTestCommits = myFile.getCommitDetails()
         self.assertEqual(myTestCommits[0].getCommitDetails(), [1,16,0])

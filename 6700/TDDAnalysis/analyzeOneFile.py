@@ -5,13 +5,8 @@ Created on Sep 17, 2014
 Stub file to perform the analysis on one specific file
 '''
 import os
-import subprocess
-import AssignmentTotals
 import AnalyzeGitLogFileAndCreateRpt
 import FormattedGitLog
-import Assignment
-import CreateGitfileAnalysisReport
-
 
 if __name__ == '__main__':
     #  antley--matthew_1247150_45465189_mra0016Log
