@@ -118,12 +118,12 @@ class AnalysisReport(object):
                                                     str(myCommitStats.nbrCommits) + "," +
                                                     str(myCommitStats.RLCommit) + "," +
                                                     str(myCommitStats.get_invalid_rl_commits()) + "," +
-                                                    str(myAssignment.getConsecutiveRedLights()) + "," +
-                                                    str(myAssignment.getReasonsForConsecutiveCommits("Red Light")) + "," +
+                                                    str(myAssignment.getConsecutiveRedLights()) +
+                                                    myAssignment.getReasonsForConsecutiveCommits("Red Light") + "," +
                                                     str(myCommitStats.GLCommit) + "," +
                                                     str(myCommitStats.get_invalid_gl_commits()) + "," +
-                                                    str(myAssignment.getConsecutiveGreenLights()) + "," +
-                                                    str(myAssignment.getReasonsForConsecutiveCommits("Green Light")) + "," +
+                                                    str(myAssignment.getConsecutiveGreenLights()) +
+                                                    myAssignment.getReasonsForConsecutiveCommits("Green Light") + "," +
                                                     str(myCommitStats.refCommit) + "," +
                                                     str(myCommitStats.otherCommit) + "," +
                                                     format(myCommitStats.get_avg_lines_per_commit(), '.2f') + "," +

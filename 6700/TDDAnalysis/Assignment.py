@@ -295,7 +295,7 @@ class Assignment(object):
             my_assignment_stats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment
 
         tdd_commit_avg_grade = sum(self.tdd_commit_grades) / len(self.tdd_commit_grades)
-        self.TDDGrade = grader.calculateTDDGrade(rl_avg_length,gl_avg_length,tdd_commit_avg_grade)
+        self.TDDGrade = grader.calculateTDDGrade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
         outFile.write("\r\n============================================\r\nTotal test code lines added:" + str(addedTestLines))
         outFile.write("\r\nTotal production code lines added:" + str(addedLines))
         outFile.write("\r\nTotal test code lines deleted:" + str(deletedTestLines))

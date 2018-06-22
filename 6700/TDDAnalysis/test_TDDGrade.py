@@ -41,22 +41,37 @@ class MyTDDGradeTestCase(unittest.TestCase):
     def test_overall_grade(self):
         my_tdd_grade = TDDGradeRubric()
         grade_list = [100, 100, 100]
-        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 1, grade_list), 100)
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 1, 100), 100)
 
     def test_overall_grade_high_rl_avg(self):
         my_tdd_grade = TDDGradeRubric()
         grade_list = [100, 100, 100]
-        self.assertEqual(my_tdd_grade.calculateTDDGrade(2, 1, grade_list), 98)
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(2, 1, 100), 98)
 
     def test_overall_grade_high_gl_avg(self):
         my_tdd_grade = TDDGradeRubric()
         grade_list = [100, 100, 100]
-        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 6, grade_list), 98)
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 6, 100), 98)
 
     def test_overall_grade_low_grade_list(self):
         my_tdd_grade = TDDGradeRubric()
         grade_list = [90, 100, 100]
-        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 4, grade_list), 98)
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 4, 96), 98)
+
+    def test_overall_no_rls(self):
+        my_tdd_grade = TDDGradeRubric()
+        grade_list = [90, 100, 100]
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(0, 4, 100), 100)
+
+    def test_overall_no_gls(self):
+        my_tdd_grade = TDDGradeRubric()
+        grade_list = [90, 100, 100]
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 0, 100), 100)
+
+    def test_overall_no_gls_low_com_avg(self):
+        my_tdd_grade = TDDGradeRubric()
+        grade_list = [90, 100, 100]
+        self.assertEqual(my_tdd_grade.calculateTDDGrade(1, 0, 90), 95)
 
     """
     current configuration values

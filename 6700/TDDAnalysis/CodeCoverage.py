@@ -23,6 +23,7 @@ SUBPATH = 0
 PRODPATH = 1
 TESTPATH = 2
 FILENAME = 3
+SANDBOX = 4
 @contextmanager
 def redirect_stdout(new_target):
     old_target, sys.stdout = sys.stdout, new_target
@@ -76,7 +77,7 @@ class CodeCoverage(object):
         return
 
     def findStudentTestFiles(self, root, prod):
-        paths = ["","","",""]
+        paths = ["","","","",""]
         paths[SUBPATH] = ""
         nameSplit = root.split(os.sep)
         fileName = nameSplit[self.namePathDepth]
@@ -90,10 +91,15 @@ class CodeCoverage(object):
             testpath = os.path.join(root + os.sep + "test")
         else:                                            # test directory is under prod directory
             testpath = os.path.join(prodpath + os.sep + "test")
+        if (os.path.exists(os.path.join(root,"sandbox"))):  # sandbox directory is under root dir
+            sbpath = os.path.join(root + os.sep + "sandbox")
+        else:                                            # sandbox directory is under prod directory
+            sbpath = os.path.join(prodpath + os.sep + "sandbox")
         paths[SUBPATH] = paths[SUBPATH]
         paths[PRODPATH] = prodpath
         paths[TESTPATH] = testpath
         paths[FILENAME] = fileName
+        paths[SANDBOX] = sbpath
         if (os.path.exists(testpath)):      # test directory is off of the student ID directory
             testfiles = os.listdir(testpath)
         else:
@@ -106,7 +112,9 @@ class CodeCoverage(object):
         paths = []
         testfiles, paths, stuName = self.findStudentTestFiles(root, prodpath)
         try:
-            cov = coverage.Coverage(source=[paths[PRODPATH]],include="*.py", omit=[paths[TESTPATH]], branch=True, cover_pylib=False )
+            cov = coverage.Coverage(source=[paths[PRODPATH]],include="*.py",
+                                    omit=[paths[TESTPATH]+os.sep+'*',paths[SANDBOX]+os.sep+'*','__init__.py'],
+                                    branch=True, cover_pylib=False )
             #cov = coverage.Coverage(source=[root])
             with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as CCreportoutFile:
                 CCreportoutFile.write("\n\rStudent submission and path:  " + root + "\n\r")
@@ -171,7 +179,7 @@ class CodeCoverage(object):
                 pctg = cov.report(file=outfile)
                 outfile.close()
 
-            pctg = cov.report(omit=[paths[TESTPATH]])
+            pctg = cov.report(omit=[paths[TESTPATH]+os.sep+'*',paths[SANDBOX]+os.sep+'*','__init__.py'])
             #print pctg
             #raw_input("Continue (success)?")
             return pctg, stuName
@@ -225,7 +233,7 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-aht0006"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-mvb0005"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
 
