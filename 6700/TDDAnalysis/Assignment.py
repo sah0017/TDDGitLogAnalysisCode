@@ -16,7 +16,6 @@ import ConfigParser
 import Transformations
 import AssignmentTotals
 import Commit
-import FileHandler
 from time import strptime
 import ConsecutiveCommitsOfSameType
 import TDDCycle
@@ -294,8 +293,17 @@ class Assignment(object):
             my_assignment_stats.totalTransByTypeInAssignment = transTotalsInAssignment
             my_assignment_stats.totalAntiTransByTypeInAssignment = antitransTotalsInAssignment
 
-        tdd_commit_avg_grade = sum(self.tdd_commit_grades) / len(self.tdd_commit_grades)
-        self.TDDGrade = grader.calculateTDDGrade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
+        grade_total = 0
+        nbr_of_grades = 0
+        for grade in self.tdd_commit_grades:
+            if grade != "N/A":
+                grade_total = grade_total + grade
+                nbr_of_grades += 1
+        if nbr_of_grades == 0:
+            tdd_commit_avg_grade = "N/A"
+        else:
+            tdd_commit_avg_grade = grade_total / nbr_of_grades
+        self.tdd_grade = grader.calculateTDDGrade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
         outFile.write("\r\n============================================\r\nTotal test code lines added:" + str(addedTestLines))
         outFile.write("\r\nTotal production code lines added:" + str(addedLines))
         outFile.write("\r\nTotal test code lines deleted:" + str(deletedTestLines))
@@ -303,8 +311,11 @@ class Assignment(object):
         if addedLines > 0:
             ratio = addedTestLines / float(addedLines)
             outFile.write("\r\nRatio of test code to production code:" + format(ratio, '.2f') + ":1")
-        outFile.write("\r\nTDD Score:  " + str(self.TDDGrade))
-        outFile.write("\r\nGrade Components:  Average Red Light Length - " + str(rl_avg_length) +
+        outFile.write("\r\nTDD Score:  " + str(self.tdd_grade))
+        if self.tdd_grade == "N/A":
+            outFile.write("\r\nNo Red or Green Light commits found ")
+        else:
+            outFile.write("\r\nGrade Components:  Average Red Light Length - " + str(rl_avg_length) +
                       ";  Average Green Light Length - " + str(gl_avg_length) +
                       ";  Average of TDD Commit Scores - " + str(tdd_commit_avg_grade))
         outFile.write("\r\n============================================\r\n\r\n")

@@ -6,7 +6,8 @@ Created on Jul 10, 2014
 
 class Trans(object):
     '''
-    classdocs
+    This class is used to define the transformations and anti-transformations without
+    hard coding the information.
     '''
     NEWFILE = 0
     NULL = 1

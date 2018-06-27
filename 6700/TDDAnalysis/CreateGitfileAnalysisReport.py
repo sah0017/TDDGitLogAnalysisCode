@@ -19,7 +19,7 @@ class AnalysisReport(object):
         
         self.outFile = open(reportRoot + os.sep + "Report" + myAssignment + ".csv", "w")
         myTransNames = Transformations.Trans()
-        self.outFile.write("Submission name, Assignment Name, Nbr Ideal Cycles, Nbr TDD Cycles, "
+        self.outFile.write("Submission name, Assignment Name, TDD Score, Nbr Ideal Cycles, Nbr TDD Cycles, "
                            "Nbr Valid TDD Cycles, Nbr of Commits, "
                            "Red Light, Invalid RL, "
                            "Nbr Consec RL, Reasons-Undetermined, Same test file, "
@@ -97,7 +97,6 @@ class AnalysisReport(object):
                                 AssignmentTotals.AssignmentTotals.set_total_commits(myCommitStats.nbrCommits)
                                 
                                 studentSubmissionTotals.set_rlcommit(myCommitStats.get_rlcommit())
-                                #if myCommitStats.
                                 studentSubmissionTotals.set_glcommit(myCommitStats.get_glcommit())
                                 studentSubmissionTotals.set_nbr_commits(myCommitStats.get_nbr_commits())
                                 studentSubmissionTotals.set_other_commit(myCommitStats.get_other_commit())
@@ -111,7 +110,7 @@ class AnalysisReport(object):
                                 studentSubmissionTotals.set_total_anti_trans_by_type_in_assignment(myCommitStats.get_total_anti_trans_by_type_in_assignment())
                                 
                                 self.outFile.write(fileName + ext + "," + str(myAssignment.assignmentName) + "," +
-                                                    # format(myAssignment.TDDGrade, '.2f') + "," +
+                                                    str(myAssignment.tdd_grade) + "," +
                                                     str(myCommitStats.get_ideal_number_of_cycles()) + "," +
                                                     str(myAssignment.getTDDCycleCount()) + "," +
                                                     str(myAssignment.get_nbr_valid_cycles()) + ", " +
@@ -151,7 +150,7 @@ class AnalysisReport(object):
 
                                         else:
                                             AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(myTran))
-                        self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + ",,,," +
+                        self.outFile.write("Totals for " + studentName[0] + "," + str(len(myAssignments)) + ",,,,," +
                                             str(studentSubmissionTotals.nbrCommits) + "," +
                                             str(studentSubmissionTotals.RLCommit) + ",,,,,,," +
                                             str(studentSubmissionTotals.GLCommit) + ",,,,,,," +

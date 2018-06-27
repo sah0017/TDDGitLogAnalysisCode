@@ -233,7 +233,7 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-mvb0005"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-rts0012"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
 

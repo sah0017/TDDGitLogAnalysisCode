@@ -15,12 +15,12 @@ Uses:  PyFile
 
 import PyFile
 import Transformations
-import FileHandler
 import GitFile
 import ConfigParser
 import TDDGrade
 
 class Commit(object):
+
     """
     The Commit object will hold the total statistics for a particular commit, including
     a list of the files added/modified in the commit.
@@ -78,13 +78,17 @@ class Commit(object):
 
     def calculate_tdd_grade(self):
         grader = TDDGrade.TDDGradeRubric()
+        trans_grade = grader.calculate_tdd_grade(self.number_of_transformations, Commit.invalid_reason_list[3])
+        lg_commit_grade = grader.calculate_tdd_grade(self.added_lines_in_commit + self.added_test_loc, Commit.invalid_reason_list[4])
+        valid_files_grade = 100
         if self.get_commit_type() == Commit.REDLIGHT:
             valid_files_grade = grader.calculate_tdd_grade(self.nbr_prod_files, Commit.invalid_reason_list[1])
-        else:
-            valid_files_grade = grader.calculate_tdd_grade(self.nbr_test_files,Commit.invalid_reason_list[2])
-        trans_grade = grader.calculate_tdd_grade(self.number_of_transformations,Commit.invalid_reason_list[3])
-        lg_commit_grade = grader.calculate_tdd_grade(self.added_lines_in_commit + self.added_test_loc,Commit.invalid_reason_list[4])
-        commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
+            commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
+        elif self.get_commit_type() == Commit.GREENLIGHT:
+            valid_files_grade = grader.calculate_tdd_grade(self.nbr_test_files, Commit.invalid_reason_list[2])
+            commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
+        else:               # not a red or green light commit, omit from grade calculation
+            commit_grade = "N/A"
         return commit_grade
 
 

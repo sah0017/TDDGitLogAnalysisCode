@@ -3,7 +3,7 @@ Created on April 2, 2018
 
 @author: susanha
 
-Used by:  CreateGitfileAnalysisReport
+Used by:  Assignment and Commit
 At a class level, contains the data and logic to calculate the TDD Grade.
 Parameters:  None
 
@@ -63,6 +63,8 @@ class TDDGradeRubric(object):
         return grade
 
     def calc_assignment_grade(self, avg_com, rl_lgth, gl_lgth):
+        if avg_com == "N/A":
+            return "N/A"
         divisor = 3
         if rl_lgth == "N/A":
             divisor -= 1
