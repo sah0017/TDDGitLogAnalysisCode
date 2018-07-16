@@ -59,165 +59,164 @@ class PyFile(object):
         self.methods = []         # a list of Method objects in this pyFile
         self.transformations = []
 
-    def analyzePyFile(self, gitFileHandle):
+    def analyzePyFile(self, gitfile_handle):
         "Analyzes the information of an individual file within a commit"
-        gitFileHandle.readNextLine() ## either new file mode or index
+        gitfile_handle.readNextLine() ## either new file mode or index
 
-        MypyFileCommitDetails = self.evaluateTransformationsInAFile(gitFileHandle)
-        self.setCommitDetails(MypyFileCommitDetails)
-        return MypyFileCommitDetails
+        my_pyfile_commit_details = self.evaluateTransformationsInAFile(gitfile_handle)
+        self.setCommitDetails(my_pyfile_commit_details)
+        return my_pyfile_commit_details
 
-    def evaluateTransformationsInAFile(self, gitFileHandle):
+    def evaluateTransformationsInAFile(self, gitfile_handle):
         "Checks the line to see if it is a part of a transformation"
-        addedLinesInFile = 0
-        deletedLinesInFile = 0
-        taTestLinesInFile = 0
+        added_lines_in_file = 0
+        deleted_lines_in_file = 0
+        ta_test_lines_in_file = 0
         # deletedLinesArray = []
         # ifContents = []
         # whileContents = []
-        currentMethod = Method.Method("Unknown", [])
-        methodArray = []
-        methodIndent = 0
-        lineWithNoComments = ""
+        current_method = Method.Method("Unknown", [])
+        method_array = []
+        method_indent = 0
+        line_with_no_comments = ""
 
-        line = gitFileHandle.readNextLine()
+        line = gitfile_handle.readNextLine()
 
         while self.samePythonFile(line):             ## have we found a new python file within the same commit?
-            prevLine = lineWithNoComments
-            lineWithNoComments = self.removeComments(gitFileHandle)
-            noLeadingPlus = lineWithNoComments[1:]
-            noLeadingSpaces = noLeadingPlus.strip()
-            currentIndent = len(noLeadingPlus) - len(noLeadingSpaces)
-            if currentIndent <= methodIndent and len(noLeadingSpaces) > 0:
-                currentMethod = Method.Method("Unknown", [])
-                methodArray.append(currentMethod)
-            if len(noLeadingSpaces) > 0:                 ## no need to go through all of this for a blank line
-                if noLeadingSpaces.startswith("def "):   ## Looking for parameters in method call for assignment
-                    methodLine = True
-                    methodIndent = len(noLeadingPlus) - len(noLeadingSpaces)
-                    currentMethod = self.getMethodNameAndParameters(noLeadingSpaces)
-                    methodArray.append(currentMethod)
-                elif lineWithNoComments[0] == "@":   # tells us what class/method the changes are from
-                    if re.search("def ", noLeadingSpaces):
-                        method_name_parts = noLeadingSpaces.split("def ")
+            prev_line = line_with_no_comments
+            line_with_no_comments = self.removeComments(gitfile_handle)
+            no_leading_plus = line_with_no_comments[1:]
+            no_leading_spaces = no_leading_plus.strip()
+            current_indent = len(no_leading_plus) - len(no_leading_spaces)
+            if current_indent <= method_indent and len(no_leading_spaces) > 0:
+                current_method = Method.Method("Unknown", [])
+                method_array.append(current_method)
+            if len(no_leading_spaces) > 0:                 ## no need to go through all of this for a blank line
+                if no_leading_spaces.startswith("def "):   ## Looking for parameters in method call for assignment
+                    method_line = True
+                    method_indent = len(no_leading_plus) - len(no_leading_spaces)
+                    current_method = self.getMethodNameAndParameters(no_leading_spaces)
+                    method_array.append(current_method)
+                elif line_with_no_comments[0] == "@":   # tells us what class/method the changes are from
+                    if re.search("def ", no_leading_spaces):
+                        method_name_parts = no_leading_spaces.split("def ")
                         method_name = method_name_parts[1].split("(")
-                        currentMethod.setMethodName(method_name[0])
-                        methodArray.append(currentMethod)
+                        current_method.setMethodName(method_name[0])
+                        method_array.append(current_method)
                 else:
-                    methodLine = False
-                if (lineWithNoComments[0] == '-' and lineWithNoComments[1] != '-' and currentMethod.isATATestCase() == False):
+                    method_line = False
+                if line_with_no_comments[0] == '-' and line_with_no_comments[1] != '-' and current_method.isATATestCase() is False:
                     #if prodFile:
-                    deletedLine = self.processDeletedLine(lineWithNoComments)
-                    currentMethod.addDeletedLine(deletedLine)
+                    deleted_line = self.processDeletedLine(line_with_no_comments)
+                    current_method.addDeletedLine(deleted_line)
 
-                if lineWithNoComments[0] == '+' and lineWithNoComments[1] != '+' and currentMethod.isATATestCase() == False:
+                if line_with_no_comments[0] == '+' and line_with_no_comments[1] != '+' and current_method.isATATestCase() is False:
                     #if prodFile:
-                    currentMethod.addedLines = currentMethod.addedLines + 1
-                    self.processAddedLine(currentMethod, methodIndent, lineWithNoComments,
-                                          prevLine, noLeadingPlus, methodLine)
-            line = gitFileHandle.readNextLine()
+                    current_method.addedLines = current_method.addedLines + 1
+                    self.processAddedLine(current_method, method_indent, line_with_no_comments,
+                                          prev_line, no_leading_plus, method_line)
+            line = gitfile_handle.readNextLine()
 
-        for method in methodArray:
-            addedLinesInFile = addedLinesInFile + method.getAddedLines()
-            deletedLinesInFile = deletedLinesInFile + method.getDeletedLines()
-            taTestLinesInFile = taTestLinesInFile + method.getTATestLines()
+        for method in method_array:
+            added_lines_in_file = added_lines_in_file + method.getAddedLines()
+            deleted_lines_in_file = deleted_lines_in_file + method.getDeletedLines()
+            ta_test_lines_in_file = ta_test_lines_in_file + method.getTATestLines()
             #if method.getAddedLines() == 0 and method.getDeletedLines() == 0:
-            #        methodArray.remove(method)      # empty method
-        myPyFileDetails = PyFileCommitDetails.PyFileCommitDetails(self.commitNbr,
-                                                                  addedLinesInFile, deletedLinesInFile,
-                                                                  taTestLinesInFile, methodArray)
-        return myPyFileDetails
+            #        method_array.remove(method)      # empty method
+        my_py_file_details = PyFileCommitDetails.PyFileCommitDetails(self.commitNbr,
+                                                                     added_lines_in_file, deleted_lines_in_file,
+                                                                     ta_test_lines_in_file, method_array)
+        return my_py_file_details
 
 
-    def getMethodNameAndParameters(self, lineWithNoLeadingSpaces):
+    def getMethodNameAndParameters(self, line_with_no_leading_spaces):
         " Looks for method names and figures out what parameters are part of the method."
-        defaultVal = False
+        default_val = False
         params = []
-        methodData = lineWithNoLeadingSpaces.split(" ")   # def in methodData[0], method name in methodData[1] probably with (self, other params in methodData[2-n]
-        if len(methodData) > 1:
-            methodName = methodData[1].split("(")
-            params = methodData[2:]
+        method_data = line_with_no_leading_spaces.split(" ")   # def in method_data[0], method name in method_data[1] probably with (self, other params in method_data[2-n]
+        if len(method_data) > 1:
+            method_name = method_data[1].split("(")
+            params = method_data[2:]
             if len(params) > 0:
                 x = 0
                 for parm in params:
-                    noDefaultVal = parm.split("=")
-                    if len(noDefaultVal) > 1:
-                        params[x] = noDefaultVal[0]
-                        defaultVal = True
+                    no_default_val = parm.split("=")
+                    if len(no_default_val) > 1:
+                        params[x] = no_default_val[0]
+                        default_val = True
                     x = x + 1
 
-                if not defaultVal:
-                    lastParam = params[len(params) - 1]
-                    lastParam = lastParam[0:len(lastParam) - 2] ## removes ): from last parameter
-                    params[len(params) - 1] = lastParam
-                defaultVal = False
+                if not default_val:
+                    last_param = params[len(params) - 1]
+                    last_param = last_param[0:len(last_param) - 2] ## removes ): from last parameter
+                    params[len(params) - 1] = last_param
+                default_val = False
                 #print params
-            method = Method.Method(methodName[0], params)
-            if GitFile.GitFile.TATestCaseDict != None:
+            method = Method.Method(method_name[0], params)
+            if GitFile.GitFile.TATestCaseDict is not None:
                 if method.methodName in GitFile.GitFile.TATestCaseDict:       ## if they added one of the TA test cases, the number of lines in the test case will be removed from the number of test case lines that they wrote
                     method.updateTATestLines(GitFile.GitFile.TATestCaseDict[method.methodName])
                     method.setIsTATestCase(True)
         return method
 
-
-    def processDeletedLine(self, lineWithNoComments):
-        deletedLine = DeletedLine.DeletedLine(lineWithNoComments)
-        deletedLine.deletedNullValue = self.checkForDeletedNullValue(lineWithNoComments)
-        if re.search("return", lineWithNoComments):
-            deletedLine.deletedReturn = True
-            deletedLine.deletedLiteral = self.checkForConstantOnReturn(lineWithNoComments)
-        if re.search(r"\bif .", lineWithNoComments):
-            deletedLine.deletedIf = True
-            ifConditionalParts = lineWithNoComments.split("if")
+    def processDeletedLine(self, line_with_no_comments):
+        deleted_line = DeletedLine.DeletedLine(line_with_no_comments)
+        deleted_line.deletedNullValue = self.checkForDeletedNullValue(line_with_no_comments)
+        if re.search("return", line_with_no_comments):
+            deleted_line.deletedReturn = True
+            deleted_line.deletedLiteral = self.checkForConstantOnReturn(line_with_no_comments)
+        if re.search(r"\bif .", line_with_no_comments):
+            deleted_line.deletedIf = True
+            ifConditionalParts = line_with_no_comments.split("if")
             ifConditional = ifConditionalParts[1].strip()
-            deletedLine.deletedIfContents = ifConditional
-        if re.search(r"\bwhile .", lineWithNoComments):
-            deletedLine.deletedWhile = True
-            whileConditionalParts = lineWithNoComments.split("while")
+            deleted_line.deletedIfContents = ifConditional
+        if re.search(r"\bwhile .", line_with_no_comments):
+            deleted_line.deletedWhile = True
+            whileConditionalParts = line_with_no_comments.split("while")
             whileConditional = whileConditionalParts[1].strip()
-            deletedLine.deletedWhileContents = whileConditional
-        return deletedLine
+            deleted_line.deletedWhileContents = whileConditional
+        return deleted_line
 
-    def processAddedLine(self, currentMethod, methodIndent, lineWithNoComments, prevLine, noLeadingPlus, methodLine):
-        if re.search(r"\bpass\b", lineWithNoComments):      # Transformation 1
+    def processAddedLine(self, current_method, method_indent, line_with_no_comments, prev_line, no_leading_plus, method_line):
+        if re.search(r"\bpass\b", line_with_no_comments):      # Transformation 1
             self.addToTransformationList(Transformations.Trans.getTransValue("NULL"))
-        if currentMethod.methodName != "Unknown" and not methodLine:             # Transformation 9
-            myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(currentMethod.methodName)
+        if current_method.methodName != "Unknown" and not method_line:             # Transformation 9
+            myRecurseSearchString = r"\b(?=\w){0}\b(?!\w)\(\)".format(current_method.methodName)
             try:
-                if re.search(myRecurseSearchString, lineWithNoComments):
-                    if not re.search("if __name__", prevLine):
-                        methodLineNoLeadingSpaces = noLeadingPlus.strip()
-                        methodLineIndent = len(noLeadingPlus) - len(methodLineNoLeadingSpaces)
-                        if methodLineIndent > methodIndent:
+                if re.search(myRecurseSearchString, line_with_no_comments):
+                    if not re.search("if __name__", prev_line):
+                        methodLineNoLeadingSpaces = no_leading_plus.strip()
+                        methodLineIndent = len(no_leading_plus) - len(methodLineNoLeadingSpaces)
+                        if methodLineIndent > method_indent:
                             self.addToTransformationList(Transformations.Trans.getTransValue("REC"))
             except Exception as inst:
-                print self.fileName, myRecurseSearchString, lineWithNoComments, type(inst)
-        if re.search(r"\breturn\b", lineWithNoComments):
-            self.processLineWithReturn(currentMethod, lineWithNoComments, noLeadingPlus)
-        elif re.search(r"\bif.(?!_name__ == \"__main)", lineWithNoComments):
+                print self.fileName, myRecurseSearchString, line_with_no_comments, type(inst)
+        if re.search(r"\breturn\b", line_with_no_comments):
+            self.processLineWithReturn(current_method, line_with_no_comments, no_leading_plus)
+        elif re.search(r"\bif.(?!_name__ == \"__main)", line_with_no_comments):
             self.addToTransformationList(Transformations.Trans.getTransValue("SF"))
-        elif re.search(r"\bwhile\b", lineWithNoComments):
-            whileTrans = self.checkWhileForMatchingIfOrWhile(currentMethod, lineWithNoComments)
+        elif re.search(r"\bwhile\b", line_with_no_comments):
+            whileTrans = self.checkWhileForMatchingIfOrWhile(current_method, line_with_no_comments)
             self.addToTransformationList(whileTrans)
-        elif re.search(r"\bfor\b", noLeadingPlus):
+        elif re.search(r"\bfor\b", no_leading_plus):
             self.addToTransformationList(Transformations.Trans.getTransValue("IT"))
-        elif re.search(r"\belif\b|\belse\b", noLeadingPlus):
+        elif re.search(r"\belif\b|\belse\b", no_leading_plus):
             self.addToTransformationList(Transformations.Trans.getTransValue("ACase"))
-        elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):
+        elif re.search(r"[+/*%\-]|\bmath.\b", no_leading_plus):
             #elif (re.search(r"=",noLeadingPlus)):
             self.addToTransformationList(Transformations.Trans.getTransValue("AComp"))
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
-        assignmentVars = noLeadingPlus.split("=")               # Check to see if we are assigning a new value to an input parameter
+        assignmentVars = no_leading_plus.split("=")               # Check to see if we are assigning a new value to an input parameter
         if len(assignmentVars) > 1:
             assignmentVar = assignmentVars[0].strip()
-            for x in currentMethod.parameters:
+            for x in current_method.parameters:
                 if x == assignmentVar:
                     self.addToTransformationList(Transformations.Trans.getTransValue("AS"))
 
-    def processLineWithReturn(self, currentMethod, lineWithNoComments, noLeadingPlus):
-        rtnBoolean, rtnValue = self.returnWithNull(lineWithNoComments)
-        deletedLine = self.checkDeletedLinesForReturn(currentMethod)
+    def processLineWithReturn(self, current_method, line_with_no_comments, no_leading_plus):
+        rtnBoolean, rtnValue = self.returnWithNull(line_with_no_comments)
+        deletedLine = self.checkDeletedLinesForReturn(current_method)
         if rtnBoolean == True: # Transformation 1
             self.addToTransformationList(Transformations.Trans.getTransValue("NULL")) ## this is either a 'return' or a 'return None'
         elif self.checkForConstantOnReturn(rtnValue): ## if there are constants and
@@ -227,11 +226,11 @@ class PyFile(object):
                 self.addToTransformationList(Transformations.Trans.getTransValue("ConstOnly")) ## if constants but no previous Null, they probably just went straight to constant
         elif deletedLine.deletedLiteral: ## and the delete section removed a 'return' with a constant
             self.addToTransformationList(Transformations.Trans.getTransValue("C2V")) ## then it is probably a Transformation 3 constant to variable
-        elif re.search(r"[+/*%\-]|\bmath.\b", noLeadingPlus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
+        elif re.search(r"[+/*%\-]|\bmath.\b", no_leading_plus):   # if they're doing math or some math function, it is a Transformation 4 Add Computation.
             self.addToTransformationList(Transformations.Trans.getTransValue("AComp"))
         else:
             self.addToTransformationList(Transformations.Trans.getTransValue("VarOnly")) ##  if we got to this point, they went straight to a variable.
-        for parm in currentMethod.parameters:
+        for parm in current_method.parameters:
             if rtnValue == parm: ## if the return value is a parameter, then it is a Transformation 11 assign.
                 self.addToTransformationList(Transformations.Trans.getTransValue("AS"))
 
@@ -397,18 +396,29 @@ class PyFile(object):
     def getFileName(self):
         return self.fileName
 
-    def setCommitDetails(self, myCommitDetails):
-        self.commitDetails.append(myCommitDetails)
+    def setCommitDetails(self, my_commit_details):
+        self.commitDetails.append(my_commit_details)
 
-    def setMethodName(self, methodName):
-        myMethod = Method.Method(methodName,[])
-        self.methods.append(myMethod)
+    def setMethodName(self, method_name):
+        my_method = Method.Method(method_name, [])
+        self.methods.append(my_method)
 
     def getCommitDetails(self):
         return self.commitDetails
 
     def numberOfTransformationsInPyFile(self):
-        return len(self.transformations)
+        nbr_trans = 0
+        for i in self.transformations:
+            if i >= 0:
+                nbr_trans += 1
+        return nbr_trans
+
+    def number_of_anti_transformations_in_pyfile(self):
+        nbr_anti_trans = 0
+        for i in self.transformations:
+            if i < 0:
+                nbr_anti_trans += 1
+        return nbr_anti_trans
 
     def addToTransformationList(self, new_trans):
         self.transformations.append(new_trans)

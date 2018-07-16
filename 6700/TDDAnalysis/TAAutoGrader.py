@@ -13,7 +13,7 @@ import sys, os, re, unittest, coverage
 from unittest.runner import TextTestRunner
 import ConfigParser
 import json
-import ast
+import TATestResults
 
 
 class TAAutoGrader(object):
@@ -32,56 +32,68 @@ class TAAutoGrader(object):
         self.TATestPath = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + self.TATestLocation
         self.namePathDepth = self.myConfig.getint("Location","Name Path Depth")
 
+    def collect_report_stats(self, report):
 
-    def collectReportStats(self, report):
+        failure_stats = self.retrieveTAReportObject(TAAutoGrader.FAIL)
+        if failure_stats is None:
+            failure_stats = {}
+        error_stats = self.retrieveTAReportObject(TAAutoGrader.ERROR)
+        if error_stats is None:
+            error_stats = {}
 
-        failureStats = self.retrieveTAReportObject(TAAutoGrader.FAIL)
-        if failureStats == None:
-            failureStats = {}
-        errorStats = self.retrieveTAReportObject(TAAutoGrader.ERROR)
-        if errorStats == None:
-            errorStats = {}
-
-
-        for failedTestCase, failure in report.failures:
-            if failureStats.has_key(failedTestCase._testMethodName):
-                failureStats[failedTestCase._testMethodName] += 1
+        for failed_test_case, failure in report.failures:
+            if failure_stats.has_key(failed_test_case._testMethodName):
+                failure_stats[failed_test_case._testMethodName] += 1
             else:
-                failureStats[failedTestCase._testMethodName] = 1
-        for errorCase, error in report.errors:
-            if errorStats.has_key(errorCase._testMethodName):
-                errorStats[errorCase._testMethodName] += 1
+                failure_stats[failed_test_case._testMethodName] = 1
+        for error_case, error in report.errors:
+            if error_stats.has_key(error_case._testMethodName):
+                error_stats[error_case._testMethodName] += 1
             else:
-                errorStats[errorCase._testMethodName] = 1
+                error_stats[error_case._testMethodName] = 1
 
-        self.storeTAReportObject(TAAutoGrader.FAIL, failureStats)
-        self.storeTAReportObject(TAAutoGrader.ERROR, errorStats)
+        self.storeTAReportObject(TAAutoGrader.FAIL, failure_stats)
+        self.storeTAReportObject(TAAutoGrader.ERROR, error_stats)
 
+    def run_ta_tests(self, ta_path, prod_path, assignment):
+        sys.stdout = open(ta_path + os.sep + 'ta_test.stdout.log', 'a+')
 
-    def runTATests(self, TAPath, prodPath, assignment):
-        sys.stdout = open(TAPath+os.sep+'ta_test.stdout.log', 'a+')
+        sys.path.insert(0, prod_path)
 
-        sys.path.insert(0,prodPath)
+        test_suite = unittest.TestLoader().discover(ta_path, '*.py')
 
-        testSuite = unittest.TestLoader().discover(TAPath,'*.py')
-
-        with open(os.path.join(TAPath + assignment + ".TAreport"), "a+") as TAreportoutFile:
+        with open(os.path.join(ta_path + assignment + ".TAreport"), "a+") as ta_reportout_file:
             try:
                 sys.stdout.write("/n******************************************************************************************\n")
-                sys.stdout.write("***  Student submission path:  " + prodPath + "\n")
+                sys.stdout.write("***  Student submission path:  " + prod_path + "\n")
                 sys.stdout.write("******************************************************************************************\n")
-                TAreport = TextTestRunner(stream=sys.stdout, verbosity=2).run(testSuite)
-                TAreportoutFile.write("\n\rStudent submission path:  " + prodPath + "\n\r")
-                TAreportoutFile.write("Number of tests run:  " + str(TAreport.testsRun) + "\n\r")
-                if TAreport.wasSuccessful():
-                    TAreportoutFile.write("All tests completed successfully!\n\r")
+                #os.system("python " + prod_path + os.sep +"microservice.py")
+                ta_reportout_file.write("\n\rStudent submission path:  " + prod_path + "\n\r")
+                try:
+                    with open(os.path.join(ta_path + assignment + ".stream"), "a+") as ta_stream_file:
+                        ta_report = TextTestRunner(stream=ta_stream_file, verbosity=2).run(test_suite)
+                except Exception as e:
+                    ta_reportout_file.write("Exception thrown:  " + str(e))
+                ta_reportout_file.write("Number of tests run:  " + str(ta_report.testsRun) + "\n\r")
+                if ta_report.wasSuccessful():
+                    ta_reportout_file.write("All tests completed successfully!  Success rate 100%\n\r")
                 else:
-                    TAreportoutFile.write("See log for Content of TestRunner failures\r")
-                    self.collectReportStats(TAreport)
-            except Exception:
-                TAreportoutFile.write("Import Error:  " + prodPath + "\n\r")
+                    self.collect_report_stats(ta_report)
+                    ta_stats = TATestResults.TATestResults()
 
-            TAreportoutFile.write("********************************************************************************\n\r")
+                    ta_stats.total_tests_run = ta_report.testsRun
+                    ta_stats.total_tests_failed = len(ta_report.failures)
+                    ta_stats.total_tests_with_error = len(ta_report.errors)
+                    pass_ratio = ta_stats.passing_test_ratio() * 100
+                    ta_reportout_file.write("See log for Content of TestRunner failures.  "
+                                            "Failures:  " + str(ta_stats.total_tests_failed) +
+                                            "\nErrors:  " + str(ta_stats.total_tests_with_error) +
+                                            "\nSuccess rate " + format(pass_ratio, ".2f") + "%\r")
+            except Exception as e:
+                ta_reportout_file.write("Import Error:  " + prod_path + "\n\r" +
+                                        "Exception Message:  " + str(e))
+
+            ta_reportout_file.write("\n********************************************************************************\n\r")
 
     def storeTAReportObject(self, fileName, stats):
         out_s = open(os.path.join(self.TATestPath + os.sep + fileName + '.json'), 'w')
@@ -115,16 +127,17 @@ class TAAutoGrader(object):
 
     def runAutoGrader(self, totalArgs):
         if totalArgs > 1:
-            dataFile = str(sys.argv[1])
-            assignmentStr = str(sys.argv[2]).split(".")
-            myAutoGrader.assignment = assignmentStr[0]
+            data_file = str(sys.argv[1])
+            assignment_str = str(sys.argv[2]).split(".")
+            myAutoGrader.assignment = assignment_str[0]
         else:
-            #dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-            dataFile = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + self.myAssignment + os.sep + "submissions" + os.sep + "SaurabhGupta"
+            #data_file = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
+            data_file = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + \
+                        self.myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-aza0092"
             myAutoGrader.assignment = self.myAssignment
 
-        myAutoGrader.runTATests(os.path.join(self.TATestPath),
-                                  os.path.join(dataFile + os.sep + self.myProdPath), myAutoGrader.assignment)
+        myAutoGrader.run_ta_tests(os.path.join(self.TATestPath),
+                                  os.path.join(data_file), myAutoGrader.assignment)
 
 if __name__ == '__main__':
     totalArgs = len(sys.argv)

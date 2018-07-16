@@ -82,7 +82,7 @@ class Trans(object):
         elif transNbr == -8:
             return "While with no If"
         else:
-            return  ""
+            return ""
         
 
 

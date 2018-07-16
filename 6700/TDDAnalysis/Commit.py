@@ -80,7 +80,6 @@ class Commit(object):
         grader = TDDGrade.TDDGradeRubric()
         trans_grade = grader.calculate_tdd_grade(self.number_of_transformations, Commit.invalid_reason_list[3])
         lg_commit_grade = grader.calculate_tdd_grade(self.added_lines_in_commit + self.added_test_loc, Commit.invalid_reason_list[4])
-        valid_files_grade = 100
         if self.get_commit_type() == Commit.REDLIGHT:
             valid_files_grade = grader.calculate_tdd_grade(self.nbr_prod_files, Commit.invalid_reason_list[1])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
@@ -264,9 +263,6 @@ class Commit(object):
 
     def add_deleted_test_loc(self, value):
         self.deleted_test_loc = self.deleted_test_loc + value
-
-    def set_number_of_transformations(self, value):
-        self.number_of_transformations = value
 
     def add_number_of_transformations(self, value):
         self.number_of_transformations = self.number_of_transformations + value
