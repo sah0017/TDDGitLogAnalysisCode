@@ -26,6 +26,7 @@ if __name__ == '__main__':
     analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment)
     reportRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester)
     namePathDepth = myConfig.getint("Location", "Name Path Depth")
+    prodPath = myConfig.get("Location", "ProdPath")
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     whichAssignment = "all"
 
@@ -53,4 +54,4 @@ if __name__ == '__main__':
                 myAnalysis.analyze_git_log(analysisRoot, gitDataFile, whichAssignment)
          
     myReport = CreateGitfileAnalysisReport.AnalysisReport()
-    myReport.create_analysis_report(reportRoot, analysisRoot, myAssignment, whichAssignment)
+    myReport.create_analysis_report(reportRoot, analysisRoot, myAssignment, whichAssignment, prodPath)

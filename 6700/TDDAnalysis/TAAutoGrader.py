@@ -34,6 +34,11 @@ class TAAutoGrader(object):
 
     def collect_report_stats(self, report):
 
+        ta_results = TATestResults.TATestResults()
+        ta_results.total_tests_run = report.testsRun
+        ta_results.total_tests_failed = len(report.failures)
+        ta_results.total_tests_with_error = len(report.errors)
+
         failure_stats = self.retrieveTAReportObject(TAAutoGrader.FAIL)
         if failure_stats is None:
             failure_stats = {}
@@ -42,25 +47,62 @@ class TAAutoGrader(object):
             error_stats = {}
 
         for failed_test_case, failure in report.failures:
-            if failure_stats.has_key(failed_test_case._testMethodName):
-                failure_stats[failed_test_case._testMethodName] += 1
+            test_case_parts = failed_test_case.id().split(".")
+            class_name = test_case_parts[1]
+            test_name = test_case_parts[2]
+            if class_name in failure_stats:       # Class name for test cases
+                if test_name in failure_stats[class_name]:   # test name inside the class
+                    failure_stats[class_name][test_name] += 1
+                else:
+                    failure_stats[class_name] = {}
+                    failure_stats[class_name][test_name] = 1
             else:
-                failure_stats[failed_test_case._testMethodName] = 1
+                failure_stats[class_name] = {}
+                failure_stats[class_name][test_name] = 1
+            if class_name in ta_results.total_fails_by_testclass:       # Class name for test cases
+                ta_results.total_fails_by_testclass[class_name] += 1
+            else:
+                ta_results.total_fails_by_testclass[class_name] = 1
         for error_case, error in report.errors:
-            if error_stats.has_key(error_case._testMethodName):
-                error_stats[error_case._testMethodName] += 1
+            test_case_parts = error_case.id().split(".")
+            class_name = test_case_parts[1]
+            test_name = test_case_parts[2]
+            if class_name in error_stats:
+                if test_name in error_stats[class_name]:   # test name inside the class
+                    error_stats[class_name][test_name] += 1
+                else:
+                    error_stats[class_name] = {}
+                    error_stats[class_name][test_name] = 1
             else:
-                error_stats[error_case._testMethodName] = 1
+                error_stats[class_name] = {}
+                error_stats[class_name][test_name] = 1
+            if class_name in ta_results.total_fails_by_testclass:       # Class name for test cases
+                ta_results.total_fails_by_testclass[class_name] += 1
+            else:
+                ta_results.total_fails_by_testclass[class_name] = 1
 
         self.storeTAReportObject(TAAutoGrader.FAIL, failure_stats)
         self.storeTAReportObject(TAAutoGrader.ERROR, error_stats)
+
+        return ta_results
 
     def run_ta_tests(self, ta_path, prod_path, assignment):
         sys.stdout = open(ta_path + os.sep + 'ta_test.stdout.log', 'a+')
 
         sys.path.insert(0, prod_path)
 
+        nbr_tests_per_class = {}
         test_suite = unittest.TestLoader().discover(ta_path, '*.py')
+        for test in test_suite:
+            if unittest.suite._isnotsuite(test):
+              nbr_tests_per_class[test._test.shortDescription()] = 1
+            else:
+                for t in test:
+                    str_of_testsuite = str(t)
+                    testsuite_parts = str_of_testsuite.split("<")
+                    class_names = testsuite_parts[2].split(".")
+                    class_name = class_names[0].lower()
+                    nbr_tests_per_class[class_name] = len(testsuite_parts) - 2
 
         with open(os.path.join(ta_path + assignment + ".TAreport"), "a+") as ta_reportout_file:
             try:
@@ -78,17 +120,21 @@ class TAAutoGrader(object):
                 if ta_report.wasSuccessful():
                     ta_reportout_file.write("All tests completed successfully!  Success rate 100%\n\r")
                 else:
-                    self.collect_report_stats(ta_report)
-                    ta_stats = TATestResults.TATestResults()
+                    ta_stats = self.collect_report_stats(ta_report)
 
-                    ta_stats.total_tests_run = ta_report.testsRun
-                    ta_stats.total_tests_failed = len(ta_report.failures)
-                    ta_stats.total_tests_with_error = len(ta_report.errors)
                     pass_ratio = ta_stats.passing_test_ratio() * 100
                     ta_reportout_file.write("See log for Content of TestRunner failures.  "
-                                            "Failures:  " + str(ta_stats.total_tests_failed) +
-                                            "\nErrors:  " + str(ta_stats.total_tests_with_error) +
-                                            "\nSuccess rate " + format(pass_ratio, ".2f") + "%\r")
+                                            "\nTotal Failures:  " + str(ta_stats.total_tests_failed) +
+                                            "\tErrors:  " + str(ta_stats.total_tests_with_error) +
+                                            "\tSuccess rate " + format(pass_ratio, ".2f") + "%\r\n")
+                    for err_class, count in ta_stats.total_fails_by_testclass.items():
+                        if err_class.lower() in nbr_tests_per_class:
+                            total_tests_for_class = nbr_tests_per_class[err_class.lower()]
+                            pass_ratio = ((total_tests_for_class - count) / float(total_tests_for_class)) * 100
+                            ta_reportout_file.write("\nAll Test Failures for " + err_class +
+                                                "  :  " + str(count) +
+                                                "\tSuccess rate " + format(pass_ratio, ".2f") + "%\r")
+
             except Exception as e:
                 ta_reportout_file.write("Import Error:  " + prod_path + "\n\r" +
                                         "Exception Message:  " + str(e))

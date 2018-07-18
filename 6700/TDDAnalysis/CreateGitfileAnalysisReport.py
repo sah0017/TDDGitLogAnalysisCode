@@ -8,6 +8,7 @@ import GitFile
 import Transformations
 import AssignmentTotals
 import Assignment
+import unittest
 
 
 class AnalysisReport(object):
@@ -16,7 +17,7 @@ class AnalysisReport(object):
         self.out_file = None
         self.assignment_list = Assignment.Assignment.get_assignment_list()
 
-    def create_analysis_report(self, report_root, analysis_root, my_assignment, which_assignment):
+    def create_analysis_report(self, report_root, analysis_root, my_assignment, which_assignment, prod_path):
         my_dir = os.listdir(analysis_root)
 
         self.out_file = open(report_root + os.sep + "Report" + my_assignment + ".csv", "w")
@@ -32,7 +33,8 @@ class AnalysisReport(object):
                             "Avg LOC per Trans per Commit, Ratio-Prod to Test Code, Net Added Prod Lines, Net Added Test Lines\r")
 
         indiv_assignment_totals = self.print_individual_totals_and_count_assignment_totals(my_dir, analysis_root,
-                                                                                           which_assignment, my_assignment)
+                                                                                           which_assignment,
+                                                                                           my_assignment, prod_path)
 
         ttl_sub = AssignmentTotals.AssignmentTotals.get_total_submissions()
         ttl_comm = AssignmentTotals.AssignmentTotals.get_total_commits()
@@ -102,7 +104,8 @@ class AnalysisReport(object):
             self.out_file.write("\r")
         self.out_file.close()
     
-    def print_individual_totals_and_count_assignment_totals(self, my_dir, analysis_root, which_assignment, my_assignment):
+    def print_individual_totals_and_count_assignment_totals(self, my_dir, analysis_root, which_assignment,
+                                                            my_assignment, prod_path):
         my_git_file = GitFile.GitFile()
         my_totals = {}
         if which_assignment == "all":
@@ -118,6 +121,8 @@ class AnalysisReport(object):
                 if ext == ".gitdata":
                     current_git_file = my_git_file.retrieveGitReportObject(analysis_root + os.sep + file_name)
                     if current_git_file is not None:
+                        total_tests = self.count_total_tests(analysis_root, file_name, prod_path)
+
                         AssignmentTotals.AssignmentTotals.add_to_total_submissions(1)
                         student_submission_totals = AssignmentTotals.AssignmentTotals()
         
@@ -167,6 +172,7 @@ class AnalysisReport(object):
                                 net_test_lines_added = my_commit_stats.addedTestLOCInAssignment - my_commit_stats.deletedTestLOCInAssignment
                                 self.out_file.write(file_name + ext + "," + str(my_assignment.assignmentName) + "," +
                                                     str(my_assignment.tdd_grade) + "," +
+
                                                     str(my_commit_stats.get_ideal_number_of_cycles()) + "," +
                                                     str(my_assignment.getTDDCycleCount()) + "," +
                                                     str(my_assignment.get_nbr_valid_cycles()) + ", " +
@@ -203,7 +209,9 @@ class AnalysisReport(object):
                                         else:
                                             AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(my_tran))
                                             my_totals[assignment_name].add_total_anti_trans_by_type_in_assignment(1, abs(my_tran))
-                        self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) + ",,,,," +
+                        self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) +
+                                            ",Total Student Tests, " + str(total_tests) + "," +
+                                            ",," +
                                             str(student_submission_totals.nbrCommits) + "," +
                                             str(student_submission_totals.RLCommit) + ",,,,,,," +
                                             str(student_submission_totals.GLCommit) + ",,,,,,," +
@@ -216,6 +224,19 @@ class AnalysisReport(object):
                                             str(student_submission_totals.get_net_test_loc_added()) + "," + "\r\r")
         return my_totals
 
+    def count_total_tests(self, path, student, prod_path):
+        nbr_tests = 0
+        file_path = os.path.join(path, "submissions", student, prod_path, "test")
+        files = os.listdir(file_path)
+        for pyfile in files:
+            file_name, ext = os.path.splitext(pyfile)
+            if ext == ".py" and "test" in file_name.lower():
+                with open(os.path.join(file_path,pyfile)) as test_file:
+                    for line in test_file:
+                        clean_line = line.strip()
+                        if clean_line.startswith("def") and "test" in line.lower():
+                            nbr_tests += 1
+        return nbr_tests
 
 if __name__ == '__main__':
     myReport = AnalysisReport()

@@ -14,6 +14,7 @@ class TATestResults(object):
         self.total_tests_run = 0
         self.total_tests_with_error = 0
         self.total_tests_failed = 0
+        self.total_fails_by_testclass = {}
 
 
     def passing_test_ratio(self):

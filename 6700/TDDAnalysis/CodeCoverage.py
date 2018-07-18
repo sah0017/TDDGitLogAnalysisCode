@@ -6,7 +6,7 @@ Created on Jul 1, 2016
 This program is called from the CodeCovAnalysis batch (for Windows) or shell script (for Mac).  CodeCovAnalysis
 loops through the list of submissions and passes in the student path and assignment.
 analyzeCodeCoverage method loops through the student's submission, finds and loads test files, starts
-the code coverage analyzer, runs the student's tests against the student's code, the stops the CC analyzer.
+the code coverage analyzer, runs the student's tests against the student's code, then stops the CC analyzer.
 '''
 import sys, os, re, unittest, coverage
 from unittest.runner import TextTestRunner
