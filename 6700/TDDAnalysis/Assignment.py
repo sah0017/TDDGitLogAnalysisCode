@@ -20,6 +20,7 @@ from time import strptime
 import ConsecutiveCommitsOfSameType
 import TDDCycle
 import TDDGrade
+from collections import OrderedDict
 
 
 class Assignment(object):
@@ -29,12 +30,13 @@ class Assignment(object):
     """ **********************  class variables and methods  **********************   """
     assignmentNameDict = {}
     recommendations_dict = {}
+    ordered_assignment_name_dict = {}
     keyIndexList = []
     originalAssignment = None
 
     @classmethod
     def is_first_assignment(cls, commitDate):
-        if commitDate <= cls.assignmentNameDict[cls.keyIndexList[0]]:
+        if commitDate <= cls.ordered_assignment_name_dict.items()[0]:
             return True
         else:
             return False
@@ -44,9 +46,9 @@ class Assignment(object):
     """
     @classmethod
     def get_curr_assignmentName(cls, commit_date):
-        for k in range(0, len(cls.keyIndexList)-1):
-            if cls.assignmentNameDict[cls.keyIndexList[k]] <= commit_date <= cls.assignmentNameDict[cls.keyIndexList[k + 1]]:
-                return cls.keyIndexList[k+1]
+        for k in range(0, len(cls.ordered_assignment_name_dict)-1):
+            if cls.ordered_assignment_name_dict.items()[k] <= commit_date <= cls.ordered_assignment_name_dict.items()[k + 1]:
+                return cls.ordered_assignment_name_dict.items()[k+1]
 
 
     @classmethod
@@ -56,9 +58,8 @@ class Assignment(object):
         cls.originalAssignment = my_config.get("Assignments","BaseName") + my_config.get("Assignments","FirstAssignment")
 
         for key, val in my_config.items("Due Dates"):
-            cls.assignmentNameDict[key] = time.strptime(val,"%Y, %m, %d")
-        cls.keyIndexList = cls.assignmentNameDict.keys()
-        cls.keyIndexList.sort()
+            cls.assignmentNameDict[key] = val
+        cls.ordered_assignment_name_dict = OrderedDict(sorted(cls.assignmentNameDict.items(), key=lambda x: time.mktime(time.strptime(x[1],"%Y, %m, %d"))))
         for key, val in my_config.items("Recommendations"):
             cls.recommendations_dict[key] = val
 
@@ -68,11 +69,11 @@ class Assignment(object):
     
     @classmethod
     def get_assignment_name_dict(cls):
-        return cls.assignmentNameDict
+        return cls.ordered_assignment_name_dict
 
     @classmethod
     def get_assignment_list(cls):
-        assignment_name_list = cls.assignmentNameDict.keys()
+        assignment_name_list = cls.ordered_assignment_name_dict.keys()
         return assignment_name_list
     """ **********************  end class variables and methods  **********************   """
 

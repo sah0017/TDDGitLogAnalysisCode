@@ -48,7 +48,7 @@ class TAAutoGrader(object):
 
         for failed_test_case, failure in report.failures:
             test_case_parts = failed_test_case.id().split(".")
-            class_name = test_case_parts[1]
+            class_name = test_case_parts[0].lower()
             test_name = test_case_parts[2]
             if class_name in failure_stats:       # Class name for test cases
                 if test_name in failure_stats[class_name]:   # test name inside the class
@@ -65,7 +65,7 @@ class TAAutoGrader(object):
                 ta_results.total_fails_by_testclass[class_name] = 1
         for error_case, error in report.errors:
             test_case_parts = error_case.id().split(".")
-            class_name = test_case_parts[1]
+            class_name = test_case_parts[1].lower()
             test_name = test_case_parts[2]
             if class_name in error_stats:
                 if test_name in error_stats[class_name]:   # test name inside the class
@@ -87,32 +87,36 @@ class TAAutoGrader(object):
         return ta_results
 
     def run_ta_tests(self, ta_path, prod_path, assignment):
-        sys.stdout = open(ta_path + os.sep + 'ta_test.stdout.log', 'a+')
-
         sys.path.insert(0, prod_path)
 
         nbr_tests_per_class = {}
         test_suite = unittest.TestLoader().discover(ta_path, '*.py')
-        for test in test_suite:
+
+        for test in test_suite:                                     # Counts number of tests in acceptance test files
             if unittest.suite._isnotsuite(test):
               nbr_tests_per_class[test._test.shortDescription()] = 1
             else:
                 for t in test:
                     str_of_testsuite = str(t)
                     testsuite_parts = str_of_testsuite.split("<")
-                    class_names = testsuite_parts[2].split(".")
-                    class_name = class_names[0].lower()
-                    nbr_tests_per_class[class_name] = len(testsuite_parts) - 2
+                    if len(testsuite_parts) > 2:
+                        class_names = testsuite_parts[2].split(".")
+                        class_name = class_names[0].lower()
+                        nbr_tests_per_class[class_name] = len(testsuite_parts) - 2
+                    else:
+                        class_names = testsuite_parts[0].split("(")
+                        class_name = class_names[0].lower()
+                        nbr_tests_per_class[class_name] = "ModuleImportFailure"
 
         with open(os.path.join(ta_path + assignment + ".TAreport"), "a+") as ta_reportout_file:
             try:
-                sys.stdout.write("/n******************************************************************************************\n")
-                sys.stdout.write("***  Student submission path:  " + prod_path + "\n")
-                sys.stdout.write("******************************************************************************************\n")
-                #os.system("python " + prod_path + os.sep +"microservice.py")
+                # os.system("python " + prod_path + os.sep +"microservice.py")
                 ta_reportout_file.write("\n\rStudent submission path:  " + prod_path + "\n\r")
                 try:
                     with open(os.path.join(ta_path + assignment + ".stream"), "a+") as ta_stream_file:
+                        ta_stream_file.write("/n******************************************************************************************\n")
+                        ta_stream_file.write("***  Student submission path:  " + prod_path + "\n")
+                        ta_stream_file.write("******************************************************************************************\n")
                         ta_report = TextTestRunner(stream=ta_stream_file, verbosity=2).run(test_suite)
                 except Exception as e:
                     ta_reportout_file.write("Exception thrown:  " + str(e))
@@ -179,7 +183,7 @@ class TAAutoGrader(object):
         else:
             #data_file = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
             data_file = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + \
-                        self.myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-aza0092"
+                        self.myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-blg0018"
             myAutoGrader.assignment = self.myAssignment
 
         myAutoGrader.run_ta_tests(os.path.join(self.TATestPath),
