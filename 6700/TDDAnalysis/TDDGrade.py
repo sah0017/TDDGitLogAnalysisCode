@@ -19,7 +19,7 @@ class TDDGradeRubric(object):
 
     @classmethod
     def load_rubric(cls):
-        my_config = ConfigParser.SafeConfigParser()
+        my_config = ConfigParser.ConfigParser()
         my_config.read("TDDanalysis.cfg")
 
         rubric = collections.namedtuple("Rubric", 'basis deduction')
@@ -27,7 +27,7 @@ class TDDGradeRubric(object):
             rub_parts = rub_string.split(",")
             basis = int(rub_parts[0].strip("\"\'"))
             deductions = int(rub_parts[1].strip("\"\'"))
-            cls.rubric_dict[crit] = rubric(basis = basis, deduction= deductions)
+            cls.rubric_dict[crit] = rubric(basis=basis, deduction=deductions)
         #cls.keyIndexList = cls.assignmentNameDict.keys()
         #cls.keyIndexList.sort()
 

@@ -129,7 +129,7 @@ class AnalysisReport(object):
                         my_assignments = current_git_file.getAssignments()
 
                         for my_assignment in my_assignments:
-                            assignment_name = my_assignment.get_assignment_name()
+                            assignment_name = my_assignment.get_assignment_name().lower()
                             my_totals[assignment_name].add_to_nbr_submissions(1)
                             my_commit_stats_list = my_assignment.get_my_commit_totals()
                             my_commit_list = my_assignment.get_my_commits()
@@ -226,7 +226,12 @@ class AnalysisReport(object):
 
     def count_total_tests(self, path, student, prod_path):
         nbr_tests = 0
+
         file_path = os.path.join(path, "submissions", student, prod_path, "test")
+        if not os.path.isdir(file_path):
+            file_path = os.path.join(path, "submissions", student, "test")
+            if not os.path.isdir(file_path):
+                file_path = os.path.join(path,"submissions", student )
         files = os.listdir(file_path)
         for pyfile in files:
             file_name, ext = os.path.splitext(pyfile)

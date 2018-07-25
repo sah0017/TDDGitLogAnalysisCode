@@ -138,12 +138,12 @@ class Commit(object):
                     self.increment_nbr_prod_files()
                     self.add_added_lines_in_commit(my_pyfileCommitDetails.addedLines)
                     self.add_deleted_lines_in_commit(my_pyfileCommitDetails.deletedLines)
+                    self.add_number_of_transformations(my_pyfile.numberOfTransformationsInPyFile())
                 else:
                     self.increment_nbr_test_files()
                     self.add_added_test_loc(my_pyfileCommitDetails.addedLines)
                     self.add_deleted_test_loc(my_pyfileCommitDetails.deletedLines)
                     self.set_added_tatest_loc(my_pyfileCommitDetails.TATestLines)
-                self.add_number_of_transformations(my_pyfile.numberOfTransformationsInPyFile())
 
                 self.addTransformation(my_pyfile.get_transformations())
 

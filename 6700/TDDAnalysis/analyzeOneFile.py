@@ -17,17 +17,21 @@ if __name__ == '__main__':
     myConfig.read("TDDanalysis.cfg")
     root = "/Users"
     myDrive = "shammond/GoogleDrive"
-    mySemester = "6700Spring18"
-    myAssignment = "spring2018-rcube"
-    currentDir = "shammond/GoogleDrive/6700Spring18/spring2018-rcube/submissions/spring2018-rcube-kah0051/"
-    fileName = "kah0051"
+    mySemester = "6700Spring17"
+    myAssignment = "Assignment5"
+    currentDir = "shammond/GoogleDrive/6700Spring17/Assignment5/submissions/pittman-tyler/"
+    fileName = "pittman-tyler"
     analysisRoot = os.path.join(root, myDrive, mySemester, myAssignment)
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     myFormattedGitLog.formatGitLogOutput(root, currentDir, analysisRoot,fileName)
 
     myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    filename_extension = myAssignment + "-" + fileName + ".gitdata"
+    ''' for Spring 18   
+    filename_extension = myAssignment + "-" + fileName + ".gitdata"   
+    '''
+    ''' for Spring 17 '''
+    filename_extension = fileName + ".gitdata"
     report_root = os.path.join(root, myDrive, mySemester)
     myAnalysis.analyze_git_log(analysisRoot, filename_extension, "all")
     

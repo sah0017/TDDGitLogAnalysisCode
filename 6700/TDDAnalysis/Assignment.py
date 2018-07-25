@@ -36,7 +36,9 @@ class Assignment(object):
 
     @classmethod
     def is_first_assignment(cls, commitDate):
-        if commitDate <= cls.ordered_assignment_name_dict.items()[0]:
+        first_date = cls.ordered_assignment_name_dict.items()[0]
+        first_date = time.strptime(first_date[1],"%Y, %m, %d")
+        if commitDate <= first_date:
             return True
         else:
             return False
@@ -47,8 +49,12 @@ class Assignment(object):
     @classmethod
     def get_curr_assignmentName(cls, commit_date):
         for k in range(0, len(cls.ordered_assignment_name_dict)-1):
-            if cls.ordered_assignment_name_dict.items()[k] <= commit_date <= cls.ordered_assignment_name_dict.items()[k + 1]:
-                return cls.ordered_assignment_name_dict.items()[k+1]
+            first_date = cls.ordered_assignment_name_dict.items()[k]
+            second_date = cls.ordered_assignment_name_dict.items()[k + 1]
+            first_date = time.strptime(first_date[1], "%Y, %m, %d")
+            second_date = time.strptime(second_date[1], "%Y, %m, %d")
+            if first_date <= commit_date <= second_date:
+                return cls.ordered_assignment_name_dict.items()[k+1][0]
 
 
     @classmethod
@@ -59,7 +65,7 @@ class Assignment(object):
 
         for key, val in my_config.items("Due Dates"):
             cls.assignmentNameDict[key] = val
-        cls.ordered_assignment_name_dict = OrderedDict(sorted(cls.assignmentNameDict.items(), key=lambda x: time.mktime(time.strptime(x[1],"%Y, %m, %d"))))
+        cls.ordered_assignment_name_dict = OrderedDict(sorted(cls.assignmentNameDict.items(), key=lambda x: time.strptime(x[1],"%Y, %m, %d")))
         for key, val in my_config.items("Recommendations"):
             cls.recommendations_dict[key] = val
 
@@ -236,21 +242,6 @@ class Assignment(object):
                 nbr_green_light = nbr_green_light + 1
                 if commit_validity == "INVALID":
                     nbr_invalid_g_l += 1
-                for my_file in my_files:      # 6/27/18 moved here to only count transformations for GL commits
-                    my_trans = my_file.get_transformations()
-                    out_file.write("\n\r\tTransformations to file:  " + my_file.getFileName() +
-                                  "  (" + my_file.getFileType() + ")")
-                    for my_tran in my_trans:
-                        out_file.write("\r\t" + my_trans_names.getTransformationName(my_tran))
-
-                        if my_tran >= 0:
-                            #transTotalsInAnalysis[my_tran] = transTotalsInAnalysis[my_tran] + 1
-                            trans_totals_in_assignment[my_tran] = trans_totals_in_assignment[my_tran] + 1
-                            nbr_transformations = nbr_transformations + 1
-                        else:
-                            #self.__antitransTotalsInAnalysis[abs(my_tran)] = self.__antitransTotalsInAnalysis[abs(my_tran)] + 1
-                            antitrans_totals_in_assignment[abs(my_tran)] = antitrans_totals_in_assignment[abs(my_tran)] + 1
-                        nbr_anti_transformations = nbr_anti_transformations + 1
             elif ctype == "Refactor":
                 nbr_refactor = nbr_refactor + 1
             else:
@@ -272,6 +263,24 @@ class Assignment(object):
                            str(my_commit.deleted_test_loc) + ".\r\n\t  Test files:" + str(my_commit.nbr_test_files) +
                           ".  Production files:" + str(my_commit.nbr_prod_files) + ".  Number of Transformations:  " +
                            str(my_commit.number_of_transformations) + ".\r\n")
+            for my_file in my_files:
+                if my_file.isProdFile():            # 6/27/18 moved here to only count transformations for production files
+                    my_trans = my_file.get_transformations()
+                    out_file.write("\n\r\tTransformations to file:  " + my_file.getFileName() +
+                                  "  (" + my_file.getFileType() + ")")
+                    for my_tran in my_trans:
+                        out_file.write("\r\t" + my_trans_names.getTransformationName(my_tran))
+
+                        if my_tran >= 0:
+                            #transTotalsInAnalysis[my_tran] = transTotalsInAnalysis[my_tran] + 1
+                            trans_totals_in_assignment[my_tran] = trans_totals_in_assignment[my_tran] + 1
+                            nbr_transformations = nbr_transformations + 1
+                        else:
+                            #self.__antitransTotalsInAnalysis[abs(my_tran)] = self.__antitransTotalsInAnalysis[abs(my_tran)] + 1
+                            antitrans_totals_in_assignment[abs(my_tran)] = antitrans_totals_in_assignment[abs(my_tran)] + 1
+                            nbr_anti_transformations = nbr_anti_transformations + 1
+                            out_file.write("\t (anti-transformation)")
+
 
             added_lines = added_lines + my_commit.added_lines_in_commit
             added_test_lines = added_test_lines + my_commit.added_test_loc
@@ -402,9 +411,9 @@ class Assignment(object):
 
     def get_nbr_valid_cycles(self):
         valid_cycles = 0
-        for my_t_d_d_cycle in self.TDDCycles:
-            if my_t_d_d_cycle is not None:
-                if my_t_d_d_cycle.is_cycle_valid():
+        for my_tdd_cycle in self.TDDCycles:
+            if my_tdd_cycle is not None:
+                if my_tdd_cycle.is_cycle_valid():
                     valid_cycles += 1
         return valid_cycles
 

@@ -27,12 +27,12 @@ class Trans(object):
     VarOnly = -3
     NA4 = -4
     NA5 = -5
-    NA6 = -6
+    ArrayNoVar = -6
     NA7 = -7
     WhileNoIf = -8
     transList = {"NEWFILE":0, "NULL":1, "N2C":2, "C2V":3, "AComp":4,"SF":5,"VA":6,"AC":7,"I2W":8,
                  "REC":9,"IT":10,"AS":11,"ACase":12,"NA1":-1, "ConstOnly":-2, "VarOnly":-3, "NA4":-4,
-                 "WhileNoIf":-8}
+                 "ArrayNoVar": -6, "WhileNoIf":-8}
     penaltyList = {-2:1, -3:2, -8:1}
 
     @classmethod
@@ -79,6 +79,8 @@ class Trans(object):
             return "Straight to Constant"
         elif transNbr == -3:
             return "Straight to Variable"
+        elif transNbr == -6:
+            return "Straight to Array"
         elif transNbr == -8:
             return "While with no If"
         else:

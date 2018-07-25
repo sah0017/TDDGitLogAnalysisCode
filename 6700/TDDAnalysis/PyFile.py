@@ -165,6 +165,11 @@ class PyFile(object):
         if re.search("return", line_with_no_comments):
             deleted_line.deletedReturn = True
             deleted_line.deletedLiteral = self.checkForConstantOnReturn(line_with_no_comments)
+        assignmentVars = line_with_no_comments.split("=")               # Check to see if we are assigning a new value to an input parameter
+        if len(assignmentVars) > 1:
+            assignmentVar = assignmentVars[0].strip()
+            deleted_line.deletedVariableName = assignmentVar
+            deleted_line.deletedVariable = True
         if re.search(r"\bif .", line_with_no_comments):
             deleted_line.deletedIf = True
             ifConditionalParts = line_with_no_comments.split("if")
@@ -207,12 +212,19 @@ class PyFile(object):
             self.addToTransformationList(Transformations.Trans.getTransValue("AComp"))
         #    if not (re.search(r"['\"]",noLeadingPlus)):       ## Not Add Computation if the character is inside a quoted string
         #        if not (re.search(r"==",noLeadingPlus)):      ## evaluation, not assignment
-        assignmentVars = no_leading_plus.split("=")               # Check to see if we are assigning a new value to an input parameter
+        assignmentVars = no_leading_plus.split("=")            # Check to see if we are assigning a new value to an input parameter
         if len(assignmentVars) > 1:
             assignmentVar = assignmentVars[0].strip()
+            right_side = assignmentVars[1].strip()
             for x in current_method.parameters:
                 if x == assignmentVar:
                     self.addToTransformationList(Transformations.Trans.getTransValue("AS"))
+            if right_side.startswith("[") or re.search(r"\bsplit\b", right_side):       # check to see if they created a list
+                deleted_variable = self.checkForDeletedVariable(current_method, assignmentVar)
+                if deleted_variable:
+                    self.addToTransformationList(Transformations.Trans.getTransValue("VA"))
+                else:
+                    self.addToTransformationList(Transformations.Trans.getTransValue("ArrayNoVar"))
 
     def processLineWithReturn(self, current_method, line_with_no_comments, no_leading_plus):
         rtnBoolean, rtnValue = self.returnWithNull(line_with_no_comments)
@@ -347,6 +359,13 @@ class PyFile(object):
         elif (re.search("if __name__", evalLine)):
             return False
         return True
+
+    def checkForDeletedVariable(self, current_method, assignmentVar):
+        for dLine in current_method.deletedLines:
+            if dLine.deletedVariable:
+                if dLine.deletedVariableName == assignmentVar:
+                    return dLine.deletedVariableName
+        return None
 
 
     def checkForDeletedNullValue(self, line):
