@@ -19,6 +19,7 @@ import GitFile
 import ConfigParser
 import TDDGrade
 
+
 class Commit(object):
 
     """
@@ -78,13 +79,13 @@ class Commit(object):
 
     def calculate_tdd_grade(self):
         grader = TDDGrade.TDDGradeRubric()
-        trans_grade = grader.calculate_tdd_grade(self.number_of_transformations, Commit.invalid_reason_list[3])
-        lg_commit_grade = grader.calculate_tdd_grade(self.added_lines_in_commit + self.added_test_loc, Commit.invalid_reason_list[4])
+        trans_grade = grader.calculate_tdd_commit_grade(self.number_of_transformations, Commit.invalid_reason_list[3])
+        lg_commit_grade = grader.calculate_tdd_commit_grade(self.added_lines_in_commit + self.added_test_loc, Commit.invalid_reason_list[4])
         if self.get_commit_type() == Commit.REDLIGHT:
-            valid_files_grade = grader.calculate_tdd_grade(self.nbr_prod_files, Commit.invalid_reason_list[1])
+            valid_files_grade = grader.calculate_tdd_commit_grade(self.nbr_prod_files, Commit.invalid_reason_list[1])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
         elif self.get_commit_type() == Commit.GREENLIGHT:
-            valid_files_grade = grader.calculate_tdd_grade(self.nbr_test_files, Commit.invalid_reason_list[2])
+            valid_files_grade = grader.calculate_tdd_commit_grade(self.nbr_test_files, Commit.invalid_reason_list[2])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
         else:               # not a red or green light commit, omit from grade calculation
             commit_grade = "N/A"
@@ -96,13 +97,14 @@ class Commit(object):
         if commit_type == Commit.GREENLIGHT:
             if (self.added_test_loc > 0) or (self.deleted_test_loc > 0) or self.nbr_test_files > 0:
                 self.commit_validity = 'INVALID'
-                #self.reason.append(Commit.invalid_reason_list[2])   omitting green light with prod code for now 3/27/18
+                # self.reason.append(Commit.invalid_reason_list[2])   omitting green light with test code for now 3/27/18
         elif commit_type == Commit.REDLIGHT:
             if (self.added_lines_in_commit > 0) or (self.deleted_lines_in_commit > 0) or self.nbr_prod_files > 0:
                 self.commit_validity = 'INVALID'
                 self.reason.append(Commit.invalid_reason_list[1])
         elif commit_type == Commit.OTHER:
             self.commit_validity = "INVALID"
+            self.reason.append(Commit.invalid_reason_list[0])
         """           omitting one transformation per commit for now 3/27/18
         if self.number_of_transformations > 1:
             self.reason.append(Commit.invalid_reason_list[3])  
@@ -128,22 +130,22 @@ class Commit(object):
         # for line in git_file_handle:
         while Commit.foundNewCommit(git_file_handle.getCurrentLine()) == False:
             line = git_file_handle.getCurrentLine()
-            if PyFile.PyFile.pythonFileFound(line):
-                path, file_name = PyFile.PyFile.extractFileName(line)
+            if PyFile.PyFile.python_file_found(line):
+                path, file_name = PyFile.PyFile.extract_file_name(line)
                 file_index = self.findExistingFileToAddCommitDetails(file_name)
                 if file_index == -1:
                     my_pyfile = self.addnew_file(path, file_name, self.commit_nbr, git_file_handle)
-                my_pyfileCommitDetails = my_pyfile.analyzePyFile(git_file_handle)
-                if my_pyfile.isProdFile():
+                my_pyfile_commit_details = my_pyfile.analyze_py_file(git_file_handle)
+                if my_pyfile.is_prod_file():
                     self.increment_nbr_prod_files()
-                    self.add_added_lines_in_commit(my_pyfileCommitDetails.addedLines)
-                    self.add_deleted_lines_in_commit(my_pyfileCommitDetails.deletedLines)
-                    self.add_number_of_transformations(my_pyfile.numberOfTransformationsInPyFile())
+                    self.add_added_lines_in_commit(my_pyfile_commit_details.addedLines)
+                    self.add_deleted_lines_in_commit(my_pyfile_commit_details.deletedLines)
+                    self.add_number_of_transformations(my_pyfile.number_of_transformations_in_py_file())
                 else:
                     self.increment_nbr_test_files()
-                    self.add_added_test_loc(my_pyfileCommitDetails.addedLines)
-                    self.add_deleted_test_loc(my_pyfileCommitDetails.deletedLines)
-                    self.set_added_tatest_loc(my_pyfileCommitDetails.TATestLines)
+                    self.add_added_test_loc(my_pyfile_commit_details.addedLines)
+                    self.add_deleted_test_loc(my_pyfile_commit_details.deletedLines)
+                    self.set_added_tatest_loc(my_pyfile_commit_details.TATestLines)
 
                 self.addTransformation(my_pyfile.get_transformations())
 
@@ -153,19 +155,19 @@ class Commit(object):
         return self
 
     def addnew_file(self, path, file_name, commit_nbr, git_file_handle):
-        " This is a new file that isn't in our analysis yet. "
+        """ This is a new file that isn't in our analysis yet. """
         new_file = PyFile.PyFile(path, file_name, commit_nbr)
         self.my_files.append(new_file)
         if GitFile.GitFile.newPyFile(file_name):
-            new_file.addToTransformationList(Transformations.Trans.getTransValue("NEWFILE"))
+            new_file.add_to_transformation_list(Transformations.Trans.getTransValue("NEWFILE"))
             GitFile.GitFile.addNewPyFile(new_file)
-        line = git_file_handle.readNextLine() ## if this was a new file, then advance file pointer to index line
+        line = git_file_handle.readNextLine()  # if this was a new file, then advance file pointer to index line
         return new_file
 
     def findExistingFileToAddCommitDetails(self, file_name):
         file_index = -1
         for x in self.my_files:
-            if x.getFileName() == file_name:
+            if x.get_file_name() == file_name:
                 file_index = self.my_files.index(x)
 
         return file_index
@@ -207,7 +209,7 @@ class Commit(object):
     def get_file_names_list(self):
         file_names_list = []
         for f in self.my_files:
-            file_names_list.append(f.getFileName())   # only need the name, not the whole pyFile object
+            file_names_list.append(f.get_file_name())   # only need the name, not the whole pyFile object
         return file_names_list
 
     def get_added_lines_in_commit(self):
@@ -311,6 +313,8 @@ class Commit(object):
 
     # def del_transformations(self):
     #    del self.transformations
+
+
 """
     commit_nbr = property(get_commit_nbr, set_commit_nbr, del_commit_nbr, "commit_nbr's docstring")
     # commitType = property(get_commit_type, set_commit_type, del_commit_type, "commitType's docstring")

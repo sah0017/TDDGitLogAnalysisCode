@@ -1,20 +1,20 @@
-'''
+"""
 Created on Aug 6, 2014
 
-@author: susanha
-'''
+@author: susan hammond
+"""
+
 
 class Method(object):
-    '''
+    """
     classdocs
-    '''
+    """
 
-
-    def __init__(self, methodName, parameters):
-        '''
+    def __init__(self, method_name, parameters):
+        """
         Constructor
-        '''
-        self.methodName = methodName
+        """
+        self.methodName = method_name
         self.parameters = parameters
         self.deletedReturnValue = None
         self.deletedLines = []
@@ -25,11 +25,11 @@ class Method(object):
     def setMethodName(self,method_name):
         self.methodName = method_name
         
-    def setDeletedReturnValue(self, RtnValue):
-        self.deletedReturnValue = RtnValue
+    def setDeletedReturnValue(self, rtn_value):
+        self.deletedReturnValue = rtn_value
         
-    def addDeletedLine(self, deletedLines):
-        self.deletedLines.append(deletedLines)
+    def addDeletedLine(self, deleted_lines):
+        self.deletedLines.append(deleted_lines)
         
     def getDeletedReturnValue(self):
         return self.deletedReturnValue
@@ -41,16 +41,16 @@ class Method(object):
         return self.TATestLines
     
     def getAddedLines(self):
-        addedLines = self.addedLines - self.TATestLines
-        if addedLines < 0:
+        added_lines = self.addedLines - self.TATestLines
+        if added_lines < 0:
             return 0
-        return addedLines 
+        return added_lines
     
-    def updateTATestLines(self, TATestLOC):
-        self.TATestLines = self.TATestLines + TATestLOC
+    def updateTATestLines(self, t_a_test_l_o_c):
+        self.TATestLines = self.TATestLines + t_a_test_l_o_c
         
-    def setIsTATestCase(self, isTATestCase):
-        self.TATestCase = isTATestCase
+    def setIsTATestCase(self, is_t_a_test_case):
+        self.TATestCase = is_t_a_test_case
         
     def isATATestCase(self):
         return self.TATestCase

@@ -1,14 +1,14 @@
-'''
+"""
 Created on Jul 1, 2016
 
-@author: susanha
+@author: susan hammond
 
 This program is called from the AutoGrader batch (for Windows) or shell script (for Mac).  AutoGrader
 loops through the list of submissions (created by GetDirectoryList) and passes in the student path and
 correct assignment to analyze.
 The runTaTests method loads the TA test files and runs the student's tests against the
 TA Test code.
-'''
+"""
 import sys, os, re, unittest, coverage
 from unittest.runner import TextTestRunner
 import ConfigParser
@@ -145,8 +145,8 @@ class TAAutoGrader(object):
 
             ta_reportout_file.write("\n********************************************************************************\n\r")
 
-    def storeTAReportObject(self, fileName, stats):
-        out_s = open(os.path.join(self.TATestPath + os.sep + fileName + '.json'), 'w')
+    def storeTAReportObject(self, file_name, stats):
+        out_s = open(os.path.join(self.TATestPath + os.sep + file_name + '.json'), 'w')
 
         # Write to the stream
         try:
@@ -160,41 +160,43 @@ class TAAutoGrader(object):
             in_s = open(os.path.join(self.TATestPath + os.sep + filename +'.json'), 'r')
 
             # Read from the stream
-            JSonStringObject = in_s.read()
-            TAReportObject = json.loads(JSonStringObject)
+            json_string_object = in_s.read()
+            t_a_report_object = json.loads(json_string_object)
 
             '''
             try:
-                TAReportObject = json.load(JSonStringObject)
+                t_a_report_object = json.load(json_string_object)
             except Exception as e:
-                TAReportObject = None
+                t_a_report_object = None
             '''
             in_s.close()
         except:
-            TAReportObject = None
+            t_a_report_object = None
 
-        return TAReportObject
+        return t_a_report_object
 
-    def runAutoGrader(self, totalArgs):
-        if totalArgs > 1:
+    def runAutoGrader(self, total_args):
+        if total_args > 1:
             data_file = str(sys.argv[1])
             assignment_str = str(sys.argv[2]).split(".")
             myAutoGrader.assignment = assignment_str[0]
+            if self.mySemester == "6700Spring17":
+                data_file = data_file + os.sep + "softwareprocess"
         else:
-            #data_file = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
+            # data_file = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
             data_file = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + \
-                        self.myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-blg0018"
+                        self.myAssignment + os.sep + "submissions" + os.sep + "pittman-tyler" + os.sep + "softwareprocess"
             myAutoGrader.assignment = self.myAssignment
 
         myAutoGrader.run_ta_tests(os.path.join(self.TATestPath),
                                   os.path.join(data_file), myAutoGrader.assignment)
 
+
 if __name__ == '__main__':
     totalArgs = len(sys.argv)
     args = str(sys.argv)
 
-    #print os.getcwd()
+    # print os.getcwd()
 
     myAutoGrader = TAAutoGrader()
     myAutoGrader.runAutoGrader(totalArgs)
-

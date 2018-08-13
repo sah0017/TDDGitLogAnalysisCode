@@ -1,7 +1,7 @@
 """
 Created on Apr 7, 2016
 
-@author: susanha
+@author: susan hammond
 Used by:  GitFile
 At a class level, contains the current assignments to be analyzed
 Parameters:  when instantiated, receives an assignment name.  Keeps track of commit data per assignment.
@@ -35,10 +35,10 @@ class Assignment(object):
     originalAssignment = None
 
     @classmethod
-    def is_first_assignment(cls, commitDate):
+    def is_first_assignment(cls, commit_date):
         first_date = cls.ordered_assignment_name_dict.items()[0]
         first_date = time.strptime(first_date[1],"%Y, %m, %d")
-        if commitDate <= first_date:
+        if commit_date <= first_date:
             return True
         else:
             return False
@@ -178,7 +178,7 @@ class Assignment(object):
         my_trans_names = Transformations.Trans()
         Commit.Commit.load_grade_criteria()
         grader = TDDGrade.TDDGradeRubric()
-        #RecDict = self.loadRecommendations()
+        # RecDict = self.loadRecommendations()
         trans_totals_in_assignment = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         antitrans_totals_in_assignment = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         assignment_commit_tdd_grades = []
@@ -264,23 +264,22 @@ class Assignment(object):
                           ".  Production files:" + str(my_commit.nbr_prod_files) + ".  Number of Transformations:  " +
                            str(my_commit.number_of_transformations) + ".\r\n")
             for my_file in my_files:
-                if my_file.isProdFile():            # 6/27/18 moved here to only count transformations for production files
+                if my_file.is_prod_file():            # 6/27/18 moved here to only count transformations for production files
                     my_trans = my_file.get_transformations()
-                    out_file.write("\n\r\tTransformations to file:  " + my_file.getFileName() +
-                                  "  (" + my_file.getFileType() + ")")
+                    out_file.write("\n\r\tTransformations to file:  " + my_file.get_file_name() +
+                                  "  (" + my_file.get_file_type() + ")")
                     for my_tran in my_trans:
                         out_file.write("\r\t" + my_trans_names.getTransformationName(my_tran))
 
                         if my_tran >= 0:
-                            #transTotalsInAnalysis[my_tran] = transTotalsInAnalysis[my_tran] + 1
+                            # transTotalsInAnalysis[my_tran] = transTotalsInAnalysis[my_tran] + 1
                             trans_totals_in_assignment[my_tran] = trans_totals_in_assignment[my_tran] + 1
                             nbr_transformations = nbr_transformations + 1
                         else:
-                            #self.__antitransTotalsInAnalysis[abs(my_tran)] = self.__antitransTotalsInAnalysis[abs(my_tran)] + 1
+                            # self.__antitransTotalsInAnalysis[abs(my_tran)] = self.__antitransTotalsInAnalysis[abs(my_tran)] + 1
                             antitrans_totals_in_assignment[abs(my_tran)] = antitrans_totals_in_assignment[abs(my_tran)] + 1
                             nbr_anti_transformations = nbr_anti_transformations + 1
                             out_file.write("\t (anti-transformation)")
-
 
             added_lines = added_lines + my_commit.added_lines_in_commit
             added_test_lines = added_test_lines + my_commit.added_test_loc
@@ -314,7 +313,7 @@ class Assignment(object):
             tdd_commit_avg_grade = "N/A"
         else:
             tdd_commit_avg_grade = grade_total / nbr_of_grades
-        self.tdd_grade = grader.calculateTDDGrade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
+        self.tdd_grade = grader.calculate_overall_tdd_grade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
         out_file.write("\r\n============================================\r\nTotal test code lines added:" + str(added_test_lines))
         out_file.write("\r\nTotal production code lines added:" + str(added_lines))
         out_file.write("\r\nTotal test code lines deleted:" + str(deleted_test_lines))

@@ -1,20 +1,20 @@
-'''
+"""
 Created on Jun 23, 2015
 
-@author: susanha
-'''
+@author: susan hammond
+"""
+
 
 class DeletedLine(object):
-    '''
+    """
     classdocs
-    '''
+    """
 
-
-    def __init__(self, lineContent):
-        '''
+    def __init__(self, line_content):
+        """
         Constructor
-        '''
-        self.lineContent = lineContent
+        """
+        self.lineContent = line_content
         self.deletedIfContents = ""
         self.deletedWhileContents = ""
         self.deletedReturn = False

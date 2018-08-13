@@ -8,7 +8,6 @@ import GitFile
 import Transformations
 import AssignmentTotals
 import Assignment
-import unittest
 
 
 class AnalysisReport(object):
@@ -40,7 +39,7 @@ class AnalysisReport(object):
         ttl_comm = AssignmentTotals.AssignmentTotals.get_total_commits()
         ttl_trans = AssignmentTotals.AssignmentTotals.get_total_nbr_transformations()
         trans_ttls_list = AssignmentTotals.AssignmentTotals.get_total_trans_by_type()
-        #ttlAntiTrans = myAssignmentStats.get_total_anti_transformations()
+        # ttlAntiTrans = myAssignmentStats.get_total_anti_transformations()
         anti_trans_ttls_list = AssignmentTotals.AssignmentTotals.get_total_antitrans_by_type()
         ttl_l_o_c = AssignmentTotals.AssignmentTotals.get_total_prod_LOC()
         ttl_loc_test = AssignmentTotals.AssignmentTotals.get_total_test_LOC()
@@ -73,7 +72,7 @@ class AnalysisReport(object):
                     trans_list = indiv_assignment_totals[name].get_total_trans_by_type_in_assignment()
                     self.out_file.write(", " + str(trans_list[i]))
             self.out_file.write("\r")
-        #out_file.write( "Total number of anti-transformations:  ," + str(ttlAntiTrans)+" \r")
+        # out_file.write( "Total number of anti-transformations:  ," + str(ttlAntiTrans)+" \r")
         self.out_file.write("\n\r")
         for i in range(1, 9):
             if anti_trans_ttls_list[i] != 0:
@@ -242,6 +241,7 @@ class AnalysisReport(object):
                         if clean_line.startswith("def") and "test" in line.lower():
                             nbr_tests += 1
         return nbr_tests
+
 
 if __name__ == '__main__':
     myReport = AnalysisReport()

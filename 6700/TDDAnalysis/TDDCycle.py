@@ -1,22 +1,23 @@
-'''
+"""
 Created on June 6, 2017
 
-@author: susanha
-'''
+@author: susan hammond
+"""
 
 import GitFile
 import Assignment
 import Commit
 import os
 
+
 class TDDCycle(object):
-    '''
+    """
     The TDDCycle object will collect the various pieces of data about the TDD Cycle itself.
     Will result in data to be used in determining process conformance.
-    '''
+    """
 
-    def __init__(self, startsWithRL):
-        self.startsWithRL = startsWithRL
+    def __init__(self, starts_with_r_l):
+        self.startsWithRL = starts_with_r_l
         self.validCommit = []
         self.CommitTypes = []       # will contain a list of commit types in the TDD Cycle
         self.transformations = []   # this will be a list of lists; the indexed values of
@@ -25,27 +26,27 @@ class TDDCycle(object):
 
     def addCommit(self, commit):
         self.CommitTypes.append(commit.get_commit_type())
-        transList = commit.get_transformations()
-        for tr in transList:
+        trans_list = commit.get_transformations()
+        for tr in trans_list:
             self.transformations.append(tr)
         self.validCommit.append(commit.get_commit_validity())
 
     def too_many_trans(self):
-        nbrCommitsTooManyTrans = 0
+        nbr_commits_too_many_trans = 0
         for tr in self.transformations:
             if len(tr) > 1:
-                nbrCommitsTooManyTrans += 1
-        if nbrCommitsTooManyTrans > 0:
+                nbr_commits_too_many_trans += 1
+        if nbr_commits_too_many_trans > 0:
             return True
         else:
             return False
 
     def invalid_commits(self):
-        nbrInvalidCommits = 0
+        nbr_invalid_commits = 0
         for vc in self.validCommit:
             if vc == "INVALID":
-                nbrInvalidCommits += 1
-        if nbrInvalidCommits > 0:
+                nbr_invalid_commits += 1
+        if nbr_invalid_commits > 0:
             return True
         else:
             return False

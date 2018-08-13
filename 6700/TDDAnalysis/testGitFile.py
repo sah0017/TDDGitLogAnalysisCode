@@ -45,7 +45,7 @@ class Test(unittest.TestCase):
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
         self.myGitFile.analyzeGitLogFile()
         myFiles = self.myGitFile.getFiles()
-        self.assertEqual(myFiles[0].extractFileName(),'testPrimeFactor.py')
+        self.assertEqual(myFiles[0].extract_file_name(), 'testPrimeFactor.py')
 
     def testFileObject(self):
         myFile = PyFile.PyFile("testname.py", True, 1)
@@ -54,19 +54,19 @@ class Test(unittest.TestCase):
     def testFileObjectLinesPerCommit(self):
         myCommitList = []
         myFile = PyFile.PyFile("testname2.py", True, 2)
-        myFile.setCommitDetails(1,16,0)
-        myTestCommits = myFile.getCommitDetails()
-        self.assertEqual(myTestCommits[0].getCommitDetails(), [1,16,0])
+        myFile.set_commit_details(1, 16, 0)
+        myTestCommits = myFile.get_commit_details()
+        self.assertEqual(myTestCommits[0].get_commit_details(), [1, 16, 0])
 
     def testCommitDetails(self):
         myFiles = []
         self.myGitFile = GitFile.GitFile("c:\\Users\\susanha\\git\\6700test\\revLogfile")
         self.myGitFile.analyzeGitLogFile()
         myFiles = self.myGitFile.getFiles()
-        myCommitDetails = myFiles[0].getCommitDetails()
-        self.assertEqual(myCommitDetails[0].getCommitDetails(),[1,18,0])
-        self.assertEqual(myCommitDetails[1].getCommitDetails(), [2,2,1])
-        self.assertEqual(myCommitDetails[2].getCommitDetails(), [3,2,0])
+        myCommitDetails = myFiles[0].get_commit_details()
+        self.assertEqual(myCommitDetails[0].get_commit_details(), [1, 18, 0])
+        self.assertEqual(myCommitDetails[1].get_commit_details(), [2, 2, 1])
+        self.assertEqual(myCommitDetails[2].get_commit_details(), [3, 2, 0])
         
     def testCommitTransformations(self):
         myCommit = Commit.Commit(1,14,4,1,1)

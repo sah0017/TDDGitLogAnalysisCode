@@ -34,20 +34,20 @@ class TDDGradeRubric(object):
     def __init__(self):
         pass
 
-    def calculateTDDGrade(self, avg_rl_length, avg_gl_length, tdd_commit_grades):
+    def calculate_overall_tdd_grade(self, avg_rl_length, avg_gl_length, tdd_commit_grades):
         avg_commit_grade = tdd_commit_grades
         if avg_rl_length > 0:
-            rl_length_grade = self.calculate_tdd_grade(avg_rl_length, "consredlight")
+            rl_length_grade = self.calculate_tdd_commit_grade(avg_rl_length, "consredlight")
         else:
-            rl_length_grade = "N/A"
+            rl_length_grade = 100
         if avg_gl_length > 0:
-            gl_length_grade = self.calculate_tdd_grade(avg_gl_length, "consgreenlight")
+            gl_length_grade = self.calculate_tdd_commit_grade(avg_gl_length, "consgreenlight")
         else:
-            gl_length_grade = "N/A"
+            gl_length_grade = 100
         return self.calc_assignment_grade(avg_commit_grade , rl_length_grade, gl_length_grade)
 
 
-    def calculate_tdd_grade(self, total, reason):
+    def calculate_tdd_commit_grade(self, total, reason):
         grade = 100
         basis = TDDGradeRubric.rubric_dict[reason].basis
         deductions = TDDGradeRubric.rubric_dict[reason].deduction
@@ -66,12 +66,6 @@ class TDDGradeRubric(object):
         if avg_com == "N/A":
             return "N/A"
         divisor = 3
-        if rl_lgth == "N/A":
-            divisor -= 1
-            rl_lgth = 0
-        if gl_lgth == "N/A":
-            divisor -= 1
-            gl_lgth = 0
         return (avg_com + rl_lgth + gl_lgth) / divisor
 
 

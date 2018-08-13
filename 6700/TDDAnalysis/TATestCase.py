@@ -1,28 +1,28 @@
-'''
+"""
 Created on May 24, 2016
 
-@author: susanha
+@author: susan hammond
 
 TATestCase reads in the TA Test Cases and creates a JSON file that contains the names
 of all the test cases, plus the number of lines of code in each test method.
 Run this every time new TA Test Cases are added for an assignment.
-'''
+"""
 # from py._iniconfig import SectionWrapper
 import ConfigParser
 import os
 import fnmatch
 import jsonpickle
 
+
 class TATestCase(object):
-    '''
+    """
     classdocs
-    '''
-    
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         myConfig = ConfigParser.ConfigParser() 
         myConfig.read("TDDanalysis.cfg")
         myDrive = myConfig.get("Location","Root")
@@ -30,8 +30,7 @@ class TATestCase(object):
         mySemester = myConfig.get("Location","Semester")
         myTestLocation = myConfig.get("TA Test Case Location","Test Directory")
         self.analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myTestLocation)
-    
-    
+
     def Walk(self, root='.', recurse=True, pattern='*'):
         """
             Generator for walking a directory tree.
@@ -53,12 +52,12 @@ class TATestCase(object):
             By default recurses through subfolders.
         """
         if os.path.exists(self.analysisRoot):
-            locInMethod = 0
-            TATestCaseDict = {}
+            loc_in_method = 0
+            t_a_test_case_dict = {}
             for fspec in self.Walk(self.analysisRoot, recurse, '*.py'):
                 skip = False
-                firstMethodInFile = True
-                methodName = ""
+                first_method_in_file = True
+                method_name = ""
                 for line in open(fspec).readlines():
                     
                     line = line.strip()
@@ -70,26 +69,26 @@ class TATestCase(object):
                             continue
                         if not skip:
                             if line.startswith("def"):
-                                if not firstMethodInFile:
-                                    if (methodName != "setUp") and (methodName != "tearDown"):
-                                        TATestCaseDict[methodName] = locInMethod
-                                    locInMethod = 0
-                                firstMethodInFile = False
-                                methodData = line.split(" ")
-                                methodName = methodData[1].split("(")[0]
+                                if not first_method_in_file:
+                                    if (method_name != "setUp") and (method_name != "tearDown"):
+                                        t_a_test_case_dict[method_name] = loc_in_method
+                                    loc_in_method = 0
+                                first_method_in_file = False
+                                method_data = line.split(" ")
+                                method_name = method_data[1].split("(")[0]
     
-                            locInMethod += 1
-                if (methodName != "setUp") and (methodName != "tearDown"):
-                    TATestCaseDict[methodName] = locInMethod
+                            loc_in_method += 1
+                if (method_name != "setUp") and (method_name != "tearDown"):
+                    t_a_test_case_dict[method_name] = loc_in_method
         
-            self.storeTATestCaseObject(TATestCaseDict)
+            self.storeTATestCaseObject(t_a_test_case_dict)
     
-    def storeTATestCaseObject(self, TATestCaseDict):
+    def storeTATestCaseObject(self, t_a_test_case_dict):
         out_s = open(self.analysisRoot+os.sep+'TATestCase.json', 'w')
 
         # Write to the stream
-        myJsonString = jsonpickle.encode(TATestCaseDict)
-        out_s.write(myJsonString)
+        my_json_string = jsonpickle.encode(t_a_test_case_dict)
+        out_s.write(my_json_string)
         out_s.close()
             
     def retrieveTATestCaseObject(self):
@@ -98,13 +97,12 @@ class TATestCase(object):
             with open(self.analysisRoot+os.sep+'TATestCase.json', 'r') as in_s:
 
                 # Read from the stream
-                myJsonString = in_s.read()
-                TATestCaseDict = jsonpickle.decode(myJsonString)
+                my_json_string = in_s.read()
+                t_a_test_case_dict = jsonpickle.decode(my_json_string)
         except Exception as e:
-            TATestCaseDict = None
-        
+            t_a_test_case_dict = None
 
-        return TATestCaseDict
+        return t_a_test_case_dict
       
     
 if __name__ == '__main__':

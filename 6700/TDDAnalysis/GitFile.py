@@ -32,7 +32,7 @@ class GitFile(object):
 
     @classmethod
     def addNewPyFile(cls, new_pyfile):
-        cls.myFiles.update({new_pyfile.getFileName(): new_pyfile.getFileType()})
+        cls.myFiles.update({new_pyfile.get_file_name(): new_pyfile.get_file_type()})
 
     @classmethod
     def newPyFile(cls, py_file_name):

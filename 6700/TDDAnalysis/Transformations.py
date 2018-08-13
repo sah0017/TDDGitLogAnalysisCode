@@ -1,14 +1,15 @@
-'''
+"""
 Created on Jul 10, 2014
 
-@author: susanha
-'''
+@author: susan hammond
+"""
+
 
 class Trans(object):
-    '''
+    """
     This class is used to define the transformations and anti-transformations without
     hard coding the information.
-    '''
+    """
     NEWFILE = 0
     NULL = 1
     N2C = 2
@@ -43,49 +44,47 @@ class Trans(object):
         return self.transList
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
 
-    
-    def getTransformationName(self, transNbr):
-        if transNbr == 0:
+    def getTransformationName(self, trans_nbr):
+        if trans_nbr == 0:
             return "New file"
-        elif transNbr == 1:
+        elif trans_nbr == 1:
             return "Null"
-        elif transNbr == 2:
+        elif trans_nbr == 2:
             return "Null to Constant"
-        elif transNbr == 3:
+        elif trans_nbr == 3:
             return "Constant to Variable"
-        elif transNbr == 4:
+        elif trans_nbr == 4:
             return "Add Computation"
-        elif transNbr == 5:
+        elif trans_nbr == 5:
             return "Split Flow"
-        elif transNbr == 6:
+        elif trans_nbr == 6:
             return "Variable to Array "
-        elif transNbr == 7:
+        elif trans_nbr == 7:
             return "Array to Container"
-        elif transNbr == 8:
+        elif trans_nbr == 8:
             return "If to While"
-        elif transNbr == 9:
+        elif trans_nbr == 9:
             return "Recurse"
-        elif transNbr == 10:
+        elif trans_nbr == 10:
             return "Iterate"
-        elif transNbr == 11:
+        elif trans_nbr == 11:
             return "Assign"
-        elif transNbr == 12:
+        elif trans_nbr == 12:
             return "Add Case"
-        elif transNbr == -2:
+        elif trans_nbr == -2:
             return "Straight to Constant"
-        elif transNbr == -3:
+        elif trans_nbr == -3:
             return "Straight to Variable"
-        elif transNbr == -6:
+        elif trans_nbr == -6:
             return "Straight to Array"
-        elif transNbr == -8:
+        elif trans_nbr == -8:
             return "While with no If"
         else:
             return ""
-        
 
 
 class NewFile(Trans):

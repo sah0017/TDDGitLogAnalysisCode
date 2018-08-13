@@ -5,6 +5,7 @@ Created on Sep 12, 2014
 
 This is the main program that controls all the Git file analysis.
 """
+
 import os
 import AnalyzeGitLogFileAndCreateRpt
 import CreateGitfileAnalysisReport

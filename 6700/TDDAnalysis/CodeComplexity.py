@@ -1,42 +1,40 @@
-'''
+"""
 Created on Jul 7, 2015
 
-@author: susanha
-'''
+@author: susan hammond
+"""
 
 from radon.complexity import cc_rank, cc_visit, SCORE
 from radon.cli import Config
 from radon.cli.harvest import CCHarvester
 from radon.cli.harvest import MIHarvester
 from sys import exc_info
-import os
-import json
+
 
 class CodeComplexity(object):
-    '''
-    classdocs
-    '''
+    """
+    class docs
+    """
 
-
-    def __init__(self, myDrive, mySemester):
-        '''
+    def __init__(self, my_drive, my_semester):
+        """
         Constructor
-        '''
-        self.myDrive = myDrive
-        self.mySemester = mySemester
+        """
+        self.my_drive = my_drive
+        self.my_semester = my_semester
 
-    def analyzeComplexity(self, args):
+    def analyze_complexity(self, args):
         
-        def av(n,m): 
-            return n/m if m !=0 else 0
+        def av(mod_cc, len):
+            return mod_cc / len if len != 0 else 0
         
         config = Config(
-            exclude = args.exclude,
-            ignore = args.ignore,
+            exclude=args.exclude,
+            ignore=args.ignore,
             order=SCORE,
-            no_assert = args.no_assert,
-            multi = args.multi,
-            show_closures = False,
+            no_assert=args.no_assert,
+            multi=args.multi,
+            show_closures=False,
             min='A',
             max='F')
         total_cc = 0.
@@ -44,13 +42,13 @@ class CodeComplexity(object):
         module_averages = []
         
         try:
-            h = CCHarvester([args.path],config)
-            m = MIHarvester([args.path],config)
+            h = CCHarvester([args.path], config)
+            m = MIHarvester([args.path], config)
             cc_results = h._to_dicts()
             mi_results = []
             for filename, mi_data in m.results:
                 if mi_data:
-                    #continue
+                    # continue
                     mi_results.append((mi_data['mi'], mi_data['rank']))
             for module, blocks in cc_results.items():
                 module_cc = 0.
@@ -64,5 +62,5 @@ class CodeComplexity(object):
                 total_blocks += len(blocks)
             return module_averages, mi_results
         except Exception as e:
-            print (exc_info()[0],e)
+            print (exc_info()[0], e)
             return None, None
