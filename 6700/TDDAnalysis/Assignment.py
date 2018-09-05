@@ -17,6 +17,7 @@ import Transformations
 import AssignmentTotals
 import Commit
 from time import strptime
+from datetime import date
 import ConsecutiveCommitsOfSameType
 import TDDCycle
 import TDDGrade
@@ -305,10 +306,14 @@ class Assignment(object):
 
         grade_total = 0
         nbr_of_grades = 0
-        for grade in self.tdd_commit_grades:
-            if grade != "N/A":
-                grade_total = grade_total + grade
-                nbr_of_grades += 1
+        with open("tppgrades.csv", "a") as tpp_grades:
+            tpp_grades.write(date.strftime(date.today(), "%c"))
+            for grade in self.tdd_commit_grades:
+                if grade != "N/A":
+                    tpp_grades.write(", " + str(grade))
+                    grade_total = grade_total + grade
+                    nbr_of_grades += 1
+            tpp_grades.write("\n")
         if nbr_of_grades == 0:
             tdd_commit_avg_grade = "N/A"
         else:
