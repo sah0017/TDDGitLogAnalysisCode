@@ -9,7 +9,9 @@ correct assignment to analyze.
 The runTaTests method loads the TA test files and runs the student's tests against the
 TA Test code.
 """
-import sys, os, re, unittest, coverage
+import sys
+import os
+import unittest
 from unittest.runner import TextTestRunner
 import ConfigParser
 import json
@@ -23,14 +25,14 @@ class TAAutoGrader(object):
     def __init__(self):
         self.myConfig = ConfigParser.ConfigParser()
         self.myConfig.read("TDDanalysis.cfg")
-        self.myDrive = self.myConfig.get("Location","Root")
-        self.myHome = self.myConfig.get("Location","Home")
-        self.mySemester = self.myConfig.get("Location","Semester")
-        self.myAssignment = self.myConfig.get("Location","Assignment")
-        self.myProdPath = self.myConfig.get("Location","ProdPath")
+        self.myDrive = self.myConfig.get("Location", "Root")
+        self.myHome = self.myConfig.get("Location", "Home")
+        self.mySemester = self.myConfig.get("Location", "Semester")
+        self.myAssignment = self.myConfig.get("Location", "Assignment")
+        self.myProdPath = self.myConfig.get("Location", "ProdPath")
         self.TATestLocation = self.myConfig.get("TA Test Case Location", "Test Directory")
         self.TATestPath = self.myDrive + os.sep + self.myHome + os.sep + self.mySemester + os.sep + self.TATestLocation
-        self.namePathDepth = self.myConfig.getint("Location","Name Path Depth")
+        self.namePathDepth = self.myConfig.getint("Location", "Name Path Depth")
 
     def collect_report_stats(self, report):
 
@@ -155,9 +157,9 @@ class TAAutoGrader(object):
             print e
         out_s.close()
 
-    def retrieveTAReportObject(self,filename):
+    def retrieveTAReportObject(self, filename):
         try:
-            in_s = open(os.path.join(self.TATestPath + os.sep + filename +'.json'), 'r')
+            in_s = open(os.path.join(self.TATestPath + os.sep + filename + '.json'), 'r')
 
             # Read from the stream
             json_string_object = in_s.read()

@@ -2,15 +2,17 @@
 Created on June 6, 2017
 
 @author: susan hammond
-"""
 
-import GitFile
-import Assignment
-import Commit
-import os
+Used by:  Assignment
+Collects info about the overall TDD Cycle.
+Parameters:  when instantiated, receives a boolean value indicating whether or not this cycle began with a Red Light.
+Results:  Contain the code that analyzes the TPP transformations in the commit.
+Uses:
+"""
 
 
 class TDDCycle(object):
+
     """
     The TDDCycle object will collect the various pieces of data about the TDD Cycle itself.
     Will result in data to be used in determining process conformance.

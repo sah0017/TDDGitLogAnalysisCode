@@ -1,10 +1,11 @@
-'''
+"""
 Created on July 16, 2018
 
 @author: susanha
 
+Used by: TAAutoGrader
 TATestResults is a class to hold a summary of the results from all students for all the TA test cases run.
-'''
+"""
 
 
 class TATestResults(object):
@@ -15,7 +16,6 @@ class TATestResults(object):
         self.total_tests_with_error = 0
         self.total_tests_failed = 0
         self.total_fails_by_testclass = {}
-
 
     def passing_test_ratio(self):
         ratio = (self.total_tests_run - self.total_tests_with_error - self.total_tests_failed) / float(self.total_tests_run)

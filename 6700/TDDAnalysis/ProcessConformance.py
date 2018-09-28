@@ -101,7 +101,7 @@ class ProcessConformance(object):
             else:
                 t_p_p_conformance_ratio = (nbr_of_commits - commits_with_too_many_trans) / float(nbr_of_commits)
             student_name = student_name.replace(" ", "")
-            cc_pct = self.myCodeCov.retrieveCodeCoverageForSpecificStudentAndAssignment(student_name, assignment.assignmentName)
+            cc_pct = self.myCodeCov.retrieve_code_coverage_for_specific_student_and_assignment(student_name, assignment.assignmentName)
             if isinstance(cc_pct, float):
                 cc_pct = format(cc_pct, '.2f')
 

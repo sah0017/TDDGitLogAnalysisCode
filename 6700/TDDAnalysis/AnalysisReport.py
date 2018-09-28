@@ -66,7 +66,7 @@ class AnalysisReport(object):
         self.out_file.write("\r")
         for i in range(0, 13):
             self.out_file.write("Nbr of trans type " + my_trans_names.getTransformationName(i) +
-                        " is ," + str(trans_ttls_list[i]))
+                                " is ," + str(trans_ttls_list[i]))
             if which_assignment == "all":
                 for name in self.assignment_list:
                     trans_list = indiv_assignment_totals[name].get_total_trans_by_type_in_assignment()
@@ -230,12 +230,12 @@ class AnalysisReport(object):
         if not os.path.isdir(file_path):
             file_path = os.path.join(path, "submissions", student, "test")
             if not os.path.isdir(file_path):
-                file_path = os.path.join(path,"submissions", student )
+                file_path = os.path.join(path, "submissions", student)
         files = os.listdir(file_path)
         for pyfile in files:
             file_name, ext = os.path.splitext(pyfile)
             if ext == ".py" and "test" in file_name.lower():
-                with open(os.path.join(file_path,pyfile)) as test_file:
+                with open(os.path.join(file_path, pyfile)) as test_file:
                     for line in test_file:
                         clean_line = line.strip()
                         if clean_line.startswith("def") and "test" in line.lower():
@@ -246,4 +246,4 @@ class AnalysisReport(object):
 if __name__ == '__main__':
     myReport = AnalysisReport()
     myReport.create_analysis_report("/Users/shammond/GoogleDrive/6700Spring18",
-                                  "/Users/shammond/GoogleDrive/6700Spring18/spring2018-rcube", "spring2018-rcube", "all")
+                                    "/Users/shammond/GoogleDrive/6700Spring18/spring2018-rcube", "spring2018-rcube", "all")

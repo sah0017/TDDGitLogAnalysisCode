@@ -7,7 +7,7 @@ TATestCase reads in the TA Test Cases and creates a JSON file that contains the 
 of all the test cases, plus the number of lines of code in each test method.
 Run this every time new TA Test Cases are added for an assignment.
 """
-# from py._iniconfig import SectionWrapper
+
 import ConfigParser
 import os
 import fnmatch
@@ -23,13 +23,13 @@ class TATestCase(object):
         """
         Constructor
         """
-        myConfig = ConfigParser.ConfigParser() 
-        myConfig.read("TDDanalysis.cfg")
-        myDrive = myConfig.get("Location","Root")
-        myHome = myConfig.get("Location","Home")
-        mySemester = myConfig.get("Location","Semester")
-        myTestLocation = myConfig.get("TA Test Case Location","Test Directory")
-        self.analysisRoot = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myTestLocation)
+        my_config = ConfigParser.ConfigParser()
+        my_config.read("TDDanalysis.cfg")
+        my_drive = my_config.get("Location", "Root")
+        my_home = my_config.get("Location", "Home")
+        my_semester = my_config.get("Location", "Semester")
+        my_test_location = my_config.get("TA Test Case Location", "Test Directory")
+        self.analysisRoot = os.path.join(my_drive + os.sep + my_home + os.sep + my_semester + os.sep + my_test_location)
 
     def Walk(self, root='.', recurse=True, pattern='*'):
         """

@@ -110,9 +110,9 @@ class sandbox(object):
             print 'not found'
         '''    
     def newMethod(self):
-        self.line = "afjlak;ad CA02  afasfkjhla"
-        self.assignment = "CA02"
-        print  re.search(self.assignment, self.line)
+        line = "Thu Sep 27 10:11:20 2018 +0530"
+        assignment = "CA02"
+        print re.split("[-\+]", line)
         
     def testfileMethod(self):
         fileName = "c:\\Users\\susanha\\git\\6700Fall14\\testfile.txt"
@@ -129,6 +129,5 @@ class sandbox(object):
 if __name__ == '__main__':
 
     mySandbox = sandbox()
-    mySandbox.myMethod()
+    mySandbox.newMethod()
 
-            

@@ -8,7 +8,7 @@ This is the main program that controls all the Git file analysis.
 
 import os
 import AnalyzeGitLogFileAndCreateRpt
-import CreateGitfileAnalysisReport
+import AnalysisReport
 import FormattedGitLog
 
 import ConfigParser
@@ -33,7 +33,8 @@ if __name__ == '__main__':
 
     gitfileCreation = raw_input("Have you created the formatted git files? (y/n)  ")
 
-    if gitfileCreation.strip() == "n":                  # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
+    if gitfileCreation.strip() == "n":
+        # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
         myWorkingDirectory = os.getcwd()   # formatGitLogOutput changes the directory, it needs to be set back before create TATestCaseDict
         for root, myDir, files in os.walk(analysisRoot + os.sep + "submissions"):
             nameSplit = root.split(os.sep)
@@ -47,12 +48,13 @@ if __name__ == '__main__':
   
     gitfileAnalysis = raw_input("Have you analyzed the formatted git files? (y/n)  ")
 
-    if gitfileAnalysis.strip() == "n":                  # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
+    if gitfileAnalysis.strip() == "n":
+        # This stuff creates the formatted git log output.  Don't need to create this again if we just want to re-run the analysis
         whichAssignment = raw_input("Report on all assignments or just 1 (type 'all' or assignment Name)  ")
         myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
         for gitDataFile in os.listdir(analysisRoot):
             if gitDataFile.endswith(".gitdata"):
                 myAnalysis.analyze_git_log(analysisRoot, gitDataFile, whichAssignment)
          
-    myReport = CreateGitfileAnalysisReport.AnalysisReport()
+    myReport = AnalysisReport.AnalysisReport()
     myReport.create_analysis_report(reportRoot, analysisRoot, myAssignment, whichAssignment, prodPath)
