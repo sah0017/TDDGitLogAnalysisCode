@@ -17,13 +17,13 @@ if __name__ == '__main__':
     myHome = myConfig.get("Location", "Home")
     mySemester = myConfig.get("Location", "Semester")
     myAssignment = myConfig.get("Location", "Assignment")
-    root = os.path.join(myDrive, myHome, mySemester, myAssignment, "submissions")
+    root = os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep +  myAssignment + os.sep + "submissions")
 
     dirList = open(myAssignment+".dirList", "w")
     myDir = os.listdir(root)
 
     for name in myDir:
-        include_path = os.path.join(root, name)
+        include_path = os.path.join(root + os.sep + name)
         print include_path
         dirList.write(include_path + "\n")
         include_path = ""
