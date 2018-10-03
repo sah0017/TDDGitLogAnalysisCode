@@ -242,14 +242,14 @@ class AssignmentTotals(object):
         tot_test_code_added = self.get_net_test_loc_added()
         if nbr_commits > 0 and tot_a_trans + tot_trans > 0:
             # avgTrans = self.get_total_nbr_transformations_in_assignment() / nbr_commits
-            return ((tot_prod_code_added + tot_test_code_added) / (tot_trans + tot_a_trans)) / float(nbr_commits)
+            return float((tot_prod_code_added + tot_test_code_added) / (tot_trans + tot_a_trans)) / float(nbr_commits)
         else:
             return 0
 
     def get_ratio_prod_to_test(self):
         net_added_test_code = self.get_added_test_locin_assignment() - self.get_deleted_test_locin_assignment()
         if net_added_test_code > 0:
-            return ((self.get_added_lines_in_assignment() - self.get_deleted_lines_in_assignment()) * 1.0) / net_added_test_code
+            return float(self.get_added_lines_in_assignment() - self.get_deleted_lines_in_assignment()) / float(net_added_test_code)
         else:
             return 0 
 

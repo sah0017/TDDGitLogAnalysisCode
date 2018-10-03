@@ -104,14 +104,14 @@ class AnalysisReport(object):
         self.out_file.close()
     
     def print_individual_totals_and_count_assignment_totals(self, my_dir, analysis_root, which_assignment,
-                                                            my_assignment, prod_path):
+                                                            my_assignment_name, prod_path):
         my_git_file = GitFile.GitFile()
         my_totals = {}
         if which_assignment == "all":
             for key in self.assignment_list:
                 my_totals[key] = AssignmentTotals.AssignmentTotals()
         else:
-            my_totals[my_assignment] = AssignmentTotals.AssignmentTotals()
+            my_totals[my_assignment_name] = AssignmentTotals.AssignmentTotals()
         for item in my_dir:
             if os.path.isfile(os.path.join(analysis_root, item)):
                 file_name, ext = os.path.splitext(item)
@@ -129,98 +129,100 @@ class AnalysisReport(object):
 
                         for my_assignment in my_assignments:
                             assignment_name = my_assignment.get_assignment_name().lower()
-                            my_totals[assignment_name].add_to_nbr_submissions(1)
-                            my_commit_stats_list = my_assignment.get_my_commit_totals()
-                            my_commit_list = my_assignment.get_my_commits()
-                            '''
-                            myTransformationsByTranType = my_assignment.get_trans_totals_by_tran_type()
-                            myAntiTransformationsByTranType = my_assignment.get_antitrans_totals_by_tran_type() 
-                            '''
-                            for my_commit_stats in my_commit_stats_list:
-                                nbr_commits = my_commit_stats.get_nbr_commits()
-                                student_submission_totals.set_nbr_commits(nbr_commits)
-                                my_totals[assignment_name].set_nbr_commits(nbr_commits)
-                                AssignmentTotals.AssignmentTotals.set_total_commits(nbr_commits)
+                            if assignment_name == my_assignment_name:
+                                my_totals[assignment_name].add_to_nbr_submissions(1)
+                                my_commit_stats_list = my_assignment.get_my_commit_totals()
+                                my_commit_list = my_assignment.get_my_commits()
+                                '''
+                                myTransformationsByTranType = my_assignment.get_trans_totals_by_tran_type()
+                                myAntiTransformationsByTranType = my_assignment.get_antitrans_totals_by_tran_type() 
+                                '''
+                                for my_commit_stats in my_commit_stats_list:
+                                    nbr_commits = my_commit_stats.get_nbr_commits()
+                                    student_submission_totals.set_nbr_commits(nbr_commits)
+                                    my_totals[assignment_name].set_nbr_commits(nbr_commits)
+                                    AssignmentTotals.AssignmentTotals.set_total_commits(nbr_commits)
 
-                                student_submission_totals.set_rlcommit(my_commit_stats.get_rlcommit())
-                                student_submission_totals.set_glcommit(my_commit_stats.get_glcommit())
-                                student_submission_totals.set_other_commit(my_commit_stats.get_other_commit())
-                                student_submission_totals.set_ref_commit(my_commit_stats.get_ref_commit())
+                                    student_submission_totals.set_rlcommit(my_commit_stats.get_rlcommit())
+                                    student_submission_totals.set_glcommit(my_commit_stats.get_glcommit())
+                                    student_submission_totals.set_other_commit(my_commit_stats.get_other_commit())
+                                    student_submission_totals.set_ref_commit(my_commit_stats.get_ref_commit())
 
-                                added_loc = my_commit_stats.get_added_lines_in_assignment()
-                                student_submission_totals.set_added_lines_in_assignment(added_loc)
-                                my_totals[assignment_name].set_added_lines_in_assignment(added_loc)
-                                AssignmentTotals.AssignmentTotals.set_total_prod_LOC(added_loc)
-                                added_test_loc = my_commit_stats.get_added_test_locin_assignment()
-                                student_submission_totals.set_added_test_locin_assignment(added_test_loc)
-                                my_totals[assignment_name].set_added_test_locin_assignment(added_test_loc)
-                                AssignmentTotals.AssignmentTotals.set_total_test_LOC(added_test_loc)
-                                del_prod = my_commit_stats.get_deleted_lines_in_assignment()
-                                student_submission_totals.set_deleted_lines_in_assignment(del_prod)
-                                my_totals[assignment_name].set_deleted_lines_in_assignment(del_prod)
-                                AssignmentTotals.AssignmentTotals.set_total_deleted_prod_lines(del_prod)
-                                del_test = my_commit_stats.get_deleted_test_locin_assignment()
-                                AssignmentTotals.AssignmentTotals.set_total_deleted_test_lines(del_test)
-                                student_submission_totals.set_deleted_test_locin_assignment(del_test)
-                                my_totals[assignment_name].set_deleted_test_locin_assignment(del_test)
+                                    added_loc = my_commit_stats.get_added_lines_in_assignment()
+                                    student_submission_totals.set_added_lines_in_assignment(added_loc)
+                                    my_totals[assignment_name].set_added_lines_in_assignment(added_loc)
+                                    AssignmentTotals.AssignmentTotals.set_total_prod_LOC(added_loc)
+                                    added_test_loc = my_commit_stats.get_added_test_locin_assignment()
+                                    student_submission_totals.set_added_test_locin_assignment(added_test_loc)
+                                    my_totals[assignment_name].set_added_test_locin_assignment(added_test_loc)
+                                    AssignmentTotals.AssignmentTotals.set_total_test_LOC(added_test_loc)
+                                    del_prod = my_commit_stats.get_deleted_lines_in_assignment()
+                                    student_submission_totals.set_deleted_lines_in_assignment(del_prod)
+                                    my_totals[assignment_name].set_deleted_lines_in_assignment(del_prod)
+                                    AssignmentTotals.AssignmentTotals.set_total_deleted_prod_lines(del_prod)
+                                    del_test = my_commit_stats.get_deleted_test_locin_assignment()
+                                    AssignmentTotals.AssignmentTotals.set_total_deleted_test_lines(del_test)
+                                    student_submission_totals.set_deleted_test_locin_assignment(del_test)
+                                    my_totals[assignment_name].set_deleted_test_locin_assignment(del_test)
 
-                                student_submission_totals.set_total_trans_by_type_in_assignment(my_commit_stats.get_total_trans_by_type_in_assignment())
-                                student_submission_totals.set_total_anti_trans_by_type_in_assignment(my_commit_stats.get_total_anti_trans_by_type_in_assignment())
+                                    student_submission_totals.set_total_trans_by_type_in_assignment(my_commit_stats.get_total_trans_by_type_in_assignment())
+                                    student_submission_totals.set_total_anti_trans_by_type_in_assignment(my_commit_stats.get_total_anti_trans_by_type_in_assignment())
 
-                                net_prod_lines_added = my_commit_stats.addedLinesInAssignment - my_commit_stats.deletedLinesInAssignment
-                                net_test_lines_added = my_commit_stats.addedTestLOCInAssignment - my_commit_stats.deletedTestLOCInAssignment
-                                self.out_file.write(file_name + ext + "," + str(my_assignment.assignmentName) + "," +
-                                                    str(my_assignment.tdd_grade) + "," +
+                                    net_prod_lines_added = my_commit_stats.addedLinesInAssignment - my_commit_stats.deletedLinesInAssignment
+                                    net_test_lines_added = my_commit_stats.addedTestLOCInAssignment - my_commit_stats.deletedTestLOCInAssignment
+                                    self.out_file.write(file_name + ext + "," + str(my_assignment.assignmentName) + "," +
+                                                        str(my_assignment.tdd_grade) + "," +
 
-                                                    str(my_commit_stats.get_ideal_number_of_cycles()) + "," +
-                                                    str(my_assignment.getTDDCycleCount()) + "," +
-                                                    str(my_assignment.get_nbr_valid_cycles()) + ", " +
-                                                    str(my_commit_stats.nbrCommits) + "," +
-                                                    str(my_commit_stats.RLCommit) + "," +
-                                                    str(my_commit_stats.get_invalid_rl_commits()) + "," +
-                                                    str(my_assignment.getConsecutiveRedLights()) +
-                                                    my_assignment.getReasonsForConsecutiveCommits("Red Light") + "," +
-                                                    str(my_commit_stats.GLCommit) + "," +
-                                                    str(my_commit_stats.get_invalid_gl_commits()) + "," +
-                                                    str(my_assignment.getConsecutiveGreenLights()) +
-                                                    my_assignment.getReasonsForConsecutiveCommits("Green Light") + "," +
-                                                    str(my_commit_stats.refCommit) + "," +
-                                                    str(my_commit_stats.otherCommit) + "," +
-                                                    format(my_commit_stats.get_avg_lines_per_commit(), '.2f') + "," +
-                                                    format(my_commit_stats.get_avg_trans_per_commit(), '.2f') + " ," +
-                                                    format(my_commit_stats.get_avg_loc_per_trans_per_commit(), '.2f') + " ," +
-                                                    format(my_commit_stats.get_ratio_prod_to_test(), '.2f') + "," +
-                                                    str(net_prod_lines_added) + "," +
-                                                    str(net_test_lines_added) + "," + "\r")
+                                                        str(my_commit_stats.get_ideal_number_of_cycles()) + "," +
+                                                        str(my_assignment.getTDDCycleCount()) + "," +
+                                                        str(my_assignment.get_nbr_valid_cycles()) + ", " +
+                                                        str(my_commit_stats.nbrCommits) + "," +
+                                                        str(my_commit_stats.RLCommit) + "," +
+                                                        str(my_commit_stats.get_invalid_rl_commits()) + "," +
+                                                        str(my_assignment.getConsecutiveRedLights()) +
+                                                        my_assignment.getReasonsForConsecutiveCommits("Red Light") + "," +
+                                                        str(my_commit_stats.GLCommit) + "," +
+                                                        str(my_commit_stats.get_invalid_gl_commits()) + "," +
+                                                        str(my_assignment.getConsecutiveGreenLights()) +
+                                                        my_assignment.getReasonsForConsecutiveCommits("Green Light") + "," +
+                                                        str(my_commit_stats.refCommit) + "," +
+                                                        str(my_commit_stats.otherCommit) + "," +
+                                                        format(my_commit_stats.get_avg_lines_per_commit(), '.2f') + "," +
+                                                        format(my_commit_stats.get_avg_trans_per_commit(), '.2f') + " ," +
+                                                        format(my_commit_stats.get_avg_loc_per_trans_per_commit(), '.2f') + " ," +
+                                                        format(my_commit_stats.get_ratio_prod_to_test(), '.2f') + "," +
+                                                        str(net_prod_lines_added) + "," +
+                                                        str(net_test_lines_added) + "," + "\r")
 
-                            for my_commit in my_commit_list:
-                                AssignmentTotals.AssignmentTotals.set_total_nbr_transformations(my_commit.get_number_of_transformations())
-                                AssignmentTotals.AssignmentTotals.set_total_prod_files(my_commit.get_nbr_prod_files())
-                                AssignmentTotals.AssignmentTotals.set_total_test_files(my_commit.get_nbr_test_files())
-                                my_files = my_commit.get_file_list()
-                                for my_file in my_files:
-                                    my_trans = my_file.get_transformations()
-                                    for my_tran in my_trans:
-                                        if my_tran >= 0:
-                                            AssignmentTotals.AssignmentTotals.set_total_trans_by_type(1, my_tran)
-                                            my_totals[assignment_name].add_total_trans_by_type_in_assignment(1, my_tran)
+                                for my_commit in my_commit_list:
+                                    AssignmentTotals.AssignmentTotals.set_total_nbr_transformations(my_commit.get_number_of_transformations())
+                                    AssignmentTotals.AssignmentTotals.set_total_prod_files(my_commit.get_nbr_prod_files())
+                                    AssignmentTotals.AssignmentTotals.set_total_test_files(my_commit.get_nbr_test_files())
+                                    my_files = my_commit.get_file_list()
+                                    for my_file in my_files:
+                                        my_trans = my_file.get_transformations()
+                                        for my_tran in my_trans:
+                                            if my_tran >= 0:
+                                                AssignmentTotals.AssignmentTotals.set_total_trans_by_type(1, my_tran)
+                                                my_totals[assignment_name].add_total_trans_by_type_in_assignment(1, my_tran)
 
-                                        else:
-                                            AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(my_tran))
-                                            my_totals[assignment_name].add_total_anti_trans_by_type_in_assignment(1, abs(my_tran))
-                        self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) +
-                                            ",Total Student Tests, " + str(total_tests) + "," +
-                                            ",," +
-                                            str(student_submission_totals.nbrCommits) + "," +
-                                            str(student_submission_totals.RLCommit) + ",,,,,,," +
-                                            str(student_submission_totals.GLCommit) + ",,,,,,," +
-                                            str(student_submission_totals.refCommit) + "," +
-                                            str(student_submission_totals.otherCommit) + "," +
-                                            format(student_submission_totals.get_avg_lines_per_commit(), '.2f') + "," +
-                                            format(student_submission_totals.get_avg_trans_per_commit(), '.2f') + "," +
-                                            format(student_submission_totals.get_ratio_prod_to_test(), '.2f') + "," +
-                                            str(student_submission_totals.get_net_prod_loc_added()) + "," +
-                                            str(student_submission_totals.get_net_test_loc_added()) + "," + "\r\r")
+                                            else:
+                                                AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(my_tran))
+                                                my_totals[assignment_name].add_total_anti_trans_by_type_in_assignment(1, abs(my_tran))
+                                self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) +
+                                                ",Total Student Tests, " + str(total_tests) + "," +
+                                                ",," +
+                                                str(student_submission_totals.nbrCommits) + "," +
+                                                str(student_submission_totals.RLCommit) + ",,,,,,," +
+                                                str(student_submission_totals.GLCommit) + ",,,,,,," +
+                                                str(student_submission_totals.refCommit) + "," +
+                                                str(student_submission_totals.otherCommit) + "," +
+                                                format(student_submission_totals.get_avg_lines_per_commit(), '.2f') + "," +
+                                                format(student_submission_totals.get_avg_trans_per_commit(), '.2f') + "," +
+                                                format(student_submission_totals.get_avg_loc_per_trans_per_commit(), '.2f') + " ," +
+                                                format(student_submission_totals.get_ratio_prod_to_test(), '.2f') + "," +
+                                                str(student_submission_totals.get_net_prod_loc_added()) + "," +
+                                                str(student_submission_totals.get_net_test_loc_added()) + "," + "\r\r")
         return my_totals
 
     def count_total_tests(self, path, student, prod_path):
@@ -245,5 +247,5 @@ class AnalysisReport(object):
 
 if __name__ == '__main__':
     myReport = AnalysisReport()
-    myReport.create_analysis_report("/Users/shammond/GoogleDrive/6700Spring18",
-                                    "/Users/shammond/GoogleDrive/6700Spring18/spring2018-rcube", "spring2018-rcube", "all")
+    myReport.create_analysis_report("/Users/shammond/GoogleDrive/6700Fall18",
+                                    "/Users/shammond/GoogleDrive/6700Fall18/rcube", "rcube2", "rcube2", "RCube")
