@@ -73,18 +73,20 @@ class GitFile(object):
 
         my_file_i_o.close_file()
 
-    def GenerateInvididualReport(self, path, file_name, which_assignment):
+    def generate_individual_report(self, path, file_name, which_assignment):
 
         # list containing all the assignments, which contains a list of all the commits in that assignment
         my_assignments = self.getAssignments()
         out_file = open(path + os.sep + file_name + ".gitout", "w")
+        grade_file = open(path + os.sep + file_name + ".txt", "w")
         out_file.write("Assignments in log file:  " + str(len(my_assignments)))
         for myAssignment in my_assignments:
             if which_assignment == "all" or which_assignment.lower() == myAssignment.assignmentName.lower():
-                my_commit_stats = myAssignment.CalculateMyCommitStats(out_file)
+                my_commit_stats = myAssignment.CalculateMyCommitStats(out_file, grade_file)
                 myAssignment.addCommitTotalsToAssignment(my_commit_stats)
                 # myFiles = self.getFiles(myAssignment)
         out_file.close()
+        grade_file.close()
 
     def getAssignments(self):
         return self.myAssignmentsList

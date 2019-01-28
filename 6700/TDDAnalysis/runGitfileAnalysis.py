@@ -6,6 +6,7 @@ Created on Sep 12, 2014
 This is the main program that controls all the Git file analysis.
 """
 
+
 import os
 import AnalyzeGitLogFileAndCreateRpt
 import AnalysisReport
@@ -55,6 +56,8 @@ if __name__ == '__main__':
         for gitDataFile in os.listdir(analysisRoot):
             if gitDataFile.endswith(".gitdata"):
                 myAnalysis.analyze_git_log(analysisRoot, gitDataFile, whichAssignment)
+    else:
+        whichAssignment = "all"
          
     myReport = AnalysisReport.AnalysisReport()
     myReport.create_analysis_report(reportRoot, analysisRoot, myAssignment, whichAssignment, prodPath)

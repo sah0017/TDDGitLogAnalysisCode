@@ -8,7 +8,7 @@ loops through the list of submissions and passes in the student path and assignm
 analyzeCodeCoverage method loops through the student's submission, finds and loads test files, starts
 the code coverage analyzer, runs the student's tests against the student's code, then stops the CC analyzer.
 """
-import sys
+import sys, subprocess, signal
 import os
 import re
 import unittest
@@ -55,6 +55,7 @@ class CodeCoverage(object):
         self.CCReport = {}
 
     def retrieve_code_coverage_for_specific_student_and_assignment(self, student_name, assignment_name):
+        """ Not currently used. """
 
         cc_pct = "N/A"
         a_lc = assignment_name.lower()
@@ -71,6 +72,7 @@ class CodeCoverage(object):
         return cc_pct
 
     def loadCoverageReports(self, root, assignment_list):
+        """ Not currently used. """
         for assignment in assignment_list:
             a_lc = assignment.lower()
             cc_file_name = root + os.sep + assignment + os.sep + assignment + ".cvgrpt"
@@ -115,21 +117,33 @@ class CodeCoverage(object):
         return test_files, paths, student_name[0]
 
     def analyzeCodeCoverage(self, root, prod_path, assignment, html_report):
+        test_env = {}
         print root
         test_files, paths, stu_name = self.findStudentTestFiles(root, prod_path)
+        if not os.path.exists(os.path.join(paths[SUBPATH] + os.sep + "coverage")):
+            os.mkdir(os.path.join(paths[SUBPATH] + os.sep + "coverage"))
         try:
-            cov = coverage.Coverage(source=[paths[PRODPATH]], include="*.py",
+            test_env['COVERAGE_PROCESS_START'] = ".coveragerc"
+            #test_env['FLASK_ENV'] = "TEST"
+            #test_env['FLASK_APP'] = "microservice.py"
+
+            cov = coverage.Coverage(source=[paths[PRODPATH], root], include="*.py",
                                     omit=[paths[TESTPATH] + os.sep + '*', paths[SANDBOX] + os.sep + '*', '__init__.py'],
                                     branch=True, cover_pylib=False)
             # cov = coverage.Coverage(source=[root])
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
                 cc_report_outfile.write("\n\rStudent submission and path:  " + root + "\n\r")
             prod_files = os.listdir(paths[PRODPATH])
             sys.path.insert(0, root)
             sys.path.insert(0, paths[PRODPATH])
             sys.path.insert(0, paths[TESTPATH])
-            os.chdir(paths[PRODPATH])
+            os.chdir(root)
 
+            #test_process = subprocess.Popen(["coverage run --source microservice.main"], env=test_env, shell=True)
+            #test_process.communicate(add_url_rule('/shutdown', 'shutdown', shutdown,
+            #                         methods=['POST', 'GET']))
+
+            os.chdir(paths[PRODPATH])
             my_test_loader = unittest.TestLoader()
             test = re.compile(r"\b.py\b", re.IGNORECASE)      # test is a compiled regular expression to search for python files
             test_files = filter(test.search, test_files)        # this will filter out any files that aren't python files
@@ -140,32 +154,47 @@ class CodeCoverage(object):
 
             cov.start()
 
+
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
+                cc_report_outfile.write("Test File Names\n\r")
+
+            for t in test_files:
+                with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
+                    cc_report_outfile.write(t + "\r")
+
+            load = my_test_loader.loadTestsFromNames(module_test_names)
+
+            cc_report = TextTestRunner().run(load)
+
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
+                cc_report_outfile.write("Number of tests run:  " + str(cc_report.testsRun) + "\n\r")
+
+                if not cc_report.wasSuccessful():
+
+                    cc_report_outfile.write("Content of TestRunner failures\r")
+
+                    for failedTestCase, failure in cc_report.failures:
+                        cc_report_outfile.write(str(failedTestCase) + failure + "\n\r")
+
+                else:
+
+                    cc_report_outfile.write("All tests completed successfully!\n\r")
+
+                cc_report_outfile.write("********************************************************************************")
+            #test_process.terminate()  # Send the signal to all the process groups
+
+            cov.stop()
+            cov.save()
+            cov.combine()
+
+
         except Exception as e:
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_traceback, file=cc_report_outfile)
             # return -3, studentName[0]
 
-        with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
-            cc_report_outfile.write("Test File Names\n\r")
-        for t in test_files:
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
-                    cc_report_outfile.write(t + "\r")
 
-        load = my_test_loader.loadTestsFromNames(module_test_names)
-        cc_report = TextTestRunner().run(load)
-        with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
-            cc_report_outfile.write("Number of tests run:  " + str(cc_report.testsRun) + "\n\r")
-            if not cc_report.wasSuccessful():
-                cc_report_outfile.write("Content of TestRunner failures\r")
-                for failedTestCase, failure in cc_report.failures:
-                    cc_report_outfile.write(str(failedTestCase) + failure + "\n\r")
-            else:
-                cc_report_outfile.write("All tests completed successfully!\n\r")
-            cc_report_outfile.write("********************************************************************************")
-
-        cov.stop()
-        cov.save()
 
         # if CCreport.wasSuccessful():
         try:
@@ -179,19 +208,20 @@ class CodeCoverage(object):
                 if not (os.path.exists(html_path)):
                     os.mkdir(html_path)
                 pctg = cov.html_report(directory=html_path)
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+"):
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+"):
 
-                outfile = open(os.path.join(paths[SUBPATH] + paths[FILENAME] + assignment + ".cvg"), "a+")
+                outfile = open(os.path.join(paths[SUBPATH] + os.sep + "coverage" + os.sep + paths[FILENAME] + assignment + ".cvg"), "a+")
                 pctg = cov.report(file=outfile)
                 outfile.close()
 
             pctg = cov.report(omit=[paths[TESTPATH] + os.sep + '*', paths[SANDBOX] + os.sep + '*', '__init__.py'])
             # print pctg
             # raw_input("Continue (success)?")
+
             return pctg, stu_name
         except CoverageException as ce:
             print "CoverageException testpath:  " + paths[TESTPATH] + "\t" + str(ce)
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
                 cc_report_outfile.write("CoverageException " + str(ce) + "\n\r")
                 cc_report_outfile.write("********************************************************************************")
             # raw_input("Continue (CoverageException)?")
@@ -199,8 +229,8 @@ class CodeCoverage(object):
 
         finally:
             print "Test cases not successful at " + paths[TESTPATH]
-            with open(os.path.join(paths[SUBPATH] + assignment + ".CCreport"), "a+") as cc_report_outfile:
-                cc_report_outfile.write("Test cases not successful \n\r")
+            with open(os.path.join(paths[SUBPATH] + assignment + ".TestRunReport"), "a+") as cc_report_outfile:
+                cc_report_outfile.write("\nTest cases not successful \n\r")
                 cc_report_outfile.write("********************************************************************************")
 
             # raw_input("Continue (CCreport not successful)?")
@@ -227,7 +257,7 @@ if __name__ == '__main__':
     with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment +
               os.sep + myCodeCoverage.assignment + ".cvgrpt"), "a+") as outFile:
         outFile.write("Module Name\t\tCode Coverage percentage\n\r")
-    with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myCodeCoverage.assignment+".CCreport"), "a+") as cc_report_outfile:
+    with open(os.path.join(myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myCodeCoverage.assignment+".TestRunReport"), "a+") as cc_report_outfile:
         cc_report_outfile.write("Run date/time:  " + time.strftime("%a, %d %b %Y %H:%M:%S") + "\n\r")
 
     if totalArgs > 1:
@@ -240,7 +270,7 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         # dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "spring2018-rcube-rts0012"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "DianeJLiu"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
 

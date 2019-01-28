@@ -69,6 +69,7 @@ class Commit(object):
         self.added_ta_test_loc = 0
         self.deleted_test_loc = 0
         self.number_of_transformations = 0
+        self.number_of_anti_transformations = 0
         self.nbr_test_files = 0
         self.nbr_prod_files = 0
         self.transformations = []
@@ -79,15 +80,21 @@ class Commit(object):
 
     def calculate_tdd_grade(self):
         grader = TDDGrade.TDDGradeRubric()
-        trans_grade = grader.calculate_tdd_commit_grade(self.number_of_transformations, Commit.invalid_reason_list[3])
-        lg_commit_grade = grader.calculate_tdd_commit_grade(self.added_lines_in_commit + self.added_test_loc, Commit.invalid_reason_list[4])
+        # Anti-transformations are when a transformation is skipped, so it carries a higher penalty.
+        nbr_trans = (self.number_of_anti_transformations * 2) + self.number_of_transformations
+        trans_grade = grader.calculate_tdd_commit_grade(nbr_trans, Commit.invalid_reason_list[3])
+        net_loc_added = self.added_lines_in_commit  - self.deleted_lines_in_commit
+        net_test_loc_added = self.added_test_loc - self.deleted_test_loc
+        lg_commit_grade = grader.calculate_tdd_commit_grade(net_loc_added + net_test_loc_added, Commit.invalid_reason_list[4])
         if self.get_commit_type() == Commit.REDLIGHT:
             valid_files_grade = grader.calculate_tdd_commit_grade(self.nbr_prod_files, Commit.invalid_reason_list[1])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
         elif self.get_commit_type() == Commit.GREENLIGHT:
             valid_files_grade = grader.calculate_tdd_commit_grade(self.nbr_test_files, Commit.invalid_reason_list[2])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
-        else:               # not a red or green light commit, omit from grade calculation
+        elif net_loc_added > Commit.LGCOMMITSIZE:               # not a red or green light commit, check for extra large commits
+            commit_grade = lg_commit_grade
+        else:
             commit_grade = "N/A"
         return commit_grade
 
@@ -121,6 +128,12 @@ class Commit(object):
             return True
         return False
 
+    def contains_prod_file(self):
+        if self.nbr_prod_files > 0:
+            return True
+        else:
+            return False
+
     def analyzeCommit(self, git_file_handle, line):
         """
         Analyzes all the lines in an individual commit
@@ -141,6 +154,7 @@ class Commit(object):
                     self.add_added_lines_in_commit(my_pyfile_commit_details.addedLines)
                     self.add_deleted_lines_in_commit(my_pyfile_commit_details.deletedLines)
                     self.add_number_of_transformations(my_pyfile.number_of_transformations_in_py_file())
+                    self.add_number_of_anti_transformations(my_pyfile.number_of_anti_transformations_in_pyfile())
                 else:
                     self.increment_nbr_test_files()
                     self.add_added_test_loc(my_pyfile_commit_details.addedLines)
@@ -268,6 +282,9 @@ class Commit(object):
 
     def add_number_of_transformations(self, value):
         self.number_of_transformations = self.number_of_transformations + value
+
+    def add_number_of_anti_transformations(self, value):
+        self.number_of_anti_transformations = self.number_of_anti_transformations + value
 
     def set_nbr_test_files(self, value):
         self.nbr_test_files = value

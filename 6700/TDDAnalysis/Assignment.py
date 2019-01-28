@@ -94,8 +94,8 @@ class Assignment(object):
         self.consecutiveCommitsOfSameTypeList = []
         self.consecutiveRedLights = 0
         self.consecutiveGreenLights = 0
-        self.tdd_commit_grades = []
         self.tdd_grade = 0
+        self.nbr_commits_with_prod_code = 0
         self.TDDCycles = []
 
     def analyzeAssignment(self, file_io_object):
@@ -139,6 +139,8 @@ class Assignment(object):
                     my_tdd_cycle = self.addNewTDDCycle(True)
                     tdd_cycle_contains_green_light = False
             my_tdd_cycle = self.addCommitToTDDCycle(my_tdd_cycle, my_new_commit)
+            if my_new_commit.contains_prod_file():
+                self.nbr_commits_with_prod_code += 1
             prev_commit = new_commit_type
             line = file_io_object.readNextLine()
         self.addTddCycleToAssignment(my_tdd_cycle)
@@ -169,7 +171,7 @@ class Assignment(object):
             curr_assignment_name = Assignment.get_curr_assignmentName(commit_date)
         return curr_assignment_name
 
-    def CalculateMyCommitStats(self, out_file):
+    def CalculateMyCommitStats(self, out_file, grade_file):
         """
         This method calculates the commit stats for an assignment and creates the individual report file (.gitout)
         :param out_file: the file handle for the report file
@@ -186,6 +188,7 @@ class Assignment(object):
         deleted_lines = 0
         deleted_test_lines = 0
         nbr_commits = 0
+        nbr_non_empty_commits = 0
         nbr_red_light = 0
         nbr_invalid_r_l = 0
         nbr_green_light = 0
@@ -194,6 +197,7 @@ class Assignment(object):
         nbr_unknown_commit = 0
         nbr_transformations = 0
         nbr_anti_transformations = 0
+        tdd_commit_grades = []
         out_file.write("\r\n*********************************\r\nAssignment Name:" + str(self.assignmentName) +
                        "\r\n*********************************")
         """
@@ -226,7 +230,8 @@ class Assignment(object):
             for f in ConsCommits.secondCommitFileList:
                 outFile.write(f + "\t")
         """
-        nbr_commits = nbr_commits + len(self.myCommits)
+        nbr_non_empty_commits = self.get_nbr_non_empty_commits()
+        nbr_commits = len(self.myCommits)
         for my_commit in self.myCommits:
             my_files = my_commit.get_file_list()
             ctype = my_commit.get_commit_type()
@@ -248,12 +253,13 @@ class Assignment(object):
                            "\tCommit type: " + my_commit.commitType)  # + "    Validity value -- " + commit_validity)  SAH temporarily removed
             commit_tdd_grade = my_commit.calculate_tdd_grade()
             out_file.write("\t  Commit TDD Score:  " + str(commit_tdd_grade))
+            grade_file.write(self.assignmentName + "\t" + str(commit_tdd_grade) + "\r\n")
             if commit_validity == "INVALID":
                 out_file.write("\r\nCommit Feedback")
                 invalid_reason = my_commit.get_invalid_reason()
                 for r in invalid_reason:
                     out_file.write("\r\n" + Assignment.recommendations_dict[r])
-            self.tdd_commit_grades.append(commit_tdd_grade)
+            tdd_commit_grades.append(commit_tdd_grade)
             out_file.write("\n\r\tAdded lines:" +
                            str(my_commit.added_lines_in_commit) + ".  Deleted lines:" +
                            str(my_commit.deleted_lines_in_commit) + ".\r\n\t  Added test lines:" +
@@ -286,6 +292,7 @@ class Assignment(object):
 
             my_assignment_stats = AssignmentTotals.AssignmentTotals()
             my_assignment_stats.nbrCommits = nbr_commits
+            my_assignment_stats.nbrNonEmptyCommits = nbr_non_empty_commits
             my_assignment_stats.RLCommit = nbr_red_light
             my_assignment_stats.add_invalid_rl_commits(nbr_invalid_r_l)
             my_assignment_stats.GLCommit = nbr_green_light
@@ -305,7 +312,7 @@ class Assignment(object):
         nbr_of_grades = 0
         with open("tppgrades.csv", "a") as tpp_grades:
             tpp_grades.write(date.strftime(date.today(), "%c"))
-            for grade in self.tdd_commit_grades:
+            for grade in tdd_commit_grades:
                 if grade != "N/A":
                     tpp_grades.write(", " + str(grade))
                     grade_total = grade_total + grade
@@ -315,7 +322,10 @@ class Assignment(object):
             tdd_commit_avg_grade = "N/A"
         else:
             tdd_commit_avg_grade = grade_total / nbr_of_grades
-        self.tdd_grade = grader.calculate_overall_tdd_grade(rl_avg_length, gl_avg_length, tdd_commit_avg_grade)
+        percent_rl = nbr_red_light/float(nbr_commits)
+        percent_gl = nbr_green_light/float(nbr_commits)
+
+        self.tdd_grade = grader.calculate_overall_tdd_grade(rl_avg_length, percent_rl, gl_avg_length, percent_gl, tdd_commit_avg_grade)
         out_file.write("\r\n============================================\r\nTotal test code lines added:" + str(added_test_lines))
         out_file.write("\r\nTotal production code lines added:" + str(added_lines))
         out_file.write("\r\nTotal test code lines deleted:" + str(deleted_test_lines))
@@ -406,6 +416,14 @@ class Assignment(object):
 
     def get_my_commits(self):
         return self.myCommits
+
+    def get_nbr_non_empty_commits(self):
+        nbr_non_empty_commits = 0
+        for commit in self.myCommits:
+            if not(commit.deleted_test_loc == 0 and commit.added_test_loc == 0 and commit.deleted_lines_in_commit == 0  \
+                and commit.added_lines_in_commit == 0):
+                    nbr_non_empty_commits += 1
+        return nbr_non_empty_commits
 
     def get_my_tddcycles(self):
         return self.TDDCycles

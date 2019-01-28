@@ -29,7 +29,7 @@ class SubmissionReport:
 
         my_git_file.analyzeGitLogFile(path + os.sep + file_name)        # reads through entire git log file and performs TDD/TPP analyzes
         file_parts = os.path.splitext(file_name)
-        my_git_file.GenerateInvididualReport(path, file_parts[0], which_assignment)
+        my_git_file.generate_individual_report(path, file_parts[0], which_assignment)
                 
         my_git_file.storeGitReportObject(path + os.sep + file_parts[0])
 

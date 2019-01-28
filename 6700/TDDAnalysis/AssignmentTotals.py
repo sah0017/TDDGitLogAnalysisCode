@@ -11,6 +11,7 @@ class AssignmentTotals(object):
     """
     __totalSubmissions = 0
     __totalCommits = 0
+    __totalNonEmptyCommits = 0
     __totalRLCommits = 0
     __totalGLCommits = 0
     __totalRefCommits = 0
@@ -25,6 +26,7 @@ class AssignmentTotals(object):
     __totalTestLOC = 0
     __totalTransByType = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     __totalAntiTransByType = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    __total_test_cases = 0
 
     def __init__(self):
         """
@@ -32,6 +34,7 @@ class AssignmentTotals(object):
         """
         self.__nbrSubmissions = 0
         self.__nbrCommits = 0
+        self.__nbrNonEmptyCommits = 0
         self.__RLCommit = 0
         self.__InvalidRLCommits = 0
         self.__GLCommit = 0
@@ -82,7 +85,11 @@ class AssignmentTotals(object):
     @classmethod
     def set_total_commits(cls, value):
         cls.__totalCommits = cls.__totalCommits + value
-    
+
+    @classmethod
+    def set_total_non_empty_commits(cls, value):
+        cls.__totalNonEmptyCommits = cls.__totalNonEmptyCommits + value
+
     @classmethod
     def set_total_RL_commits(cls, value):
         cls.__totalRLCommits = cls.__totalRLCommits + value
@@ -137,8 +144,12 @@ class AssignmentTotals(object):
 
     @classmethod
     def get_total_commits(cls):
-        return cls.__totalCommits 
-    
+        return cls.__totalCommits
+
+    @classmethod
+    def get_total_non_empty_commits(cls):
+        return cls.__totalNonEmptyCommits
+
     @classmethod
     def get_total_RL_commits(cls):
         return cls.__totalRLCommits
@@ -158,12 +169,12 @@ class AssignmentTotals(object):
     @classmethod
     def get_total_avg_lines_per_commit(cls):
 
-        return (cls.get_total_LOC() * 1.0) / cls.__totalCommits
+        return (cls.get_total_LOC() * 1.0) / cls.__totalNonEmptyCommits
         
     @classmethod
     def get_total_avg_trans_per_commit(cls):
 
-        return (cls.__totalNbrTransformations * 1.0) / cls.__totalCommits
+        return (cls.__totalNbrTransformations * 1.0) / cls.__totalNonEmptyCommits
     
     @classmethod
     def get_total_ratio_test_to_prod(cls):
@@ -180,6 +191,9 @@ class AssignmentTotals(object):
     
     def get_nbr_commits(self):
         return self.__nbrCommits
+
+    def get_nbr_non_empty_commits(self):
+        return self.__nbrNonEmptyCommits
 
     def get_nbr_submissions(self):
         return self.__nbrSubmissions
@@ -296,8 +310,17 @@ class AssignmentTotals(object):
     def get_total_anti_trans_by_type_in_assignment(self):
         return self.__totalAntiTransByTypeInAssignment
 
+    def get_nbr_of_test_cases(self):
+        return self.__total_test_cases
+
+    def set_nbr_of_test_cases(self, value):
+        self.__total_test_cases = value
+
     def set_nbr_commits(self, value):
         self.__nbrCommits = self.__nbrCommits + value
+
+    def set_nbr_non_empty_commits(self, value):
+        self.__nbrNonEmptyCommits = self.__nbrNonEmptyCommits + value
 
     def set_rlcommit(self, value):
         self.__RLCommit = self.__RLCommit + value
@@ -349,6 +372,9 @@ class AssignmentTotals(object):
 
     def del_nbr_commits(self):
         del self.__nbrCommits
+
+    def del_nbr_non_empty_commits(self):
+        del self.__nbrNonEmptyCommits
 
     def del_rlcommit(self):
         del self.__RLCommit

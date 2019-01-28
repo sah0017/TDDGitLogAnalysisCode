@@ -28,7 +28,7 @@ class ProcessConformance(object):
         master_file.write("Student Name\n  Assignment Name, Total Commits, Red Light Validity Ratio, "
                        "Green Light Validity Ratio, "
                        "TPP Conformance Ratio, "
-                       "Nbr TDD Cycles, Nbr Valid TDD Cycles, Nbr Ideal Cycles, Code Coverage")
+                       "Nbr TDD Cycles, Nbr Valid TDD Cycles, Nbr Ideal Cycles, AVG LOC per trans per commit, Code Coverage")
         master_file.close()
 
     def create_process_conformance_report(self, report_root, analysis_root, file_name, student_name):
@@ -104,13 +104,17 @@ class ProcessConformance(object):
             cc_pct = self.myCodeCov.retrieve_code_coverage_for_specific_student_and_assignment(student_name, assignment.assignmentName)
             if isinstance(cc_pct, float):
                 cc_pct = format(cc_pct, '.2f')
-
+            if assignment.tdd_grade == "N/A":
+                tdd_grade = 0
+            else:
+                tdd_grade = assignment.tdd_grade
+            print assignment.tdd_grade
             with open(os.path.join(report_root + os.sep + "Overall Process Conformance Report.csv"), "a+") as masterFile:
                 masterFile.write("\r" + assignment.assignmentName + ", " +
                             str(nbr_of_commits) + ", " +
                             format(invalid_r_l_ratio, '.2f') + ", " +
                             format(invalid_g_l_ratio, '.2f') + ", " +
-                            format(t_p_p_conformance_ratio, '.2f') + ", " +
+                            format(tdd_grade, '.2f') + ", " +
                             str(nbr_t_d_d_cycles) + ", " +
                             str(valid_cycles) + ", " +
                             str(ideal_cycles) + ", " +

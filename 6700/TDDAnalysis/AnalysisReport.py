@@ -22,14 +22,15 @@ class AnalysisReport(object):
         self.out_file = open(report_root + os.sep + "Report" + my_assignment + ".csv", "w")
         my_trans_names = Transformations.Trans()
         self.out_file.write("Submission name, Assignment Name, TDD Score, Nbr Ideal Cycles, Nbr TDD Cycles, "                           
-                            "Nbr Valid TDD Cycles, Nbr of Commits, "
+                            "Nbr Valid TDD Cycles, Nbr of Commits, Nbr Non Empty Commits, "
                             "Red Light, Invalid RL, "
                             "Nbr Consec RL, Reasons-Undetermined, Same test file, "
                             "Same prod file, Multiple files, "
                             "Green Light, Invalid GL, Nbr Consec GL, Reasons-Undetermined, "
                             "Same test file, Same prod file, "
-                            "Multiple files, Refactor, Other, Avg Lines Per Commit, Avg Trans Per Commit,"
-                            "Avg LOC per Trans per Commit, Ratio-Prod to Test Code, Net Added Prod Lines, Net Added Test Lines\r")
+                            "Multiple files, Refactor, Other, Commits w/Prod Code, Avg Lines Per All Commits, "  
+                            "Nbr of Trans, Avg Trans Per Prod Commit,Avg Prod LOC per Trans per Prod Commit, "
+                            "Ratio-Prod to Test Code, Net Added Prod Lines, Net Added Test Lines, % of commits RL, % of commits GL\r")
 
         indiv_assignment_totals = self.print_individual_totals_and_count_assignment_totals(my_dir, analysis_root,
                                                                                            which_assignment,
@@ -37,6 +38,7 @@ class AnalysisReport(object):
 
         ttl_sub = AssignmentTotals.AssignmentTotals.get_total_submissions()
         ttl_comm = AssignmentTotals.AssignmentTotals.get_total_commits()
+        ttl_non_empty_comm = AssignmentTotals.AssignmentTotals.get_total_non_empty_commits()
         ttl_trans = AssignmentTotals.AssignmentTotals.get_total_nbr_transformations()
         trans_ttls_list = AssignmentTotals.AssignmentTotals.get_total_trans_by_type()
         # ttlAntiTrans = myAssignmentStats.get_total_anti_transformations()
@@ -58,6 +60,11 @@ class AnalysisReport(object):
         if which_assignment == "all":
             for name in self.assignment_list:
                 self.out_file.write("," + str(indiv_assignment_totals[name].get_nbr_commits()))
+        self.out_file.write("\r")
+        self.out_file.write("Total nbr of non-empty commits:  ," + str(ttl_non_empty_comm))
+        if which_assignment == "all":
+            for name in self.assignment_list:
+                self.out_file.write("," + str(indiv_assignment_totals[name].get_nbr_non_empty_commits()))
         self.out_file.write("\r")
         self.out_file.write("Total nbr of transformations:  ," + str(ttl_trans))
         if which_assignment == "all":
@@ -90,7 +97,7 @@ class AnalysisReport(object):
             for name in self.assignment_list:
                 self.out_file.write("," + str(indiv_assignment_totals[name].get_net_test_loc_added()))
         self.out_file.write("\r")
-        if ttl_comm > 0:
+        if ttl_non_empty_comm > 0:
             self.out_file.write("Avg Trans per commit: , " + format(AssignmentTotals.AssignmentTotals.get_total_avg_trans_per_commit(), '.2f'))
             if which_assignment == "all":
                 for name in self.assignment_list:
@@ -115,9 +122,9 @@ class AnalysisReport(object):
         for item in my_dir:
             if os.path.isfile(os.path.join(analysis_root, item)):
                 file_name, ext = os.path.splitext(item)
-                student_name = file_name.split("_")
-                print 'Processing ' + student_name[0]
                 if ext == ".gitdata":
+                    student_name = file_name.split("_")
+                    print 'Processing ' + student_name[0]
                     current_git_file = my_git_file.retrieveGitReportObject(analysis_root + os.sep + file_name)
                     if current_git_file is not None:
                         total_tests = self.count_total_tests(analysis_root, file_name, prod_path)
@@ -126,22 +133,28 @@ class AnalysisReport(object):
                         student_submission_totals = AssignmentTotals.AssignmentTotals()
         
                         my_assignments = current_git_file.getAssignments()
+                        my_assignment_total_commits_with_prod_code = 0
 
                         for my_assignment in my_assignments:
                             assignment_name = my_assignment.get_assignment_name().lower()
-                            if assignment_name == my_assignment_name:
+                            if assignment_name == my_assignment_name or which_assignment == "all":
                                 my_totals[assignment_name].add_to_nbr_submissions(1)
                                 my_commit_stats_list = my_assignment.get_my_commit_totals()
                                 my_commit_list = my_assignment.get_my_commits()
+
                                 '''
                                 myTransformationsByTranType = my_assignment.get_trans_totals_by_tran_type()
                                 myAntiTransformationsByTranType = my_assignment.get_antitrans_totals_by_tran_type() 
                                 '''
                                 for my_commit_stats in my_commit_stats_list:
                                     nbr_commits = my_commit_stats.get_nbr_commits()
+                                    nbr_non_empty_commits = my_commit_stats.get_nbr_non_empty_commits()
                                     student_submission_totals.set_nbr_commits(nbr_commits)
+                                    student_submission_totals.set_nbr_non_empty_commits(nbr_non_empty_commits)
                                     my_totals[assignment_name].set_nbr_commits(nbr_commits)
+                                    my_totals[assignment_name].set_nbr_non_empty_commits(nbr_non_empty_commits)
                                     AssignmentTotals.AssignmentTotals.set_total_commits(nbr_commits)
+                                    AssignmentTotals.AssignmentTotals.set_total_non_empty_commits(nbr_non_empty_commits)
 
                                     student_submission_totals.set_rlcommit(my_commit_stats.get_rlcommit())
                                     student_submission_totals.set_glcommit(my_commit_stats.get_glcommit())
@@ -170,6 +183,18 @@ class AnalysisReport(object):
 
                                     net_prod_lines_added = my_commit_stats.addedLinesInAssignment - my_commit_stats.deletedLinesInAssignment
                                     net_test_lines_added = my_commit_stats.addedTestLOCInAssignment - my_commit_stats.deletedTestLOCInAssignment
+                                    if my_assignment.nbr_commits_with_prod_code > 0:
+                                        my_assignment_total_commits_with_prod_code += my_assignment.nbr_commits_with_prod_code
+                                        avg_trans_commit = (my_commit_stats.get_total_nbr_transformations_in_assignment() + \
+                                                       my_commit_stats.get_total_nbr_anti_transformations_in_assignment()) / float(my_assignment.nbr_commits_with_prod_code)
+                                        avg_loc_trans_commit = float(net_prod_lines_added) / (
+                                                    my_commit_stats.get_total_nbr_transformations_in_assignment() + \
+                                                    my_commit_stats.get_total_nbr_anti_transformations_in_assignment()) / float(
+                                            my_assignment.nbr_commits_with_prod_code)
+                                    else:
+                                        avg_trans_commit = 0
+                                        avg_loc_trans_commit = 0
+
                                     self.out_file.write(file_name + ext + "," + str(my_assignment.assignmentName) + "," +
                                                         str(my_assignment.tdd_grade) + "," +
 
@@ -177,6 +202,7 @@ class AnalysisReport(object):
                                                         str(my_assignment.getTDDCycleCount()) + "," +
                                                         str(my_assignment.get_nbr_valid_cycles()) + ", " +
                                                         str(my_commit_stats.nbrCommits) + "," +
+                                                        str(my_commit_stats.nbrNonEmptyCommits) + "," +
                                                         str(my_commit_stats.RLCommit) + "," +
                                                         str(my_commit_stats.get_invalid_rl_commits()) + "," +
                                                         str(my_assignment.getConsecutiveRedLights()) +
@@ -187,12 +213,18 @@ class AnalysisReport(object):
                                                         my_assignment.getReasonsForConsecutiveCommits("Green Light") + "," +
                                                         str(my_commit_stats.refCommit) + "," +
                                                         str(my_commit_stats.otherCommit) + "," +
+                                                        str(my_assignment.nbr_commits_with_prod_code) + "," +
                                                         format(my_commit_stats.get_avg_lines_per_commit(), '.2f') + "," +
-                                                        format(my_commit_stats.get_avg_trans_per_commit(), '.2f') + " ," +
-                                                        format(my_commit_stats.get_avg_loc_per_trans_per_commit(), '.2f') + " ," +
+                                                        str(my_commit_stats.get_total_nbr_transformations_in_assignment() +
+                                                        my_commit_stats.get_total_nbr_anti_transformations_in_assignment()) + "," +
+                                                        format(avg_trans_commit, '.2f') + " ," +
+                                                        format(avg_loc_trans_commit, '.2f') + " ," +
                                                         format(my_commit_stats.get_ratio_prod_to_test(), '.2f') + "," +
                                                         str(net_prod_lines_added) + "," +
-                                                        str(net_test_lines_added) + "," + "\r")
+                                                        str(net_test_lines_added) + "," +
+                                                        format(self.calc_percentage(my_assignment.assignmentName, my_commit_stats.RLCommit, my_commit_stats.nbrCommits), '.1f') +
+                                                        "," + format(self.calc_percentage(my_assignment.assignmentName, my_commit_stats.GLCommit,
+                                                            my_commit_stats.nbrCommits), '.2f') + "\r")
 
                                 for my_commit in my_commit_list:
                                     AssignmentTotals.AssignmentTotals.set_total_nbr_transformations(my_commit.get_number_of_transformations())
@@ -209,20 +241,32 @@ class AnalysisReport(object):
                                             else:
                                                 AssignmentTotals.AssignmentTotals.set_total_antitrans_by_type(1, abs(my_tran))
                                                 my_totals[assignment_name].add_total_anti_trans_by_type_in_assignment(1, abs(my_tran))
-                                self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) +
-                                                ",Total Student Tests, " + str(total_tests) + "," +
-                                                ",," +
-                                                str(student_submission_totals.nbrCommits) + "," +
-                                                str(student_submission_totals.RLCommit) + ",,,,,,," +
-                                                str(student_submission_totals.GLCommit) + ",,,,,,," +
-                                                str(student_submission_totals.refCommit) + "," +
-                                                str(student_submission_totals.otherCommit) + "," +
-                                                format(student_submission_totals.get_avg_lines_per_commit(), '.2f') + "," +
-                                                format(student_submission_totals.get_avg_trans_per_commit(), '.2f') + "," +
-                                                format(student_submission_totals.get_avg_loc_per_trans_per_commit(), '.2f') + " ," +
-                                                format(student_submission_totals.get_ratio_prod_to_test(), '.2f') + "," +
-                                                str(student_submission_totals.get_net_prod_loc_added()) + "," +
-                                                str(student_submission_totals.get_net_test_loc_added()) + "," + "\r\r")
+                        if my_assignment_total_commits_with_prod_code > 0:
+                            tot_avg_trans_commit = (student_submission_totals.get_total_nbr_transformations_in_assignment() + \
+                                               student_submission_totals.get_total_nbr_anti_transformations_in_assignment()) / float(
+                                    my_assignment_total_commits_with_prod_code)
+                            tot_avg_loc_trans_commit = float(net_prod_lines_added) / \
+                                    (student_submission_totals.get_total_nbr_transformations_in_assignment() + \
+                                    student_submission_totals.get_total_nbr_anti_transformations_in_assignment()) / float(
+                                    my_assignment_total_commits_with_prod_code)
+                        else:
+                            tot_avg_trans_commit = 0
+                            tot_avg_loc_trans_commit = 0
+                        self.out_file.write("Totals for " + student_name[0] + "," + str(len(my_assignments)) +
+                                        ",Total Student Tests, " + str(total_tests) + "," +
+                                        ",," +
+                                        str(student_submission_totals.nbrCommits) + "," +
+                                        str(student_submission_totals.get_total_non_empty_commits()) + "," +
+                                        str(student_submission_totals.RLCommit) + ",,,,,,," +
+                                        str(student_submission_totals.GLCommit) + ",,,,,,," +
+                                        str(student_submission_totals.refCommit) + "," +
+                                        str(student_submission_totals.otherCommit) + ",," +
+                                        format(student_submission_totals.get_avg_lines_per_commit(), '.2f') + ",," +
+                                        format(tot_avg_trans_commit, '.2f') + "," +
+                                        format(tot_avg_loc_trans_commit, '.2f') + " ," +
+                                        format(student_submission_totals.get_ratio_prod_to_test(), '.2f') + "," +
+                                        str(student_submission_totals.get_net_prod_loc_added()) + "," +
+                                        str(student_submission_totals.get_net_test_loc_added()) + "," + "\r\r")
         return my_totals
 
     def count_total_tests(self, path, student, prod_path):
@@ -243,6 +287,13 @@ class AnalysisReport(object):
                         if clean_line.startswith("def") and "test" in line.lower():
                             nbr_tests += 1
         return nbr_tests
+
+    def calc_percentage(self, which_type, nbr_type_commits, nbr_commits):
+        if which_type != self.assignment_list[0]:
+            return nbr_type_commits / float(nbr_commits)
+        else:
+            return ""
+
 
 
 if __name__ == '__main__':

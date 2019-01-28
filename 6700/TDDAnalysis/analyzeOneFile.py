@@ -15,23 +15,24 @@ if __name__ == '__main__':
     #  bryant--james_2270195_45451066_jab0091Log
     myConfig = ConfigParser.ConfigParser()
     myConfig.read("TDDanalysis.cfg")
-    root = "/Users"
+    root = myConfig.get("Location", "Root")
     myDrive = "shammond/GoogleDrive"
-    mySemester = "6700Spring17"
-    myAssignment = "Assignment5"
-    currentDir = "shammond/GoogleDrive/6700Spring17/Assignment5/submissions/pittman-tyler/"
-    fileName = "pittman-tyler"
+    mySemester = "6700Fall18"
+    myAssignment = "rcube"
+    currentDir = "shammond/GoogleDrive/6700Fall18/rcube/submissions/rcube-yzc0104/"
+    fileName = "yzc0104"
     analysisRoot = os.path.join(root, myDrive, mySemester, myAssignment)
 
     myFormattedGitLog = FormattedGitLog.FormattedGitLog()
     myFormattedGitLog.formatGitLogOutput(root, currentDir, analysisRoot,fileName)
 
     myAnalysis = AnalyzeGitLogFileAndCreateRpt.SubmissionReport()
-    ''' for Spring 18   
+    ''' for Spring 18   '''
     filename_extension = myAssignment + "-" + fileName + ".gitdata"   
-    '''
-    ''' for Spring 17 '''
+
+    ''' for Spring 17 
     filename_extension = fileName + ".gitdata"
+    '''
     report_root = os.path.join(root, myDrive, mySemester)
     myAnalysis.analyze_git_log(analysisRoot, filename_extension, "all")
     
