@@ -3,7 +3,7 @@ LIST=$1
 arg2=$2
 while read dir; do
 	echo $dir
-	python $dir/microservice.py &
+	coverage run --parallel-mode $dir/microservice.py &
 	APP_PID=$!
 	sleep 1
 	python CodeCoverage.py $dir $1 $2 

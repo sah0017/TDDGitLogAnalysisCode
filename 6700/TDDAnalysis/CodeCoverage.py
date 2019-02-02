@@ -127,7 +127,7 @@ class CodeCoverage(object):
             #test_env['FLASK_ENV'] = "TEST"
             #test_env['FLASK_APP'] = "microservice.py"
 
-            cov = coverage.Coverage(source=[paths[PRODPATH], root], include="*.py",
+            cov = coverage.Coverage(source=[paths[PRODPATH], root],
                                     omit=[paths[TESTPATH] + os.sep + '*', paths[SANDBOX] + os.sep + '*', '__init__.py'],
                                     branch=True, cover_pylib=False)
             # cov = coverage.Coverage(source=[root])
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             htmlReport = False 
     else:
         # dataFile = "g:\\git\\6700Spring16\\CA03\\submissions\\yanyufei_late_3331231_73091650_yzy0050CA03\\SoftwareProcess\\SoftwareProcess\\Assignment\\"
-        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "DianeJLiu"
+        dataFile = myDrive + os.sep + myHome + os.sep + mySemester + os.sep + myAssignment + os.sep + "submissions" + os.sep + "chlundy"
         myCodeCoverage.assignment = myAssignment
         htmlReport = False
 

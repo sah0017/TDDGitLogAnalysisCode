@@ -65,13 +65,15 @@ class TDDGradeRubric(object):
         grade = 100
         basis = TDDGradeRubric.rubric_dict[reason].basis
         deductions = TDDGradeRubric.rubric_dict[reason].deduction
+        tot_penalty = 0
         if total < basis:
             total = basis
-        if reason == "consgreenlight":
+        if reason == "consgreenlight" or basis == 0:
             total = total - basis
-            grade = grade - (total * deductions)
+            tot_penalty = total * deductions
         else:
-            grade = grade - ((float(total / basis) - 1) * deductions)
+            tot_penalty = ((float(total / basis) - 1) * deductions)
+        grade = grade - tot_penalty
         if grade < 0:
             grade = 0
         return round(grade)

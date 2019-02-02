@@ -32,14 +32,16 @@ class Commit(object):
     OTHER = "Other"
     NOPYCODE = "No Python Code"
     LGCOMMITSIZE = 100
+    REFACTORTRANS = 3
     invalid_reason_list = ["undetermined", "redlightwithprodcode", "greenlightwithtestcode",
-                           "onetransformation", "largecommit"]
+                           "onetransformation", "largecommit", "refactortrans"]
 
     @classmethod
     def load_recommendations(cls):
         my_config = ConfigParser.SafeConfigParser()
         my_config.read("TDDanalysis.cfg")
         cls.LGCOMMITSIZE = int(my_config.get("Recommendations","LargeCommitSize"))
+        cls.REFACTORTRANS = int(my_config.get("Recommendations","RefactorTrans"))
 
     @classmethod
     def load_grade_criteria(cls):
@@ -83,7 +85,7 @@ class Commit(object):
         # Anti-transformations are when a transformation is skipped, so it carries a higher penalty.
         nbr_trans = (self.number_of_anti_transformations * 2) + self.number_of_transformations
         trans_grade = grader.calculate_tdd_commit_grade(nbr_trans, Commit.invalid_reason_list[3])
-        net_loc_added = self.added_lines_in_commit  - self.deleted_lines_in_commit
+        net_loc_added = self.added_lines_in_commit - self.deleted_lines_in_commit
         net_test_loc_added = self.added_test_loc - self.deleted_test_loc
         lg_commit_grade = grader.calculate_tdd_commit_grade(net_loc_added + net_test_loc_added, Commit.invalid_reason_list[4])
         if self.get_commit_type() == Commit.REDLIGHT:
@@ -92,8 +94,10 @@ class Commit(object):
         elif self.get_commit_type() == Commit.GREENLIGHT:
             valid_files_grade = grader.calculate_tdd_commit_grade(self.nbr_test_files, Commit.invalid_reason_list[2])
             commit_grade = (valid_files_grade + trans_grade + lg_commit_grade) / 3
-        elif net_loc_added > Commit.LGCOMMITSIZE:               # not a red or green light commit, check for extra large commits
+        elif net_loc_added > Commit.LGCOMMITSIZE:   # not a red or green light commit, check for extra large commits or refactorings
             commit_grade = lg_commit_grade
+        elif nbr_trans > Commit.REFACTORTRANS:  # not a red or green light commit, check for extra large nbr of refactorings
+            commit_grade = trans_grade
         else:
             commit_grade = "N/A"
         return commit_grade
