@@ -187,10 +187,7 @@ class AnalysisReport(object):
                                         my_assignment_total_commits_with_prod_code += my_assignment.nbr_commits_with_prod_code
                                         avg_trans_commit = (my_commit_stats.get_total_nbr_transformations_in_assignment() + \
                                                        my_commit_stats.get_total_nbr_anti_transformations_in_assignment()) / float(my_assignment.nbr_commits_with_prod_code)
-                                        avg_loc_trans_commit = float(net_prod_lines_added) / (
-                                                    my_commit_stats.get_total_nbr_transformations_in_assignment() + \
-                                                    my_commit_stats.get_total_nbr_anti_transformations_in_assignment()) / float(
-                                            my_assignment.nbr_commits_with_prod_code)
+                                        avg_loc_trans_commit = float(net_prod_lines_added) / avg_trans_commit
                                     else:
                                         avg_trans_commit = 0
                                         avg_loc_trans_commit = 0
@@ -245,10 +242,7 @@ class AnalysisReport(object):
                             tot_avg_trans_commit = (student_submission_totals.get_total_nbr_transformations_in_assignment() + \
                                                student_submission_totals.get_total_nbr_anti_transformations_in_assignment()) / float(
                                     my_assignment_total_commits_with_prod_code)
-                            tot_avg_loc_trans_commit = float(net_prod_lines_added) / \
-                                    (student_submission_totals.get_total_nbr_transformations_in_assignment() + \
-                                    student_submission_totals.get_total_nbr_anti_transformations_in_assignment()) / float(
-                                    my_assignment_total_commits_with_prod_code)
+                            tot_avg_loc_trans_commit = float(net_prod_lines_added) / tot_avg_trans_commit
                         else:
                             tot_avg_trans_commit = 0
                             tot_avg_loc_trans_commit = 0
@@ -299,4 +293,4 @@ class AnalysisReport(object):
 if __name__ == '__main__':
     myReport = AnalysisReport()
     myReport.create_analysis_report("/Users/shammond/GoogleDrive/6700Fall18",
-                                    "/Users/shammond/GoogleDrive/6700Fall18/rcube", "rcube2", "rcube2", "RCube")
+                                    "/Users/shammond/GoogleDrive/6700Fall18/rcube", "rcube2", "all", "RCube")
